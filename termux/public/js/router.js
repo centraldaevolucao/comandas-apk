@@ -60,9 +60,7 @@ window.ROTAS = {
     'tipo-dispositivo':         'renderTipodeDispositivo',
     'rede':                     'renderRede',
     'assinatura':               'renderAssinatura',
-    'suporte':                  'renderSuporte',
-    'admin-assinaturas':        'renderGerenciarAssinaturas',
-    'pixd':                     'renderPIXD'
+    'suporte':                  'renderSuporte'
 };
 
 window.PERMISSOES_ROTA = {
@@ -119,7 +117,6 @@ window.PERMISSOES_ROTA = {
 
 function rotaPermitida(rota) {
     if (typeof window.perfilPermiteRota === 'function' && !window.perfilPermiteRota(rota)) return false;
-    if (rota === 'admin-assinaturas' || rota === 'pixd') return true;
     if (rota === 'home') return true;
 
     const perm = window.PERMISSOES_ROTA[rota];

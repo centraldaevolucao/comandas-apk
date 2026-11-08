@@ -1,4 +1,4 @@
-> **Versão atual do sistema: 2.15.0** — este arquivo é renomeado e atualizado a cada versão (seções numeradas abaixo, da mais antiga à mais nova).
+> **Versão atual do sistema: 2.16.0** — este arquivo é renomeado e atualizado a cada versão (seções numeradas abaixo, da mais antiga à mais nova).
 
 # Comandas 2.3.0 — guia, relatório de correções, testes e pendências
 
@@ -204,3 +204,11 @@ Obs.: itens alterados depois de gerar o recibo em aberto não atualizam o valor 
 - **1 licença = 1 equipamento servidor; clientes ilimitados:** celulares/tablets conectados ao servidor usam o status dele, sem limite de aparelhos.
 - **Atenção:** os IDs e códigos da v2.14.0 (ID aleatório) deixam de valer — emita novos com o ID mostrado na tela Assinatura da v2.15.0. Trocar de aparelho exige nova licença.
 - **Testado (navegador):** aplicar `.lic` pelo seletor de arquivo, recusa de licença de outro equipamento, contador correndo, mesmo equipamento → mesmo ID. **Não testado:** abrir `.lic` pelo Android (código Java sem compilar), aparelho real.
+
+## 28. v2.16.0 — Administração separada: novo app "Comandas Licenças"
+- **O Comandas não tem mais nenhum modo administrativo.** A emissão de licenças, o livro de recebimentos e a chave privada saíram deste projeto (a pasta `ferramentas/` e o script `licenca_admin.py` foram removidos). O dono usa o app separado **Comandas Licenças** (projeto `comandas-licencas`, id `br.com.comandas.licencas`, repositório próprio e privado). Não instale esse app nos clientes.
+- **Pedido de licença (cliente):** Assinatura › **Solicitar licença (enviar pedido)** compartilha um arquivo `.pedido` (estabelecimento, telefone, ID do equipamento, valor) pelo WhatsApp/e-mail. O texto também leva o código `CMDP1.…`, que o app do dono entende mesmo colado.
+- **Fluxo completo:** cliente paga o Pix → envia o `.pedido` → dono abre no Comandas Licenças › Atender › Gerar `.lic` › envia → cliente toca no `.lic` (ou Assinatura › Aplicar licença). Detalhes e abas no `LEIAME.md` do projeto `comandas-licencas`.
+- **Chave:** a mesma chave privada de antes continua valendo (o app do dono importa o `chave-privada.txt`); códigos e `.lic` já emitidos seguem válidos. A chave NÃO fica mais neste repositório (`.gitignore` bloqueia `chave-privada.txt`, `*.lic`, `*.pedido`).
+- As seções 26 e 27 acima citam `ferramentas/licenca_admin.py`: leia como "o app Comandas Licenças".
+- **Testado:** pedido gerado pelo Comandas → importado no app do dono → `.lic` emitido → aplicado no Comandas (estado "ativa"). **Não testado:** compilação do Java e abertura de `.pedido`/`.lic` no Android.

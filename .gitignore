@@ -10,6 +10,6 @@ __pycache__/
 .idea/
 *.apk
 # Licenças: chave privada e livro de clientes NUNCA vão para o GitHub
-ferramentas/chave-privada.txt
-ferramentas/livro-licencas.csv
-ferramentas/licencas/
+chave-privada.txt
+*.lic
+*.pedido

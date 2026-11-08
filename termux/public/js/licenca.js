@@ -133,9 +133,9 @@
 
         h += '<div style="background:#fff;border-radius:12px;padding:14px;margin-bottom:14px;box-shadow:0 2px 8px rgba(0,0,0,.06);">' +
             '<div style="font-weight:700;margin-bottom:8px;">Como ' + (s.estado === 'ativa' ? 'renovar' : 'assinar') + '</div>' +
-            '<div style="font-size:.88rem;color:#444;line-height:1.5;"><b>1.</b> Pague ' + R(valor) + ' por Pix.<br><b>2.</b> Envie o comprovante e o ID acima.<br><b>3.</b> Você recebe um arquivo <b>.lic</b>: toque em <b>Aplicar licença</b>.</div>' +
+            '<div style="font-size:.88rem;color:#444;line-height:1.5;"><b>1.</b> Pague ' + R(valor) + ' por Pix.<br><b>2.</b> Toque em <b>Solicitar licença</b> e envie o pedido e o comprovante pelo WhatsApp.<br><b>3.</b> Você recebe um arquivo <b>.lic</b>: toque em <b>Aplicar licença</b>.</div>' +
             '<button class="btn-primary" style="margin-top:10px;" onclick="licencaPix()"><i class="fas fa-qrcode"></i> Pagar com Pix (' + R(valor) + ')</button>' +
-            '<button class="btn-outline" style="margin-top:8px;width:100%;" onclick="licencaEnviarComprovante()"><i class="fab fa-whatsapp"></i> Enviar comprovante</button>' +
+            '<button class="btn-outline" style="margin-top:8px;width:100%;" onclick="licencaSolicitar()"><i class="fas fa-paper-plane"></i> Solicitar licença (enviar pedido)</button>' +
             '<input type="file" id="lic-arquivo" accept="*/*" style="display:none;" onchange="licencaLerArquivo(this)">' +
             '<button class="btn-primary" style="margin-top:14px;background:#2e7d32;" onclick="document.getElementById(\'lic-arquivo\').click()"><i class="fas fa-file-circle-check"></i> Aplicar licença (arquivo .lic)</button>' +
             '<div style="font-size:.74rem;color:#777;margin-top:6px;">Recebeu o arquivo <b>.lic</b> pelo WhatsApp ou e-mail? Toque nele e escolha Comandas, ou use o botão acima. Sem digitar nada.</div>' +
@@ -202,14 +202,25 @@
         window.licencaAplicarTexto(cod);
     };
 
-    window.licencaEnviarComprovante = async function () {
+    // Pedido de licença: arquivo .pedido (equipamento + estabelecimento) que o dono importa no app "Comandas Licenças"
+    window.licencaSolicitar = async function () {
         const s = window.LICENCA.status || {};
-        const texto = 'Olá! Segue o comprovante da assinatura do Comandas.\nID da instalação: ' + (s.instalacaoId || '') + (s.cliente ? '\nCliente: ' + s.cliente : '');
-        if (window.LICENCA_WHATSAPP && window.LICENCA_WHATSAPP !== '5511999999999') {
-            window.open('https://wa.me/' + window.LICENCA_WHATSAPP + '?text=' + encodeURIComponent(texto), '_blank');
-        } else if (window.AndroidApp && window.AndroidApp.compartilhar) window.AndroidApp.compartilhar('Assinatura Comandas', texto);
-        else window.licencaCopiar(texto);
+        let cfg = {}; try { cfg = window.normalizarArray(await window.apiGet('configuracoes'))[0] || {}; } catch (e) {}
+        const dados = { app: 'Comandas', tipo: 'pedido-licenca', estabelecimento: cfg.nomeImpressao || s.cliente || '', telefone: cfg.telefone || cfg.whatsapp || '',
+            equipamento: s.instalacaoId || '', valor: await valorAssinatura(), pedido_em: new Date().toISOString() };
+        const b64 = btoa(unescape(encodeURIComponent(JSON.stringify(dados)))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+        const conteudo = JSON.stringify(Object.assign({}, dados, { codigo: 'CMDP1.' + b64 }), null, 1);
+        const nome = 'pedido-' + String(dados.equipamento).replace(/-/g, '') + '.pedido';
+        const texto = 'Olá! Quero assinar o Comandas.\nEstabelecimento: ' + (dados.estabelecimento || '—') + '\nID do equipamento: ' + dados.equipamento + '\nPedido: CMDP1.' + b64;
+        if (window.AndroidApp && window.AndroidApp.compartilharArquivo) {
+            window.AndroidApp.compartilharArquivo(nome, 'application/octet-stream', btoa(unescape(encodeURIComponent(conteudo))));
+        } else {
+            const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([conteudo], { type: 'application/octet-stream' })); a.download = nome;
+            document.body.appendChild(a); a.click(); a.remove();
+            if (window.LICENCA_WHATSAPP && window.LICENCA_WHATSAPP !== '5511999999999') window.open('https://wa.me/' + window.LICENCA_WHATSAPP + '?text=' + encodeURIComponent(texto), '_blank');
+        }
     };
+    window.licencaEnviarComprovante = window.licencaSolicitar;
 
     window.licencaPix = async function () {
         let chave = typeof CHAVE_PIX_PADRAO !== 'undefined' ? CHAVE_PIX_PADRAO : '';
@@ -226,7 +237,7 @@
             '<div style="padding:16px;"><img src="' + window.qrUrl(pix, '300x300') + '" alt="QR Pix" style="width:220px;height:220px;border:2px dashed ' + COR + ';border-radius:12px;padding:8px;">' +
             '<div style="font-size:.75rem;color:#777;margin:10px 0 4px;">Pix copia e cola</div><div style="font-size:.7rem;word-break:break-all;max-height:56px;overflow:hidden;color:#333;">' + esc(pix) + '</div>' +
             '<button class="btn-outline" style="margin-top:10px;width:100%;" id="lic-copiar-pix"><i class="far fa-copy"></i> Copiar código Pix</button>' +
-            '<div style="font-size:.78rem;color:#777;margin-top:10px;">Depois de pagar, toque em <b>Enviar comprovante</b> e aguarde o código de ativação.</div>' +
+            '<div style="font-size:.78rem;color:#777;margin-top:10px;">Depois de pagar, toque em <b>Solicitar licença</b>, envie o pedido e aguarde o arquivo .lic.</div>' +
             '<button class="btn-primary" style="margin-top:10px;width:100%;" id="lic-fechar-pix">Fechar</button></div></div>';
         document.body.appendChild(m);
         m.querySelector('#lic-copiar-pix').onclick = function () { window.licencaCopiar(pix); };
