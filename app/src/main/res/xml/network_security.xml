@@ -1,0 +1,3 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- O servidor embutido responde em http://127.0.0.1 (e na rede local, se você ativar). -->
+<network-security-config><base-config cleartextTrafficPermitted="true" /></network-security-config>

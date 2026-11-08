@@ -1,0 +1,41 @@
+plugins {
+    id 'com.android.application'
+    id 'com.chaquo.python'
+}
+android {
+    namespace 'br.com.comandas'
+    compileSdk 34
+    defaultConfig {
+        applicationId 'br.com.comandas'
+        minSdk 24
+        targetSdk 34
+        // O Android só aceita atualizar por cima se o versionCode SOBE a cada versão.
+        // No GitHub Actions usa o número da execução; local, usa o valor fixo abaixo.
+        versionCode (System.getenv('GITHUB_RUN_NUMBER') ? (System.getenv('GITHUB_RUN_NUMBER') as int) + 100 : 100)
+        versionName '2.13.0'
+        ndk { abiFilters 'arm64-v8a', 'armeabi-v7a', 'x86_64' }
+        python { version '3.11' }   // servidor usa só a biblioteca padrão: nenhum pip necessário
+    }
+    // Chave FIXA (comandas.keystore, na raiz do projeto): todo APK sai com a mesma assinatura,
+    // por isso instala POR CIMA do anterior sem desinstalar e sem perder os dados.
+    // Guarde este arquivo: se trocar a chave, o Android obriga a desinstalar.
+    signingConfigs {
+        comandas {
+            storeFile file('../comandas.keystore')
+            storePassword 'comandas123'
+            keyAlias 'comandas'
+            keyPassword 'comandas123'
+        }
+    }
+    packagingOptions { jniLibs { useLegacyPackaging true } }   // cloudflared precisa ser extraído como arquivo
+    buildTypes {
+        debug   { signingConfig signingConfigs.comandas }
+        release { minifyEnabled false; signingConfig signingConfigs.comandas }
+    }
+    compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
+}
+
+dependencies {
+    implementation 'androidx.core:core:1.12.0'      // FileProvider: compartilhar arquivos exportados
+    implementation 'com.google.zxing:core:3.5.3'   // lê o QR Code do PIX a partir de uma imagem
+}

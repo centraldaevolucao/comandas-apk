@@ -1,0 +1,209 @@
+/* =====================================================================
+   RESPONSIVE.CSS — rolagem, toque e layout (celular, tablet, desktop)
+   Carregado DEPOIS do global.css. Classes no <html>:
+     .is-touch  → aparelho com tela de toque (celular/tablet)
+     .is-mouse  → computador com mouse
+   ===================================================================== */
+
+/* ---------- Altura real da tela (barra de endereço / teclado) ---------- */
+html, body { height: 100%; }
+@supports (height: 100dvh) {
+    html, body { height: 100dvh; }
+    .menu-lateral { height: 100dvh; }
+    .modal-overlay { height: 100dvh; }
+}
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+body { overscroll-behavior: none; }
+
+/* ---------- Toque: sem atraso, sem zoom por duplo toque, sem seleção acidental ---------- */
+button, a, [onclick], .lista-item, .card-comanda, .menu-item, .chip-filtro, .chip-grupo,
+.drop-item, .btn-primary, .btn-outline, .btn-danger, .btn-qtd, .icon-btn, .fab,
+select, label, summary, input[type="checkbox"], input[type="radio"] {
+    touch-action: manipulation;
+}
+html.is-touch button, html.is-touch .lista-item, html.is-touch .card-comanda,
+html.is-touch .menu-item, html.is-touch .chip-filtro, html.is-touch .chip-grupo,
+html.is-touch .drop-item, html.is-touch .app-bar, html.is-touch .card-menu-item,
+html.is-touch .fab, html.is-touch .icon-btn {
+    -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;
+}
+/* Campos e textos de conteúdo continuam selecionáveis */
+input, textarea, select, [contenteditable] { -webkit-user-select: text; user-select: text; }
+
+/* ---------- Áreas que rolam na vertical ---------- */
+.content-area, .modal-body, .menu-body, #dropdown-container,
+#drawer-cardapio-lista, #cozinha-lista-produtos, .tabela-rolagem {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+}
+.content-area, .modal-body, .menu-body, #dropdown-container, #drawer-cardapio-lista {
+    overflow-y: auto; overflow-x: hidden;
+    touch-action: pan-y;
+}
+.content-area { scroll-behavior: auto; }
+
+/* ---------- Faixas que rolam na horizontal (abas, chips, filtros) ---------- */
+#menu-abas-pdv, #menu-abas-cozinha, #cozinha-chips, #cardapio-grupos-chips,
+#cardapio-dia-chips, .chips-filtro-wrapper, #caixa-chips, #historico-chips {
+    overflow-x: auto; overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    touch-action: pan-x;
+    scrollbar-width: none;
+}
+#menu-abas-pdv::-webkit-scrollbar, #menu-abas-cozinha::-webkit-scrollbar,
+.chips-filtro-wrapper::-webkit-scrollbar { display: none; }
+
+/* Tabelas largas rolam para o lado dentro do próprio quadro */
+.tabela-rolagem {
+    max-width: 100%; overflow-x: auto; overflow-y: visible;
+    touch-action: pan-x pan-y;
+}
+.tabela-rolagem > table { min-width: 100%; }
+
+/* ---------- Computador (mouse): barra de rolagem visível e fina ---------- */
+html.is-mouse .content-area, html.is-mouse .modal-body, html.is-mouse .menu-body,
+html.is-mouse #dropdown-container, html.is-mouse #drawer-cardapio-lista,
+html.is-mouse #cozinha-lista-produtos, html.is-mouse .tabela-rolagem,
+html.is-mouse .cozinha-col-direita, html.is-mouse .cozinha-col-esquerda {
+    scrollbar-width: thin;
+    scrollbar-color: #c9a0b4 transparent;
+}
+html.is-mouse ::-webkit-scrollbar { width: 10px; height: 10px; }
+html.is-mouse ::-webkit-scrollbar-thumb { background: #cfa9bb; border-radius: 8px; border: 2px solid transparent; background-clip: content-box; }
+html.is-mouse ::-webkit-scrollbar-thumb:hover { background: #C2185B; background-clip: content-box; border: 2px solid transparent; }
+html.is-mouse ::-webkit-scrollbar-track { background: transparent; }
+html.is-mouse #menu-abas-pdv::-webkit-scrollbar, html.is-mouse #menu-abas-cozinha::-webkit-scrollbar,
+html.is-mouse .chips-filtro-wrapper::-webkit-scrollbar { display: none; }
+
+/* ---------- Toque: alvos de 44px e campos sem zoom ---------- */
+html.is-touch .icon-btn, html.is-touch .app-bar .icon-btn { min-width: 44px; min-height: 44px; }
+html.is-touch .btn-limpar { min-width: 40px; min-height: 40px; }
+html.is-touch .btn-qtd, html.is-touch .btn-qtd-cardapio { width: 40px; height: 40px; }
+html.is-touch .btn-primary, html.is-touch .btn-outline, html.is-touch .btn-danger { min-height: 44px; }
+html.is-touch .menu-item { min-height: 48px; }
+html.is-touch .menu-section-header { min-height: 52px; }
+html.is-touch .lista-item { min-height: 56px; }
+html.is-touch .drop-item { min-height: 48px; }
+html.is-touch .card-comanda-menu { width: 36px; height: 36px; }
+html.is-touch .chip-filtro, html.is-touch .chip-grupo { min-height: 40px; }
+html.is-touch input:not([type="checkbox"]):not([type="radio"]),
+html.is-touch select, html.is-touch textarea { font-size: 16px; }
+html.is-touch .toggle { width: 54px; height: 32px; }
+html.is-touch .toggle .slider:before { height: 20px; width: 20px; }
+html.is-touch .toggle input:checked + .slider:before { transform: translateX(22px); }
+
+/* Toque não tem "passar o mouse": evita estados presos depois do toque */
+@media (hover: none) {
+    .card-comanda-menu:hover { transform: none; }
+    .btn-primary:hover { background-color: var(--primary-color); }
+    .btn-outline:hover, .btn-danger:hover { background-color: transparent; }
+    .lista-item:hover { background-color: #fff; }
+    .lista-item:active, .drop-item:active, .menu-item:active { background-color: var(--primary-light); }
+}
+
+/* ---------- Botão flutuante (+) ---------- */
+.fab {
+    left: auto; right: 20px; transform: none;
+    bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+    width: 58px; height: 58px; min-width: 58px; min-height: 58px; aspect-ratio: 1 / 1;
+    padding: 0; border-radius: 50%; flex: none; gap: 0; overflow: hidden;
+    font-size: 2rem; line-height: 1; text-indent: 0; white-space: nowrap;
+}
+.fab i { margin: 0; font-size: 1.4rem; line-height: 1; }
+/* Botões de adicionar dentro das telas (cardápio do cliente etc.): redondos, só com o "+" */
+.btn-add-cardapio {
+    width: 40px; height: 40px; min-width: 40px; padding: 0; border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center; font-size: 0; flex: none;
+}
+.btn-add-cardapio i { font-size: 1rem; margin: 0; }
+.btn-add-redondo, .btn-add-redondo.btn-primary, .btn-add-redondo.btn-outline {
+    width: 44px; height: 44px; min-width: 44px; padding: 0; border-radius: 50%; flex: none;
+    display: inline-flex; align-items: center; justify-content: center; font-size: 1.2rem;
+}
+.fab:active { transform: scale(0.92); }
+
+/* ---------- Menu lateral: gaveta no celular/tablet, fixo no desktop ---------- */
+@media (max-width: 1023px) {
+    /* corrige conflito: o X da gaveta precisava aparecer; o botão de recolher não faz sentido */
+    body.permite-collapse #btn-fechar-menu { display: flex !important; }
+    body.permite-collapse #btn-hamburger { display: none !important; }
+    .menu-lateral { width: 86%; max-width: 340px; }
+    .menu-header { padding-top: calc(12px + env(safe-area-inset-top, 0px)); }
+    .menu-body { padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px)); }
+}
+@media (min-width: 1024px) {
+    #btn-fechar-menu { display: none !important; }
+}
+
+/* Cabeçalho que não estoura em telas estreitas */
+.app-bar h1 { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ---------- Conteúdo ---------- */
+.content-area { padding-bottom: calc(100px + env(safe-area-inset-bottom, 0px)); }
+img, video, canvas, svg { max-width: 100%; }
+.lista-item-info { min-width: 0; }
+.lista-item-titulo, .lista-item-sub { overflow-wrap: anywhere; }
+.modal-content { max-height: calc(100vh - 30px); }
+@supports (height: 100dvh) { .modal-content { max-height: calc(100dvh - 30px); } }
+
+/* ---------- CELULAR (até 767px) ---------- */
+@media (max-width: 767px) {
+    .card { margin: 0 12px 10px; padding: 14px; }
+    .input-busca { margin: 10px 12px; }
+    #comandas-grid { padding: 10px 10px 120px; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); }
+    .pdv-cards-grid { grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 10px; }
+    .qrcodes-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+    .modal-overlay { padding: 10px; }
+    .modal-body { padding: 16px; }
+    .lista-item { padding: 12px 14px; }
+    .item-comanda { padding: 10px 12px; }
+    .item-comanda-subtotal { min-width: 60px; }
+    .toast-cliente { bottom: calc(24px + env(safe-area-inset-bottom, 0px)); }
+}
+@media (max-width: 380px) {
+    .qrcodes-grid { grid-template-columns: 1fr; }
+    #comandas-grid, .pdv-cards-grid { grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); }
+}
+
+/* ---------- TABLET (768px a 1023px) ---------- */
+@media (min-width: 768px) and (max-width: 1023px) {
+    #comandas-grid, .pdv-cards-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
+    .content-area { padding-bottom: calc(110px + env(safe-area-inset-bottom, 0px)); }
+    .modal-content { max-width: 560px; }
+}
+
+/* ---------- Telas largas: formulários não esticam demais ---------- */
+@media (min-width: 768px) {
+    .content-area > .field, .content-area > form { max-width: 760px; margin-left: auto; margin-right: auto; }
+}
+@media (min-width: 1024px) {
+    #comandas-grid, .pdv-cards-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
+    /* o botão (+) acompanha a área de conteúdo, não a tela inteira */
+    .fab { right: 28px; }
+}
+
+/* ---------- Orientação horizontal em celular (altura curta) ---------- */
+@media (max-height: 480px) and (orientation: landscape) {
+    .app-bar { padding-top: 6px !important; padding-bottom: 6px !important; }
+    .fab { width: 48px; height: 48px; bottom: 14px; }
+    .modal-content { max-height: calc(100vh - 16px); }
+}
+
+/* ---------- Impressão ---------- */
+@media print {
+    html, body { height: auto !important; overflow: visible !important; }
+    .menu-lateral, .menu-overlay, .fab, .app-bar, #menu-abas-pdv, #menu-abas-cozinha,
+    #barra-filtros-relatorio, #btn-cardapio-lateral { display: none !important; }
+    #app { margin: 0 !important; width: 100% !important; overflow: visible !important; }
+    .content-area { overflow: visible !important; padding: 0 !important; }
+}
+
+/* ---------- Função "Cardápio do dia": sem menu, sem voltar ---------- */
+body.perfil-sem-menu { --sidebar-width: 0px !important; }
+body.perfil-sem-menu #app { margin-left: 0 !important; width: 100% !important; }
+body.perfil-sem-menu .menu-lateral, body.perfil-sem-menu .menu-overlay,
+body.perfil-sem-menu #btn-home-mobile,
+body.perfil-sem-menu .app-bar .icon-btn[onclick*="abrirMenu"],
+body.perfil-sem-menu .app-bar .icon-btn[onclick*="navigateTo"],
+body.perfil-sem-menu .app-bar .icon-btn[onclick*="voltar"] { display: none !important; }

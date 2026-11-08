@@ -1,0 +1,170 @@
+> **Versão atual do sistema: 2.13.0** — este arquivo é renomeado e atualizado a cada versão (seções numeradas abaixo, da mais antiga à mais nova).
+
+# Comandas 2.3.0 — guia, relatório de correções, testes e pendências
+
+## 1. Instalar / atualizar (APK)
+- O APK é gerado pelo GitHub Actions (mesmo fluxo anterior). Todas as versões usam a mesma assinatura (`comandas.keystore`) e `versionCode` crescente: **instale por cima, sem desinstalar**.
+- O banco é copiado para `/Comandas/backup` (pede "Acesso a todos os arquivos") e restaurado se o app for desinstalado e reinstalado.
+- Antes de atualizar: Configurações > Backup > "Fazer backup agora" (gera arquivo `.comandas`).
+
+## 2. Modos (Configurações > Tipo de dispositivo)
+Trocar de modo pede confirmação, grava, confere o que ficou gravado, reinicia e mostra o modo em uso. A escolha fica no banco do aparelho (sobrevive a reiniciar/atualizar). Dados nunca são apagados na troca.
+- **Único**: tudo liberado, banco local, sem rede.
+- **Servidor**: o app atende outros aparelhos na porta 3000 (escuta 0.0.0.0).
+- **Cliente**: usa o banco do servidor; escolha a **função** (Garçom=PDV, Cozinha=Cozinha, Caixa=Caixa+PDV, Cardápio=só Cardápio do Dia, sem menu) e informe o endereço do servidor.
+
+## 3. Conexão — LAN, Hotspot, Cloudflare
+Configurações > **Rede e conexão** (também abre ao tocar no selo colorido do cliente).
+- **LAN**: servidor e clientes no mesmo roteador. No servidor, a tela mostra os IPs reais; no cliente, adicione `192.168.x.x`.
+- **Hotspot (Android)**: ligue o Hotspot no celular servidor, abra o app em modo Servidor, veja o IP mostrado em Rede e conexão (não é sempre 192.168.43.1). Nos outros aparelhos conectados ao hotspot, adicione esse IP. Funciona sem internet.
+  - Se não conectar: alguns celulares ativam "isolamento de AP/clientes"; desative nas opções do hotspot.
+- **Cloudflare**: no servidor, ligue o túnel (link `https://….trycloudflare.com`). Cliente em outra rede adiciona esse link. Pelo túnel, só o cardápio do cliente (QR) é liberado; o resto é bloqueado no servidor.
+- O cliente guarda vários endereços, testa **de verdade** (`/api/ping`) na ordem LAN › Hotspot › Cloudflare, usa o primeiro que responde, troca sozinho se cair e volta ao preferido quando ele reaparece.
+- Atualização em tempo real por SSE (`/api/eventos`) com reconexão automática: o que um aparelho grava aparece nas telas Cozinha/Caixa/PDV dos outros.
+
+## 4. Servidor no Termux
+```
+pkg install python
+cd comandas-apk/termux   # pasta com server.py, public/ e iniciar-servidor.sh
+bash iniciar-servidor.sh
+```
+O script lista os IPs; use o da interface do hotspot (ap0/wlan1) ou Wi-Fi. Dados ficam em `termux/data/`.
+
+## 5. Corrigido nesta versão (e testado)
+- **Persistência do modo**: o modo era descartado ao recarregar (só lia a config se existisse idTerminal). Corrigido; testado único→servidor→único com reload.
+- **Caixa**: troco agora é descontado do dinheiro em todos os totais; fechamento separa Dinheiro/Débito/Crédito/PIX com quantidade, total e lista de transações. Testado: 50 pagos em dinheiro, total 30, troco 20 → dinheiro 30.
+- **Histórico do caixa**: exclusão com confirmação, motivo obrigatório, permissão e registro em `auditoria` (exclusão lógica, não apaga o dado).
+- **Servidor**: `/api/ping`, `/api/diagnostico` (IPs de todas as interfaces, banco, clientes em tempo real), `/api/eventos` (SSE), idempotência por `X-Op-Id` (reenvio não duplica — testado).
+- **Cliente**: gerenciador de conexão, failover/retorno automático (testado derrubando e subindo o servidor), indicador de estado, tela de diagnóstico.
+- **PIX fixo**: tipos CPF/CNPJ/Celular/E-mail/Aleatória com validação (dígitos verificadores), gera o BR Code e mostra a chave abaixo do QR no recibo e na comanda.
+- **Ordem alfabética** (sem acento/caixa, só na exibição) em Cardápio (PDV) e Cardápio do Dia; números de comanda ordenados numericamente.
+- Itens de versões anteriores mantidos: rolagem/toque, CRUDs, backup `.comandas`, QR, ícones estáveis, botões redondos, relatórios CSV/PDF/impressão.
+
+## 6. Testes — o que foi executado de fato
+Executado aqui (servidor Python real + Chromium/Playwright; dois servidores locais simulando servidor e cliente em portas diferentes):
+troco/totais por forma; validação PIX/CRC; troca e persistência de modo; failover entre endereço morto e vivo; queda e retorno do servidor; SSE (evento recebido); idempotência; diagnóstico; navegação por 11 rotas sem erro de JS; servidor do pacote Termux responde e serve o frontend.
+
+**NÃO foi possível testar neste ambiente (precisa de você, em aparelhos reais):** instalar/atualizar o APK, permissões do Android, hotspot real, Termux no celular, cloudflared/túnel real, dois celulares em rede real, impressão/PDF no Android. Eles foram implementados, mas **não estão validados**.
+
+## 7. Pendências / limitações (honestas)
+1. **Sem fila offline de gravações**: se a rede cair, a gravação falha com erro (e nada é duplicado ao repetir). Fila com reenvio automático não foi implementada.
+2. **Permissões só nas telas**: a função do aparelho restringe menu/rotas, mas a API do servidor ainda aceita leituras/gravações sem login. Autorização no backend por função não foi feita; use Wi-Fi/hotspot com senha.
+3. **Numeração de comanda centralizada no servidor** (reserva atômica) não implementada; no cliente a numeração é calculada a partir dos dados do servidor (risco de número repetido com duas comandas criadas no mesmo instante).
+4. Perfil **Administrador** como função própria não existe: Único/Servidor têm acesso total.
+5. Link externo temporário: validade/renovação/revogação do QR externo são os do túnel (muda ao reiniciar); controle de validade por link não implementado.
+6. Fechamento por modalidade e exclusão no histórico foram só verificados por sintaxe + lógica de totais, não por clique na interface.
+7. Domínio fixo Cloudflare (túnel nomeado) não configurado; usa túnel rápido temporário.
+8. IPv6 não tratado.
+
+## 8. v2.3.1 — correção "Failed to fetch" no cliente
+Causa: no APK o servidor embutido só escutava em 127.0.0.1 (a opção de abrir para a rede ficava escondida no menu de saída), então nenhum outro aparelho conseguia conectar. Agora, escolher o modo **Servidor** liga a escuta em 0.0.0.0 e reinicia o app sozinho; os outros modos desligam. Ao abrir o app em modo Servidor ainda fechado para a rede, ele corrige e reinicia uma vez. (Corrigido no código; não testável aqui — validar no aparelho.)
+
+## 9. v2.3.2 — voltar à seleção de modo
+Aparelho Cliente (mesmo com função Garçom/Cozinha/Caixa/Cardápio e sem servidor) sempre alcança: selo de conexão (topo) → "Rede e conexão" → botão "Voltar à seleção de modo". Testado: cliente sem servidor → trocado para Único.
+
+## 10. v2.3.3 — link Cloudflare (trycloudflare) no Termux
+```
+pkg install python cloudflared      # uma vez
+bash iniciar-servidor.sh tunel      # sobe o servidor + gera o link
+```
+O script mostra `https://xxxx.trycloudflare.com` e grava em `tunnel_url.txt` (o app mostra em Rede e conexão e no QR). O link muda a cada vez e morre ao fechar o Termux. Sem instalar nada além do pacote: `pyflared` (pip) não é indicado no Android/Termux (binário embutido costuma ser x86). Observações do túnel rápido: não passa SSE (o cliente passa sozinho a consultar a cada 4 s), até 200 requisições simultâneas, sem garantia de uptime. Pelo túnel, o servidor só libera o cardápio do cliente (QR): clientes de PDV/Cozinha/Caixa devem usar LAN/Hotspot.
+
+## 11. v2.4.0 — link externo para colaboradores
+- **QR Code das mesas = só cardápio** (como antes: lista fixa de leitura e só cria pedidos/chamados).
+- **Colaboradores** usam o mesmo túnel Cloudflare, mas com uma **chave**: Configurações > Rede e conexão > "Acesso dos colaboradores". Gere a chave e envie o link da função (`…/garcom?k=…`, `/caixa`, `/cozinha`, `/cardapio`). O link grava um cookie seguro (HTTPS, HttpOnly, 30 dias) e abre a tela da função.
+- Com a chave: API completa liberada, **exceto** backup, configuração do aparelho e gestão da chave (só no aparelho servidor). Sem chave ou chave errada/revogada: só o cardápio. Renovar/revogar derruba quem usa a chave antiga.
+- Testado (servidor real, cabeçalhos de túnel simulados): sem chave 403; chave válida (cabeçalho, cookie e link `?k=`) libera; backup/device 403 mesmo com chave; revogar bloqueia; gerar chave pelo externo 403.
+- Limites: a chave é compartilhada (não identifica a pessoa); atualização em tempo real pelo túnel é por consulta a cada 4 s (túnel rápido não passa SSE); não testado com o túnel real.
+
+## 12. v2.4.1 — Logo e ícone a partir do dispositivo
+Configurações > Logo / Ícone do estabelecimento: botão "Escolher do dispositivo" (galeria/arquivos), com prévia e botão de remover. A imagem é reduzida (logo 600 px, ícone 192 px) e guardada no banco, entrando no backup `.comandas`. A logo aparece no Menu e nos recibos/comandas; o ícone vira o ícone da aba/página e substitui o talher quando não há logo. Ainda aceita URL. O ícone de instalação do app no Android (launcher) não muda em tempo de execução: só trocando o arquivo no projeto e gerando novo APK.
+
+## 13. v2.5.0
+- **Túnel Cloudflare no app**: o erro "x509: certificate signed by unknown authority" vinha do cloudflared não enxergar os certificados do Android. O APK agora leva um pacote de certificados (`assets/cacert.pem`) e o passa ao cloudflared. (Não testável aqui: confirmar no aparelho em QR Codes › Gerar link externo.)
+- **Caixa**: só abre com fundo inicial maior que zero (troco garantido).
+- **PDV**: faixa "Grupo de trabalho: <cor>" no topo e etiqueta de cor+nome em cada card. **Comanda e recibo** (tela, impressão e Bluetooth) trazem "Grupo de trabalho: <cor>".
+- **Adicionar produto**: lista sempre A-Z. Itens da comanda mantêm a ordem em que foram inseridos.
+- **Botão voltar do Android**: volta uma tela por vez; o último "voltar" cai no Menu Principal; no Menu Principal abre o menu de saída. O cardápio do cliente (QR) mantém o comportamento normal.
+- **Modo Cliente**: ao escolher Cliente o app pergunta a função. **Garçom** entra sem cadastro; **Cozinha, Caixa e Cardápio** exigem login (e-mail e senha de um colaborador com acesso). Trocar função/modo e Rede ficam sempre acessíveis na tela de login. Bloqueio de tela: o servidor ainda não filtra os dados por função.
+- **Editar pagamento**: janela própria no padrão do app (forma em botões, valor grande, atalho "Restante").
+- **Impressora Bluetooth**: Impressoras › lista os aparelhos pareados, escolher uma testa a conexão ("Estamos testando…") e imprime um cupom de teste; comanda e recibo passam a sair nela (ESC/POS 32 colunas, PC860 ou "sem acentos"). "Resetar" esquece a impressora. Não testado em impressora real. O app lista **pareados** (parear antes nas configurações de Bluetooth do celular).
+- **PIX**: botão "Ler QR Code do PIX (imagem do aparelho)" preenche chave, recebedor e cidade (usa ZXing no app; novo componente baixado no build). Também é possível digitar a chave. A câmera ao vivo não foi implementada.
+- **Zerar**: o botão apaga só o financeiro (caixas/histórico, comandas, pedidos pendentes, chamados, sangrias, perdas, movimentações); cadastros ficam; backup de segurança antes.
+
+## 14. v2.5.1
+- Faixa colorida de comanda/recibo (tela, impressão e Bluetooth) mostra o **nome do grupo de trabalho** cadastrado (ex.: "Cantina Laranja") na cor do caixa. O nome é o editado em Grupos de Trabalho.
+- Recibo: "PIX: chave" (sem "Chave PIX (tipo)"). Faixa de grupo também no PDV (topo e cards) e na tela da comanda.
+- **WhatsApp**: o botão (agora em toda comanda/recibo, com ou sem cliente) envia a **imagem** (print) do documento; no app abre o WhatsApp direto (ou a lista de apps); no navegador usa o compartilhar do sistema ou baixa o PNG. PDF não foi feito. Escolha o contato dentro do WhatsApp (com imagem o app não consegue preencher o número). Se a imagem falhar, cai no envio por texto.
+
+## 15. v2.6.0
+- **QR do PIX não saía na impressão** — causa: ao salvar Configurações o campo "exibir PIX no recibo" era regravado como `false` (não havia checkbox). Corrigido.
+- **Configurações**: dois novos botões liga/desliga — "QR Code do PIX na impressão (recibo e comanda, papel e Bluetooth)" e "QR Code do PIX no WhatsApp" (imagem enviada). Valem para recibo e comanda.
+- **Bluetooth**: QR impresso com o comando nativo ESC/POS (GS ( k) + "PAGUE COM PIX", valor e "PIX: chave". Algumas impressoras genéricas não suportam o comando de QR — **não testado em impressora real**.
+- **Modais padronizados**: todos os `confirm`/`prompt`/`alert` do sistema (84 pontos) agora usam janelas no layout do app (cabeçalho colorido, botões Cancelar/Confirmar; vermelho para ações de exclusão). Avisos que precedem recarga/navegação esperam o OK.
+- **Logins dos colaboradores**: já existentes em Colaboradores › cadastro (e-mail + senha + nível de acesso; botão de resetar senha na lista) e usados no login do modo Cliente. Sem mudanças nesta versão.
+
+## 16. v2.6.1
+- **Cor fúcsia** (#C2185B) em todo o app: roxo/lilás restante (botões, títulos, modais, fundos de cartão) trocado pela paleta fúcsia.
+- **Servidor não localizado** (modo Cliente): após ~4 s offline abre janela com *Tentar novamente*, *Alterar modo (Único/Servidor/Cliente)*, *Trocar função* e *Rede e conexão*. A pílula de conexão (topo) abre a mesma janela como "Informações do servidor".
+- **Trocar função** (Garçom/Cozinha/Caixa/Cardápio) a qualquer momento: janela acima, tela Rede e login; encerra a sessão anterior.
+
+## 17. v2.6.2
+- **Editar pagamento (fechamento) não abria**: o modal abria *atrás* do modal de fechamento (z-index menor). Todos os modais/diálogos novos (editar pagamento, confirmar/avisar, função, conexão, login, Bluetooth) agora ficam por cima (z-index 300000). Isso também afetava os avisos/confirmações abertos de dentro de outros modais.
+- **QR do cardápio / botão Teste**: desde a 2.5.0 o servidor embutido só escutava a rede no modo Servidor; em modo Único o link do QR (IP da rede) ficava inacessível. Agora a escuta de rede fica aberta em Único e Servidor e fechada só no Cliente (o app reinicia uma vez ao ajustar).
+- **Listas com um item só**: dados gravados sob um "cliente" (`/api/c/<id>/…`, criado ao usar ID de acesso) ficavam separados da base comum, então só aparecia o que estava em cada base. Agora o servidor trata como base única e, ao iniciar, move esses registros para a base comum. Causa não reproduzida com certeza fora do aparelho — se ainda ocorrer, abra Rede › Diagnóstico e me envie o print.
+
+## 18. v2.7.0 — Fechamento da comanda em etapas
+1. **Receber / Fechar** → informar formas e valores (ou Fiado) → **Confirmar e gerar recibo** → pergunta de confirmação.
+2. **Recibo em aberto** (tarja "AGUARDANDO PAGAMENTO"): itens consumidos, formas, total, **QR Code e chave PIX com o valor** (sempre exibidos, independente dos botões de Configurações). Sem impressão/WhatsApp nesta etapa. A comanda continua *aberta* e fica marcada como aguardando recebimento (botão passa a "Retomar recebimento").
+3. **Fechar comanda (recebido)** → confirma, fecha e mostra o **recibo final** (✔ PAGO ou ⚠ PENDENTE (FIADO) + valor) — só agora liberados *Imprimir* e *Enviar WhatsApp*. A impressão (papel/Bluetooth) e o texto do WhatsApp trazem PAGO/PENDENTE.
+4. **Cancelar recebimento** (botão ou X) em qualquer momento da etapa 2: nada é fechado, a comanda segue aberta.
+Obs.: itens alterados depois de gerar o recibo em aberto não atualizam o valor já confirmado — cancele o recebimento e refaça.
+
+## 19. v2.8.0 — Fiado/Pendências e WhatsApp
+- **Fiado corrigido**: ao marcar "Deixar Fiado", os pagamentos pré-preenchidos que cobriam o total zeravam o valor pendente e a comanda nunca entrava em *Pendentes*. Agora marcar Fiado limpa o pagamento automático e **todo o valor (ou o que faltar) fica pendente**. A comanda fecha com "⚠ PENDENTE (FIADO)" e aparece no filtro Pendentes do PDV.
+- **Nova tela Pendências** (Atalhos › Pendências, ou Clientes › "Pendências (fiado) por cliente"): clientes com pendência, total geral **somando todos os caixas**, busca, comandas de cada cliente, **Receber** por comanda ou **Receber/finalizar tudo** (forma de pagamento + valor; parcial permitido; abate das mais antigas). Zerou → a pendência é finalizada. Botão "Receber pendência" também na comanda fechada com fiado.
+  - (Limitação da 2.8.0 resolvida na 2.10.0: ao quitar, a venda fecha no caixa aberto — ver seção 21.)
+- **WhatsApp**: usa o telefone do cliente; se não houver, pergunta o número (DDD) e abre **nova conversa** com esse número, mesmo fora da agenda (imagem: abre a conversa direto via WhatsApp; texto: wa.me). Sem número, abre o seletor de contatos.
+
+## 20. v2.9.0
+- **Esgotado**: o app tratava estoque 0 (valor padrão do cadastro) como esgotado, na Cozinha e no cardápio do QR. Agora "esgotado/indisponível" vale **somente** para o que a Cozinha marcou como ACABOU (`acabouCozinha`); a marcação é bloqueada para garçom e para o cardápio de cliente (QR).
+- **Fiado só para cliente cadastrado**: o botão "Deixar Fiado" fica desabilitado (com aviso) se a comanda não estiver ligada a um cliente cadastrado; ao fechar, a comanda recebe o `clienteId`.
+- **Pendências anteriores somadas**: no fechamento aparecem as pendências anteriores do cliente (de qualquer caixa), o valor desta comanda e o **TOTAL GERAL com pendências**; o mesmo bloco sai no recibo (tela, WhatsApp-imagem, Bluetooth). Comanda fiada fecha com recibo "PENDENTE" e entra no filtro *Pendentes*.
+- **Atualização não substitui cadastros**: a atualização só troca os arquivos do frontend; o banco (`data/database.sqlite`) é preservado. Novidade: antes de trocar, o app guarda `data/pre-atualizacao-<versão>.sqlite` (mantém as 3 últimas) além do backup periódico.
+
+## 21. v2.10.0 — Fiado = pendência (sem fechar a venda)
+- **Deixar Fiado**: ao marcar e confirmar, a comanda **não é fechada e nenhum recibo é gerado**. Ela vai para a área de **Pendências** com status `pendente` (libera a mesa e não bloqueia o fechamento do caixa) e aparece no filtro **Pendentes** (PDV e Caixa) como **card amarelo** com a tarja "Pendente: R$ …". Pagamentos parciais informados no fechamento são mantidos.
+- **Somente cliente cadastrado**: se a comanda não tem cliente cadastrado, ao marcar Fiado abre a janela "Cliente do fiado": pesquisar/escolher um cliente **ou cadastrar na hora** (nome + telefone); sem isso o fiado não é confirmado.
+- **Pendências por cliente** (Atalhos › Pendências): total geral somando todos os caixas; **Receber** em uma comanda individual (pagamento parcial permitido, antes de unir) ou **Receber/finalizar tudo**.
+- **Unir pendências**: no menu Pendências (botão "Unir pendências deste cliente") ou no Caixa (banner de fiados › Unir). Junta todas as pendências do cliente em **uma só comanda** — a primeira recebe os itens (iguais são somados), os pagamentos parciais e o saldo pendente; **as demais são excluídas**. A união de comandas abertas comum não lista comandas pendentes.
+- **Quitar**: ao zerar a pendência a venda **fecha agora, no caixa aberto** (a comanda passa para o caixa atual, guardando o de origem) e o **recibo final (PAGO)** é liberado para impressão/WhatsApp.
+- Testado no navegador: fiado→pendência, união (3 pendências → 1: total e saldo somados, pagamento parcial preservado) e janela de cadastro. Cor do card amarelo verificada no código (não em tela do caixa aberto).
+
+## 22. v2.10.1
+- **Faixa do grupo de trabalho no recibo/comanda**: aparecia "VERMELHO" (nome padrão da cor) em vez do nome do grupo. A impressão (papel, Bluetooth, tela e WhatsApp) agora sempre carrega os nomes atuais de Configurações › Grupos de Trabalho e mostra, por exemplo, **"Cantina Vermelha"** na faixa colorida.
+
+## 23. v2.11.0 — Exportar relatório abre o menu Compartilhar
+- Em **Relatórios › Exportar (CSV / PDF)** o arquivo gerado agora abre direto o **menu Compartilhar do Android** (WhatsApp, e-mail, Drive, "Salvar em arquivos"…). Antes ele só era salvo em Downloads/Comandas, sem aviso claro.
+- Técnico: nova ponte nativa `compartilharArquivo` (arquivo temporário em cache + `FileProvider`); novo `res/xml/file_paths.xml`, `<provider>` no manifesto e dependência `androidx.core:core:1.12.0` (baixada no build). No navegador usa Web Share (quando disponível) ou baixa o arquivo.
+- **Atenção**: exige recompilar o APK; não testado em aparelho (a ponte foi validada no navegador com simulação; o Java não foi compilado aqui).
+
+## 24. v2.12.0 — Integração com maquininha de cartão
+- Novo atalho **Atalhos › Maquininha**: escolha o provedor. Padrão = *Nenhuma* (comportamento anterior: só registra o valor).
+- Ao adicionar **Débito/Crédito** no fechamento (ou ao confirmar um cartão pré-preenchido) o app **cobra na maquininha**, pergunta as parcelas (crédito) e **registra NSU, autorização, bandeira, final do cartão e parcelas** no pagamento. Esses dados aparecem no fechamento, no recibo (tela, papel, Bluetooth e WhatsApp). Pagamento aprovado na máquina **não pode ter o valor editado** (exclua e cobre de novo).
+- Provedores: **Registro manual** (qualquer maquininha: PagBank, Rede, GetNet… — você digita os dados do comprovante); **Mercado Pago Point** (API, via servidor; botão "Buscar maquininhas da conta"; só na rede local); **Cielo LIO**, **Stone** e **SumUp** (abrem o app da maquininha por link e recebem o retorno em `comandaspay://`; só no Android); **Simulado** (aprova sozinho, para testar o fluxo).
+- Em qualquer falha existe o caminho **"Informar manualmente"**.
+- **Testado**: Mercado Pago contra um servidor simulado (chamadas e parâmetros conferidos), manual, simulado, retorno de SumUp e Cielo LIO por link simulado, e o fechamento de comanda de ponta a ponta.
+- **NÃO testado (precisa de máquina e credenciais reais)**: Mercado Pago real, Cielo LIO, Stone e SumUp em aparelho. O formato do link da **Stone** e os códigos de parcelamento da **Cielo LIO** foram montados pela documentação/memória e **precisam ser confirmados com o suporte de cada empresa**; SumUp no Brasil também precisa de confirmação. O Mercado Pago está migrando a API de Point (a atual pode mudar).
+- Segurança: o Access Token do Mercado Pago fica gravado na configuração do aparelho servidor (visível a dispositivos da rede local que leem as configurações). Use token restrito.
+- Técnico: `js/maquininha.js`, rotas `/api/maquininha/mp/*` (bloqueadas para acesso externo), ponte `abrirDeeplinkPagamento`, `launchMode=singleTop` + `onNewIntent`, `<intent-filter>` do esquema `comandaspay` e `<queries>` no manifesto.
+
+## 25. v2.13.0 — Clientes, ordenação, pendências, QR e compartilhamento
+- **Seletor de cliente pesquisável** (Editar Cliente e Nova Comanda do PDV/Nova Comanda): ao tocar no campo ou na seta mostra **todos os cadastros em ordem alfabética** e filtra enquanto digita (nome, telefone ou CPF). Opções fixas: **Sem cadastro (digitar nome)** e **Novo cliente** (+Novo, cadastro rápido que já seleciona). A comanda nova passa a guardar o vínculo (id, telefone, CPF) do cliente escolhido.
+- **Listas sempre em A-Z**: mesas e colaboradores da Nova Comanda agora ordenados (as demais listas já eram).
+- **Ordenação em Produtos e Cardápio**: Favoritos+A-Z (padrão), A→Z, Z→A, maior/menor preço, **mais/menos pedidos** (soma das vendas), promoções primeiro, por grupo. No cardápio do cliente (QR) "mais pedidos" só funciona se o aparelho do cliente puder ler as vendas; senão cai em A-Z.
+- **Relatórios**: seletor **Ordenar** (A→Z, Z→A, maior/menor valor, maior/menor quantidade) em Vendas, Produtos, Clientes e Caixa; Produtos vendidos ganhou Z→A, menor valor e menor quantidade.
+- **Pendências**: **Ver itens** de cada comanda e **de todas as pendências do cliente** (antes e depois de unir), com imprimir/visualizar, recibo pendente, WhatsApp, Outros, PDF e CSV. **Reabrir no caixa atual** (Pendências, Caixa, PDV e na tela da comanda pendente): a comanda volta a ficar aberta no caixa atual, **mantém os pagamentos parciais** (entram no fechamento como "já recebido") e guarda o caixa de origem. **Unir e quitar** permitem escolher o **grupo de trabalho/caixa** onde a comanda será lançada.
+- **QR Code PIX — 4 opções independentes** (Configurações): imprimir comanda, imprimir recibo, compartilhar comanda, compartilhar recibo. Quem já usava as opções antigas mantém o mesmo comportamento até alterar. O QR "PAGUE COM PIX" do recibo em aberto continua na tela; ele só sai da imagem compartilhada/impressa conforme as opções.
+- **WhatsApp direto no contato**: usa o telefone do cadastro **ou o informado na própria comanda**; no Android tenta WhatsApp e **WhatsApp Business**. Novo botão **Compartilhar** (menu do Android: e-mail, Drive, Telegram, SMS…) no preview da comanda/recibo e no recibo em aberto.
+- **Testado no navegador**: seletor (ordem, filtro, seleção, +Novo), ordenação de produtos, ver itens, unir com grupo, reabrir (pagamento parcial mantido no fechamento), opções de QR na tela de configurações.
+- **Não testado**: Java/Android (jid do WhatsApp Business, menu Compartilhar), exportação PDF/CSV em aparelho, e o efeito das 4 opções de QR na impressão física/Bluetooth.

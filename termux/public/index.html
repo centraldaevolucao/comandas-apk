@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#C2185B">
+    <title>App Restaurante</title>
+
+    <link rel="stylesheet" href="/css/global.css?v=119">
+    <link rel="stylesheet" href="/css/responsive.css?v=119">
+    <link rel="stylesheet" href="/vendor/fa/css/all.min.css">
+    <link rel="manifest" href="/manifest.json">
+
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js');
+        });
+      }
+    </script>
+
+    <script>
+        if (window.location.pathname.startsWith('/mesa/')) {
+            document.documentElement.style.setProperty('overflow-y', 'auto', 'important');
+            document.documentElement.style.setProperty('height', 'auto', 'important');
+            document.addEventListener('DOMContentLoaded', () => {
+                document.body.style.setProperty('overflow-y', 'auto', 'important');
+                document.body.style.setProperty('height', 'auto', 'important');
+                document.body.classList.add('cliente-qrcode');
+            });
+        }
+    </script>
+
+    <style>
+        :root {
+            --app-bar-height: 56px;
+            --barra-filtros-height: 0px;
+            --sidebar-width: 0px;
+        }
+
+        @media (min-width: 1024px) {
+            body.menu-collapsed { --sidebar-width: 60px; }
+            body:not(.menu-collapsed) { --sidebar-width: 260px; }
+        }
+
+        /* ==================================================== */
+        /* ABAS FIXAS (PDV E COZINHA)                           */
+        /* ==================================================== */
+        #menu-abas-cozinha,
+        #menu-abas-pdv {
+            display: none;
+            position: fixed;
+            top: calc(var(--app-bar-height) + env(safe-area-inset-top, 0px));
+            left: var(--sidebar-width);
+            width: calc(100% - var(--sidebar-width));
+            background: #fff;
+            border-bottom: 1px solid #e0e0e0;
+            padding: 12px 16px;
+            overflow-x: auto;
+            overflow-y: hidden;
+            white-space: nowrap;
+            z-index: 9999;
+            box-sizing: border-box;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            transition: left 0.3s ease, width 0.3s ease;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        #menu-abas-cozinha::-webkit-scrollbar,
+        #menu-abas-pdv::-webkit-scrollbar { display: none; }
+
+        #menu-abas-cozinha button,
+        #menu-abas-pdv button {
+            position: relative;
+            padding: 8px 18px;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            margin-right: 8px;
+            border: 1.5px solid #e0e0e0;
+            background: #f5f5f5;
+            color: #666;
+            outline: none;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+            flex-shrink: 0;
+            font-family: inherit;
+        }
+
+        /* 🔥 FORÇA A COR FÚCSIA NO BOTÃO ATIVO */
+        #menu-abas-cozinha button.ativo,
+        #menu-abas-pdv button.ativo {
+            background: #C2185B !important;
+            color: #fff !important;
+            border-color: #C2185B !important;
+            box-shadow: 0 2px 6px rgba(194, 24, 91, 0.3) !important;
+        }
+
+        #menu-abas-pdv button .badge-contador,
+        #menu-abas-cozinha button .badge-contador {
+            background: rgba(255,255,255,0.3);
+            color: inherit;
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 1px 7px;
+            border-radius: 10px;
+            margin-left: 4px;
+            line-height: 1.2;
+            min-width: 20px;
+            text-align: center;
+            display: inline-block;
+        }
+
+        #menu-abas-pdv button:not(.ativo) .badge-contador,
+        #menu-abas-cozinha button:not(.ativo) .badge-contador {
+            background: rgba(194, 24, 91, 0.15);
+            color: #C2185B;
+        }
+
+        /* ==================================================== */
+        /* BARRA DE FILTROS DE RELATÓRIOS                       */
+        /* ==================================================== */
+        #barra-filtros-relatorio {
+            display: none;
+            position: fixed;
+            top: calc(var(--app-bar-height) + env(safe-area-inset-top, 0px));
+            left: var(--sidebar-width);
+            width: calc(100% - var(--sidebar-width));
+            background: #fff;
+            border-bottom: 1px solid #eee;
+            z-index: 9999;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            transition: left 0.3s ease, width 0.3s ease;
+        }
+
+        .barra-filtros-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 16px;
+            background: #f9f9f9;
+            border-bottom: 1px solid #eee;
+        }
+
+        .chips-filtro-wrapper {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+
+        .chips-filtro-wrapper::-webkit-scrollbar { display: none; }
+
+        .chip-filtro {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            background: #f5f5f5;
+            color: #666;
+            border: 1.5px solid #e0e0e0;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .chip-filtro:hover {
+            background: #fff;
+            border-color: #C2185B;
+            color: #C2185B;
+        }
+
+        .chip-filtro.ativo {
+            background: #C2185B;
+            color: #fff;
+            border-color: #C2185B;
+            box-shadow: 0 2px 4px rgba(194, 24, 91, 0.2);
+        }
+
+        .btn-pin-filtro {
+            background: none;
+            border: none;
+            color: #999;
+            cursor: pointer;
+            padding: 5px;
+            font-size: 1rem;
+            transition: color 0.2s;
+        }
+
+        .btn-pin-filtro.pinned {
+            color: #C2185B;
+        }
+
+        #dropdown-container {
+            display: none;
+            padding: 15px;
+            background: #fff;
+            border-top: 1px solid #eee;
+            max-height: 50vh;
+            overflow-y: auto;
+        }
+
+        #dropdown-container.aberto {
+            display: block;
+            animation: fadeInDown 0.2s ease;
+        }
+
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .drop-item {
+            padding: 12px;
+            border-bottom: 1px solid #f0f0f0;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9rem;
+            color: #333;
+            transition: background 0.15s;
+        }
+
+        .drop-item:hover {
+            background: var(--primary-light);
+            color: var(--primary-color);
+        }
+
+        .drop-item:last-child { border-bottom: none; }
+
+        .drop-item.selecionado {
+            background: var(--primary-light);
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 10px;
+            border: 1.5px solid #ccc;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+            outline: none;
+        }
+
+        .search-input:focus { border-color: var(--primary-color); }
+
+        /* ==================================================== */
+        /* ESPAÇAMENTO DINÂMICO DO CONTEÚDO                     */
+        /* ==================================================== */
+        body.mostrando-abas-pdv .content-area,
+        body.mostrando-abas-cozinha .content-area,
+        body.mostrando-filtros-relatorio .content-area {
+            padding-top: var(--barra-filtros-height) !important;
+            transition: padding-top 0.3s ease;
+        }
+
+        @media (max-width: 767px) {
+            .app-bar { flex-wrap: wrap !important; padding: 10px 12px !important; }
+            .app-bar h1 { font-size: 1.1rem !important; flex: 1; text-align: center; }
+            .app-bar .icon-btn { padding: 6px !important; font-size: 1.1rem !important; }
+
+            #menu-abas-cozinha, #menu-abas-pdv { padding: 8px 10px; }
+            #menu-abas-cozinha button, #menu-abas-pdv button {
+                font-size: 0.78rem; padding: 0 14px; min-height: 44px; margin-right: 6px;
+            }
+            #menu-abas-cozinha button i, #menu-abas-pdv button i { font-size: 0.95rem; line-height: 1; }
+            #menu-abas-pdv button .badge-contador,
+            #menu-abas-cozinha button .badge-contador { margin-left: 2px; font-size: 0.68rem; padding: 1px 6px; }
+
+            .barra-filtros-header { flex-wrap: nowrap !important; gap: 6px; padding: 8px 10px !important; }
+            .chips-filtro-wrapper { flex-wrap: nowrap !important; flex: 1 1 auto; min-width: 0; gap: 6px; }
+            .chip-filtro { font-size: 0.78rem; padding: 6px 12px; flex: 0 0 auto; justify-content: center; min-height: 40px; }
+            .btn-pin-filtro { flex: 0 0 auto; padding: 8px 10px !important; font-size: 1rem; min-width: 44px; min-height: 44px; }
+            #dropdown-container { max-height: 45vh; }
+        }
+
+        @media (max-width: 1023px) {
+            #menu-abas-cozinha, #menu-abas-pdv, #barra-filtros-relatorio { left: 0; width: 100%; border-radius: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="app">
+        <div style="padding:40px;text-align:center;">
+            <h2 style="color:#C2185B;">Carregando...</h2>
+        </div>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- ELEMENTOS GLOBAIS DA COZINHA (FIXOS)         -->
+    <!-- ============================================ -->
+    <button id="btn-cardapio-lateral" onclick="abrirListaLateralCozinha()" style="display:none; position:fixed; bottom:calc(24px + env(safe-area-inset-bottom, 0px)); left:16px; min-height:48px; z-index:9998; background:#C2185B; color:#fff; border-radius:50px; padding:10px 15px; box-shadow:0 4px 10px rgba(0,0,0,0.3); align-items:center; justify-content:center; border:none; cursor:pointer; gap:8px; font-family:var(--font-family); font-weight:bold; font-size:0.85rem;">
+        <i class="fas fa-book-open" style="font-size:1.2rem;"></i> Cardápio
+    </button>
+
+    <div id="overlay-drawer-cozinha" onclick="fecharListaLateralCozinha()" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:99998; display:none; opacity:0; transition:opacity 0.3s;"></div>
+
+    <div id="drawer-cardapio-cozinha" style="position:fixed; top:0; left:-350px; width:320px; max-width:85vw; height:100%; max-height:100dvh; background:#fff; z-index:99999; box-shadow:4px 0 15px rgba(0,0,0,0.3); display:flex; flex-direction:column; transition:left 0.3s ease;">
+        <div style="padding:15px; background:#C2185B; color:#fff; display:flex; justify-content:space-between; align-items:center; flex-shrink:0;">
+            <div style="font-weight:bold; font-size:1.1rem;"><i class="fas fa-utensils"></i> Cardápio de Hoje</div>
+            <button onclick="fecharListaLateralCozinha()" style="color:#fff; background:transparent; border:none; font-size:1.5rem; cursor:pointer;">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div style="padding:10px; background:#f5f5f5; border-bottom:1px solid #ddd; font-size:0.75rem; color:#666; text-align:center; flex-shrink:0;">
+            Desative o que <b>acabou</b> hoje.
+        </div>
+        <div id="drawer-cardapio-lista" style="flex:1; overflow-y:auto; padding:10px;">
+            <p style="text-align:center; padding:20px; color:#999;">🔄 Buscando produtos...</p>
+        </div>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- ABAS DA COZINHA                              -->
+    <!-- ============================================ -->
+    <div id="menu-abas-cozinha">
+        <button class="btn-pendentes ativo" onclick="window.mudarFiltroCozinha('pendentes')" title="Pendentes">
+            <i class="fas fa-clock"></i> Pendentes <span class="badge-contador" id="badge-cozinha-pendentes">0</span>
+        </button>
+        <button class="btn-preparando" onclick="window.mudarFiltroCozinha('preparando')" title="Preparando">
+            <i class="fas fa-fire"></i> Preparando <span class="badge-contador" id="badge-cozinha-preparando">0</span>
+        </button>
+        <button class="btn-atendidos" onclick="window.mudarFiltroCozinha('atendidos')" title="Atendidos">
+            <i class="fas fa-check-circle"></i> Atendidos <span class="badge-contador" id="badge-cozinha-atendidos">0</span>
+        </button>
+        <button class="btn-cancelados" onclick="window.mudarFiltroCozinha('cancelados')" title="Cancelados">
+            <i class="fas fa-ban"></i> Cancelados <span class="badge-contador" id="badge-cozinha-cancelados">0</span>
+        </button>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- ABAS DO PDV                                  -->
+    <!-- ============================================ -->
+    <div id="menu-abas-pdv">
+        <button class="btn-todas" onclick="window.mudarFiltroPDV('todas')" title="Todas">
+            <i class="fas fa-list"></i> Todas <span class="badge-contador" id="badge-pdv-todas">0</span>
+        </button>
+        <button class="btn-abertas ativo" onclick="window.mudarFiltroPDV('abertas')" title="Abertas">
+            <i class="fas fa-door-open"></i> Abertas <span class="badge-contador" id="badge-pdv-abertas">0</span>
+        </button>
+        <button class="btn-pendentes" onclick="window.mudarFiltroPDV('pendentes')" title="Pendentes (Fiado)">
+            <i class="fas fa-clock"></i> Pendentes <span class="badge-contador" id="badge-pdv-pendentes">0</span>
+        </button>
+        <button class="btn-fechadas" onclick="window.mudarFiltroPDV('fechadas')" title="Fechadas">
+            <i class="fas fa-lock"></i> Fechadas <span class="badge-contador" id="badge-pdv-fechadas">0</span>
+        </button>
+        <button class="btn-canceladas" onclick="window.mudarFiltroPDV('canceladas')" title="Canceladas">
+            <i class="fas fa-ban"></i> Canceladas <span class="badge-contador" id="badge-pdv-canceladas">0</span>
+        </button>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- BARRA DE FILTROS DE RELATÓRIOS               -->
+    <!-- ============================================ -->
+    <div id="barra-filtros-relatorio">
+        <div class="barra-filtros-header">
+            <div class="chips-filtro-wrapper" id="chips-filtros-container">
+                <div class="chip-filtro" id="chip-tipo" onclick="abrirDropdownFiltro('tipo')">Tipo: <b>Vendas</b></div>
+                <div class="chip-filtro" id="chip-periodo" onclick="abrirDropdownFiltro('periodo')">Período: <b>Hoje</b></div>
+                <div class="chip-filtro" id="chip-caixa" onclick="abrirDropdownFiltro('caixa')">Caixa: <b>Todos</b></div>
+                <div class="chip-filtro" id="chip-especie" onclick="abrirDropdownFiltro('especie')">Espécie: <b>Todas</b></div>
+                <div class="chip-filtro" id="chip-cliente" onclick="abrirDropdownFiltro('cliente')">Cliente: <b>Todos</b></div>
+                <div class="chip-filtro" id="chip-produto" onclick="abrirDropdownFiltro('produto')">Produto: <b>Todos</b></div>
+            </div>
+            <button class="btn-pin-filtro" id="btn-pin-filtro" onclick="toggleFixarBarraFiltros()" title="Fixar Filtros">
+                <i class="fas fa-thumbtack"></i>
+            </button>
+        </div>
+        <div id="dropdown-container"></div>
+    </div>
+
+    <!-- SCRIPT DE CONTROLE GERAL -->
+    <script>
+        (function () {
+            let barraFixa = false;
+            let dropdownAtivo = null;
+
+            function medirAlturas() {
+                const appBar = document.querySelector('.app-bar');
+                if (appBar) {
+                    const h = Math.ceil(appBar.getBoundingClientRect().height);
+                    if (h > 0) document.documentElement.style.setProperty('--app-bar-height', h + 'px');
+                }
+
+                const hash = window.location.hash.replace('#', '') || 'pdv';
+                const menuPDV = document.getElementById('menu-abas-pdv');
+                const menuCozinha = document.getElementById('menu-abas-cozinha');
+                const barraRelatorios = document.getElementById('barra-filtros-relatorio');
+                
+                let alturaFiltros = 0;
+                if (hash === 'pdv' && menuPDV && menuPDV.style.display !== 'none') {
+                    alturaFiltros = menuPDV.scrollHeight;
+                } else if (hash === 'cozinha' && menuCozinha && menuCozinha.style.display !== 'none') {
+                    alturaFiltros = menuCozinha.scrollHeight;
+                } else if (hash === 'relatorios' && barraRelatorios && barraRelatorios.style.display !== 'none') {
+                    alturaFiltros = barraRelatorios.scrollHeight;
+                }
+
+                document.documentElement.style.setProperty('--barra-filtros-height', (alturaFiltros + 15) + 'px');
+            }
+
+            window.addEventListener('load', medirAlturas);
+            window.addEventListener('resize', medirAlturas);
+            window.addEventListener('orientationchange', () => setTimeout(medirAlturas, 200));
+
+            window.voltarTela = function() {
+                if (window.history.length > 1) {
+                    window.history.back();
+                } else {
+                    window.navigateTo(window.perfilRotaInicial ? window.perfilRotaInicial() : 'pdv');
+                }
+            };
+
+            // 🔥 FUNÇÃO QUE ATUALIZA O FILTRO E FORÇA A COR FÚCSIA
+            window.mudarFiltroPDV = function(filtro) {
+                if (window.pdvState) {
+                    window.pdvState.filtroStatus = filtro;
+                    
+                    // Atualiza os botões visuais varrendo TODOS e adicionando apenas no clicado
+                    const menu = document.getElementById('menu-abas-pdv');
+                    if (menu) {
+                        menu.querySelectorAll('button').forEach(btn => {
+                            btn.classList.remove('ativo');
+                            // O botão onclick tem exatamente o nome do filtro passado
+                            if (btn.getAttribute('onclick').includes(`'${filtro}'`)) {
+                                btn.classList.add('ativo');
+                            }
+                        });
+                    }
+
+                    // Renderiza a lista
+                    const container = document.getElementById('pdv-conteudo');
+                    if (container && typeof window.renderListaComandasPDV === 'function') {
+                        container.innerHTML = window.renderListaComandasPDV();
+                    }
+                }
+            };
+
+            setInterval(function () {
+                const hash = window.location.hash.replace('#', '') || 'pdv';
+                const isCliente = document.body.classList.contains('cliente-qrcode') || window.location.pathname.startsWith('/mesa/');
+                const isGarcom = document.body.classList.contains('modo-garcom');
+
+                const menuPDV = document.getElementById('menu-abas-pdv');
+                const menuCozinha = document.getElementById('menu-abas-cozinha');
+                const barraRelatorios = document.getElementById('barra-filtros-relatorio');
+                const btnHomeMobile = document.getElementById('btn-home-mobile');
+
+                document.body.classList.remove('mostrando-abas-pdv', 'mostrando-abas-cozinha', 'mostrando-filtros-relatorio');
+
+                if (isCliente || isGarcom) {
+                    if (menuPDV) menuPDV.style.display = 'none';
+                    if (menuCozinha) menuCozinha.style.display = 'none';
+                    if (barraRelatorios) barraRelatorios.style.display = 'none';
+                    if (btnHomeMobile) btnHomeMobile.remove();
+                    return;
+                }
+
+                if (menuPDV) {
+                    if (hash === 'pdv') {
+                        menuPDV.style.display = 'flex';
+                        document.body.classList.add('mostrando-abas-pdv');
+                        
+                        // 🔥 Sincroniza os botões do PDV com o estado real sem bugs
+                        if (window.pdvState && document.getElementById('pdv-conteudo')) {
+                            menuPDV.querySelectorAll('button').forEach(btn => btn.classList.remove('ativo'));
+                            const filtroAtual = window.pdvState.filtroStatus;
+                            // Busca o botão que contém o status atual (seja 'aberta' ou 'abertas')
+                            const btnAtivo = Array.from(menuPDV.querySelectorAll('button')).find(b => 
+                                b.getAttribute('onclick').includes(`'${filtroAtual}'`) || 
+                                b.getAttribute('onclick').includes(`'${filtroAtual}s'`)
+                            );
+                            if (btnAtivo) btnAtivo.classList.add('ativo');
+                        }
+                    } else {
+                        menuPDV.style.display = 'none';
+                    }
+                }
+
+                if (menuCozinha) {
+                    if (hash === 'cozinha') {
+                        menuCozinha.style.display = 'flex';
+                        document.body.classList.add('mostrando-abas-cozinha');
+                        if (window.cozinhaState && document.getElementById('cozinha-lista')) {
+                            menuCozinha.querySelectorAll('button').forEach(btn => btn.classList.remove('ativo'));
+                            const btnAtivo = menuCozinha.querySelector(`.btn-${window.cozinhaState.filtroStatus}`);
+                            if (btnAtivo) btnAtivo.classList.add('ativo');
+                        }
+                    } else {
+                        menuCozinha.style.display = 'none';
+                    }
+                }
+
+                if (barraRelatorios) {
+                    if (hash === 'relatorios') {
+                        if (barraFixa || document.body.classList.contains('barra-filtros-aberta')) {
+                            barraRelatorios.style.display = 'block';
+                            document.body.classList.add('mostrando-filtros-relatorio');
+                        } else {
+                            barraRelatorios.style.display = 'none';
+                        }
+                    } else {
+                        barraRelatorios.style.display = 'none';
+                        document.body.classList.remove('barra-filtros-aberta', 'barra-filtros-fixada');
+                        barraFixa = false;
+                        const btnPin = document.getElementById('btn-pin-filtro');
+                        if(btnPin) btnPin.classList.remove('pinned');
+                    }
+                }
+
+                const isMobile = window.innerWidth < 768;
+                const appBar = document.querySelector('.app-bar');
+                if (isMobile && appBar && hash !== 'home' && hash !== 'atalhos' &&
+                    (!!document.getElementById('btn-home-mobile') || !Array.from(appBar.querySelectorAll('.fa-home, .fa-house')).some(i => !i.closest('#btn-home-mobile')))) {
+                    const antigoHome = document.getElementById('btn-home-mobile');
+                    if (antigoHome && !appBar.contains(antigoHome)) antigoHome.remove();
+                    if (!document.getElementById('btn-home-mobile')) {
+                        const btnHome = document.createElement('button');
+                        btnHome.id = 'btn-home-mobile';
+                        btnHome.className = 'icon-btn';
+                        btnHome.innerHTML = '<i class="fas fa-home"></i>';
+                        btnHome.onclick = () => window.navigateTo('home');
+                        btnHome.style.marginRight = '8px';
+                        appBar.insertBefore(btnHome, appBar.firstChild);
+                    }
+                } else {
+                    if (btnHomeMobile) btnHomeMobile.remove();
+                }
+
+                medirAlturas();
+            }, 150);
+            
+        })();
+    </script>
+
+    <!-- SCRIPTS DO SISTEMA -->
+    <script src="/js/multiTenant.js?v=127"></script>
+    <script src="/js/permissions.js?v=127"></script>
+    <script src="/js/dialogos.js?v=127"></script>
+    <script src="/js/maquininha.js?v=127"></script>
+    <script src="/js/clientePicker.js?v=127"></script>
+    <script src="/js/ordenacao.js?v=127"></script>
+    <script src="/js/conexao.js?v=127"></script>
+    <script src="/js/helpers.js?v=127"></script>
+    <script src="/js/perfil.js?v=127"></script>
+    <script src="/js/components/MenuLateral.js?v=127"></script>
+    <script src="/js/screens/Atalhos.js?v=127"></script>
+    <script src="/js/screens/PDV.js?v=127"></script>
+    <script src="/js/screens/Comandas.js?v=127"></script>
+    <script src="/js/screens/NovaComanda.js?v=127"></script>
+    <script src="/js/screens/DetalheComanda.js?v=127"></script>
+    <script src="/js/screens/EditarComanda.js?v=127"></script>
+    <script src="/js/screens/PedidosPendentes.js?v=127"></script>
+    <script src="/js/screens/Garcom.js?v=127"></script>
+    <script src="/js/screens/Cozinha.js?v=127"></script>
+    <script src="/js/screens/Caixa.js?v=127"></script>
+    <script src="/js/screens/ResumoCaixa.js?v=127"></script>
+    <script src="/js/screens/HistoricoCaixa.js?v=127"></script>
+    <script src="/js/screens/Cardapio.js?v=127"></script>
+    <script src="/js/screens/CardapioDia.js?v=127"></script>
+    <script src="/js/screens/QRCodes.js?v=127"></script>
+    <script src="/js/screens/Login.js?v=127"></script>
+    <script src="/js/screens/CadastroUsuario.js?v=127"></script>
+    <script src="/js/screens/CadastroClienteSistema.js?v=127"></script>
+    <script src="/js/screens/Produtos.js?v=127"></script>
+    <script src="/js/screens/CadastroProduto.js?v=127"></script>
+    <script src="/js/screens/Grupos.js?v=127"></script>
+    <script src="/js/screens/CadastroGrupo.js?v=127"></script>
+    <script src="/js/screens/GruposTrabalho.js?v=127"></script>
+    <script src="/js/screens/Adicionais.js?v=127"></script>
+    <script src="/js/screens/CadastroAdicional.js?v=127"></script>
+    <script src="/js/screens/Clientes.js?v=127"></script>
+    <script src="/js/screens/Pendencias.js?v=127"></script>
+    <script src="/js/screens/CadastroCliente.js?v=127"></script>
+    <script src="/js/screens/Mesas.js?v=127"></script>
+    <script src="/js/screens/CadastroMesa.js?v=127"></script>
+    <script src="/js/screens/Colaboradores.js?v=127"></script>
+    <script src="/js/screens/CadastroColaborador.js?v=127"></script>
+    <script src="/js/screens/Funcoes.js?v=127"></script>
+    <script src="/js/screens/CadastroFuncao.js?v=127"></script>
+    <script src="/js/screens/NiveisAcesso.js?v=127"></script>
+    <script src="/js/screens/CadastroNivel.js?v=127"></script>
+    <script src="/js/screens/Usuarios.js?v=127"></script>
+    <script src="/js/screens/CadastroUsuarioSistema.js?v=127"></script>
+    <script src="/js/screens/ControlePerdas.js?v=127"></script>
+    <script src="/js/screens/MovimentacaoEstoque.js?v=127"></script>
+    <script src="/js/screens/Relatorios.js?v=127"></script>
+    <script src="/js/screens/ComandasArquivadas.js?v=127"></script>
+    <script src="/js/screens/ProdutosVendidos.js?v=127"></script>
+    <script src="/js/screens/TotaisEspecie.js?v=127"></script>
+    <script src="/js/screens/RelatorioEstoque.js?v=127"></script>
+    <script src="/js/screens/Configuracoes.js?v=127"></script>
+    <script src="/js/screens/Rede.js?v=127"></script>
+    <script src="/js/loginFuncao.js?v=127"></script>
+    <script src="/js/bluetooth.js?v=127"></script>
+    <script src="/js/screens/Parcelas.js?v=127"></script>
+    <script src="/js/screens/CadastroParcela.js?v=127"></script>
+    <script src="/js/screens/Impressoras.js?v=127"></script>
+    <script src="/js/screens/ImpressorasLocal.js?v=127"></script>
+    <script src="/js/screens/Backup.js?v=127"></script>
+    <script src="/js/screens/Pix.js?v=127"></script>
+    <script src="/js/screens/Senha.js?v=127"></script>
+    <script src="/js/screens/TipoDispositivo.js?v=127"></script>
+    <script src="/js/screens/Assinatura.js?v=127"></script>
+    <script src="/js/screens/Suporte.js?v=127"></script>
+    <script src="/js/screens/Pixd.js?v=127"></script>
+    <script src="/js/screens/GerenciarAssinaturas.js?v=127"></script>
+    <script src="/vendor/qrcode.min.js"></script>
+    <script src="/js/relatorioExport.js?v=127"></script>
+    <script src="/js/acoes.js?v=127"></script>
+    <script src="/js/router.js?v=127"></script>
+    <script src="/js/app.js?v=127"></script>
+
+</body>
+</html>
