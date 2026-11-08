@@ -14,7 +14,7 @@ DB_PATH = DATA_DIR / "database.sqlite"
 HOST, PORT = os.getenv("HOST", "0.0.0.0"), int(os.getenv("PORT", "3000"))
 MAX_BODY = 10 * 1024 * 1024
 DB_LOCK = threading.RLock()
-VERSAO_SERVIDOR = "2.14.0"
+VERSAO_SERVIDOR = "2.15.0"
 INICIO = time.time()
 # Tempo real: cada gravação aumenta REV e acorda quem está ouvindo /api/eventos (SSE)
 REV = {"n": 0, "ultimo": ""}
@@ -24,7 +24,18 @@ OPS = {}                   # X-Op-Id -> resposta já dada (idempotência: reenvi
 OPS_ORDEM = []
 
 DATA_DIR.mkdir(parents=True, exist_ok=True)
-LIC = licenca.Licenca(DATA_DIR)   # assinatura/licença deste aparelho (veja licenca.py)
+def _id_equipamento():
+    """Identifica o EQUIPAMENTO (Android ID enviado pelo app; no PC/Termux, o machine-id)."""
+    e = (os.getenv("COMANDAS_EQUIP") or "").strip()
+    if e: return e
+    for caminho in ("/etc/machine-id", "/var/lib/dbus/machine-id"):
+        try:
+            v = open(caminho).read().strip()
+            if v: return v
+        except Exception: pass
+    return None
+
+LIC = licenca.Licenca(DATA_DIR, equipamento=_id_equipamento())   # assinatura/licença deste equipamento (veja licenca.py)
 mimetypes.add_type("application/javascript", ".js")
 mimetypes.add_type("image/svg+xml", ".svg")
 

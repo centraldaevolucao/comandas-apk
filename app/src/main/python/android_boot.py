@@ -3,7 +3,7 @@ import os, threading
 
 _thread = None
 
-def iniciar(raiz, host, porta):
+def iniciar(raiz, host, porta, equip=""):
     """Sobe o servidor HTTP em uma thread. Retorna imediatamente."""
     global _thread
     if _thread is not None and _thread.is_alive():
@@ -11,6 +11,7 @@ def iniciar(raiz, host, porta):
     os.environ["COMANDAS_ROOT"] = raiz
     os.environ["HOST"] = host
     os.environ["PORT"] = str(porta)
+    if equip: os.environ["COMANDAS_EQUIP"] = str(equip)   # ID do equipamento (licença vinculada a ele)
     import server  # lê as variáveis acima ao ser importado
     def rodar():
         server.init_db()

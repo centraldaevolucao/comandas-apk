@@ -132,18 +132,39 @@ def ler_codigo(codigo, publica_hex=None):
     except Exception:
         return None, "Código inválido."
 
+def extrair_codigo(texto):
+    """Aceita o conteúdo de um arquivo .lic (JSON com 'codigo') ou o código puro (CMD1.…)."""
+    t = str(texto or "").strip().lstrip("\ufeff")
+    if t.startswith("{"):
+        try: return str(json.loads(t).get("codigo", ""))
+        except Exception: return ""
+    for linha in t.splitlines():
+        linha = linha.strip()
+        if linha.startswith(PREFIXO + "."): return linha
+    return t
+
 # ----------------------------------------------------------------------------------------------------------
 # Estado da licença neste aparelho (arquivo data/licenca.json — sobrevive a "zerar movimentação")
 # ----------------------------------------------------------------------------------------------------------
 _ALFA = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"   # sem 0/O/1/I/L
 
 class Licenca:
-    def __init__(self, data_dir, publica_hex=None, hoje_fn=None):
+    def __init__(self, data_dir, publica_hex=None, hoje_fn=None, equipamento=None):
         self.arq = os.path.join(str(data_dir), "licenca.json")
         self.lock = threading.RLock()
         self.pub = publica_hex
         self._hoje = hoje_fn or date.today
         self.e = self._ler()
+        if equipamento:
+            # ID derivado do EQUIPAMENTO (Android ID / machine-id): o mesmo aparelho sempre gera o mesmo ID,
+            # mesmo após reinstalar; aparelhos diferentes geram IDs diferentes → a licença não passa de um para outro.
+            h = hashlib.sha256(("comandas-equip|" + str(equipamento)).encode("utf-8")).digest()
+            novo = "".join(_ALFA[b % len(_ALFA)] for b in h[:8])
+            if self.e.get("instalacao") != novo:
+                self.e["instalacao"] = novo; self._gravar()
+            self.vinculado = True
+        else:
+            self.vinculado = False
         if not self.e.get("instalacao"):
             self.e["instalacao"] = "".join(secrets.choice(_ALFA) for _ in range(8))
             self._gravar()
@@ -155,6 +176,7 @@ class Licenca:
             return {}
 
     def _gravar(self):
+        os.makedirs(os.path.dirname(self.arq) or ".", exist_ok=True)
         tmp = self.arq + ".tmp"
         with open(tmp, "w", encoding="utf-8") as f: json.dump(self.e, f, ensure_ascii=False)
         os.replace(tmp, self.arq)
@@ -185,6 +207,7 @@ class Licenca:
         return dados
 
     def ativar(self, codigo):
+        codigo = extrair_codigo(codigo)
         dados, erro = ler_codigo(codigo, self.pub)
         if erro: return False, erro
         mesmo = dados.get("i") in ("*", self.instalacao_id.replace("-", ""), self.instalacao_id)
@@ -200,7 +223,7 @@ class Licenca:
         h = self.hoje()
         mes = h.strftime("%Y-%m")
         usadas = len(self.e.get("contadas", {}).get(mes, []))
-        s = {"instalacaoId": self.instalacao_id, "hoje": h.isoformat(), "limiteComandas": LIMITE_COMANDAS_MES,
+        s = {"instalacaoId": self.instalacao_id, "equipamentoVinculado": self.vinculado, "hoje": h.isoformat(), "limiteComandas": LIMITE_COMANDAS_MES,
              "comandasMes": usadas, "estado": "gratis", "limitado": True, "cliente": "", "validade": None, "diasRestantes": None, "plano": "gratis"}
         d = self._licenca_valida()
         if d:

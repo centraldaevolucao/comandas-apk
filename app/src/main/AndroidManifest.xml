@@ -69,6 +69,15 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <!-- abrir arquivo de licença .lic (Arquivos, WhatsApp, e-mail…) -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="content" android:host="*" android:mimeType="*/*" android:pathPattern=".*\\.lic" />
+                <data android:scheme="content" android:host="*" android:mimeType="*/*" android:pathPattern=".*\\..*\\.lic" />
+                <data android:scheme="file" android:host="*" android:mimeType="*/*" android:pathPattern=".*\\.lic" />
+            </intent-filter>
             <!-- retorno das maquininhas (Cielo LIO / Stone / SumUp) -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />

@@ -86,9 +86,39 @@ public class MainActivity extends Activity {
     private static final Pattern URL_TUNEL = Pattern.compile("https://[a-z0-9-]+\\.trycloudflare\\.com");
 
     /** Retorno do app da maquininha: comandaspay://<provedor>?... → entrega ao JavaScript. */
+    // ---- Licença (.lic) aberta de fora do app (Arquivos, WhatsApp…): lê o texto e entrega ao JavaScript ----
+    private String licencaPendente = null;
+    private boolean paginaPronta = false;
+
+    private void tratarArquivoLicenca(Intent it) {
+        try {
+            if (it == null || !Intent.ACTION_VIEW.equals(it.getAction()) || it.getData() == null) return;
+            Uri u = it.getData();
+            if ("comandaspay".equals(u.getScheme())) return;
+            java.io.InputStream in = getContentResolver().openInputStream(u);
+            if (in == null) return;
+            java.io.ByteArrayOutputStream bo = new java.io.ByteArrayOutputStream();
+            byte[] buf = new byte[2048]; int n;
+            while ((n = in.read(buf)) > 0 && bo.size() < 16384) bo.write(buf, 0, n);   // licença é pequena: limite de 16 KB
+            in.close();
+            String txt = bo.toString("UTF-8");
+            if (!txt.contains("CMD1.")) return;   // não é uma licença
+            licencaPendente = txt;
+            entregarLicenca();
+        } catch (Exception e) { /* arquivo ilegível: ignora */ }
+    }
+
+    private void entregarLicenca() {
+        if (licencaPendente == null || web == null || !paginaPronta) return;
+        final String js = "window.licencaAplicarTexto && window.licencaAplicarTexto(" + org.json.JSONObject.quote(licencaPendente) + ")";
+        licencaPendente = null;
+        web.post(() -> web.evaluateJavascript(js, null));
+    }
+
     @Override protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         setIntent(intent);
+        tratarArquivoLicenca(intent);
         Uri d = intent == null ? null : intent.getData();
         if (d != null && "comandaspay".equals(d.getScheme()) && web != null) {
             final String js = "window.__pagRetorno && window.__pagRetorno(" + org.json.JSONObject.quote(d.toString()) + ")";
@@ -104,6 +134,7 @@ public class MainActivity extends Activity {
         web = new WebView(this);
         setContentView(web);
         configurarWebView();
+        tratarArquivoLicenca(getIntent());
 
         // Preparar arquivos e subir o servidor fora da thread de interface.
         new Thread(() -> {
@@ -115,7 +146,9 @@ public class MainActivity extends Activity {
                 if (!Python.isStarted()) Python.start(new AndroidPlatform(this));
                 String host = prefs.getBoolean("rede", false) ? "0.0.0.0" : "127.0.0.1";
                 boot = Python.getInstance().getModule("android_boot");
-                boot.callAttr("iniciar", raiz.getAbsolutePath(), host, PORTA);
+                String equip = "";
+                try { equip = android.provider.Settings.Secure.getString(getContentResolver(), android.provider.Settings.Secure.ANDROID_ID); } catch (Exception ignorado) {}
+                boot.callAttr("iniciar", raiz.getAbsolutePath(), host, PORTA, equip == null ? "" : equip);
                 aguardarPorta();
                 servidorPronto = true;
                 iniciarBackupPeriodico();
@@ -154,6 +187,10 @@ public class MainActivity extends Activity {
         web.addJavascriptInterface(new Ponte(), "AndroidApp");
 
         web.setWebViewClient(new WebViewClient() {
+            @Override public void onPageFinished(WebView v, String url) {
+                paginaPronta = true;
+                entregarLicenca();   // licença que abriu o app (.lic) espera a página carregar
+            }
             @Override public boolean shouldOverrideUrlLoading(WebView v, WebResourceRequest r) {
                 Uri u = r.getUrl();
                 String host = u.getHost() == null ? "" : u.getHost();

@@ -3,6 +3,7 @@
 
   python3 licenca_admin.py chaves                         (uma vez) cria chave-privada.txt e mostra a chave pública
   python3 licenca_admin.py emitir --cliente "Bar do Zé" --id ABCD-EFGH --meses 1 --valor 13.99
+  (gera ferramentas/licencas/<cliente>_<ID>_<fim>.lic para enviar ao cliente)
   python3 licenca_admin.py renovar --cliente "Bar do Zé" --meses 1 --valor 13.99
   python3 licenca_admin.py listar [--vencendo]            situação de todos os clientes (pago? vence quando?)
   python3 licenca_admin.py verificar CODIGO               mostra o que há dentro de um código
@@ -46,7 +47,13 @@ def emitir_codigo(cliente, inst, inicio, fim, carencia, valor, forma, obs):
     anotar({"emitido_em": date.today().isoformat(), "cliente": cliente, "instalacao": inst, "plano": "mensal", "inicio": inicio.isoformat(), "fim": fim.isoformat(),
             "valor": valor, "forma_pagamento": forma, "obs": obs, "codigo": cod})
     print("\nCliente:   ", cliente, "\nInstalação:", inst, "\nVálido:    ", inicio, "até", fim, "(carência %d dias)" % carencia)
-    print("\n=== ENVIE ESTE CÓDIGO AO CLIENTE (Assinatura › Código de ativação) ===\n\n" + cod + "\n")
+    pasta = os.path.join(AQUI, "licencas"); os.makedirs(pasta, exist_ok=True)
+    seguro = "".join(ch if ch.isalnum() else "-" for ch in cliente).strip("-") or "cliente"
+    arq = os.path.join(pasta, "%s_%s_%s.lic" % (seguro, inst.replace("-", "").upper(), fim.isoformat()))
+    import json
+    with open(arq, "w", encoding="utf-8") as f:
+        json.dump({"app": "Comandas", "codigo": cod, "cliente": cliente, "equipamento": inst, "valida_ate": fim.isoformat()}, f, ensure_ascii=False, indent=1)
+    print("\n=== ENVIE ESTE ARQUIVO .lic AO CLIENTE (WhatsApp/e-mail). Ele toca no arquivo e aplica, sem digitar ===\n\n" + arq + "\n")
 
 def cmd_chaves(a):
     if os.path.exists(ARQ_CHAVE) and not a.forcar: sys.exit("chave-privada.txt já existe. (Trocar a chave invalida TODOS os códigos já emitidos; use --forcar se tiver certeza.)")
@@ -57,6 +64,7 @@ def cmd_chaves(a):
 
 def cmd_emitir(a):
     ini = date.fromisoformat(a.inicio) if a.inicio else date.today()
+    if a.id == "*" and not a.teste: sys.exit("'*' (qualquer equipamento) só com --teste. Licença real é vinculada ao ID do equipamento.")
     emitir_codigo(a.cliente, a.id, ini, somar_meses(ini, a.meses), a.carencia, a.valor, a.forma, a.obs)
 
 def cmd_renovar(a):
@@ -93,7 +101,7 @@ s = p.add_subparsers(dest="cmd", required=True)
 x = s.add_parser("chaves"); x.add_argument("--forcar", action="store_true"); x.set_defaults(f=cmd_chaves)
 for nome, f in (("emitir", cmd_emitir), ("renovar", cmd_renovar)):
     x = s.add_parser(nome); x.add_argument("--cliente", required=True)
-    if nome == "emitir": x.add_argument("--id", required=True, help="ID da instalação mostrado na tela Assinatura do cliente ('*' = qualquer aparelho, só p/ testes)"); x.add_argument("--inicio")
+    if nome == "emitir": x.add_argument("--id", required=True, help="ID da instalação mostrado na tela Assinatura do cliente ('*' = qualquer aparelho, só p/ testes)"); x.add_argument("--inicio"); x.add_argument("--teste", action="store_true")
     x.add_argument("--meses", type=int, default=1); x.add_argument("--valor", default="13.99"); x.add_argument("--forma", default="pix")
     x.add_argument("--carencia", type=int, default=L.CARENCIA_PADRAO_DIAS); x.add_argument("--obs", default=""); x.set_defaults(f=f)
 x = s.add_parser("listar"); x.add_argument("--vencendo", action="store_true"); x.set_defaults(f=cmd_listar)

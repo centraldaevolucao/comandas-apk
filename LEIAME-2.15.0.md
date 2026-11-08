@@ -1,4 +1,4 @@
-> **Versão atual do sistema: 2.14.0** — este arquivo é renomeado e atualizado a cada versão (seções numeradas abaixo, da mais antiga à mais nova).
+> **Versão atual do sistema: 2.15.0** — este arquivo é renomeado e atualizado a cada versão (seções numeradas abaixo, da mais antiga à mais nova).
 
 # Comandas 2.3.0 — guia, relatório de correções, testes e pendências
 
@@ -194,3 +194,13 @@ Obs.: itens alterados depois de gerar o recibo em aberto não atualizam o valor 
 - A licença fica no aparelho **servidor**; os aparelhos "cliente" da rede usam o status dele.
 - A antiga tela "Gerenciar assinaturas" (senha admin123) **não controla mais nada** — a liberação agora é só por código.
 - **Testado:** emissão/verificação (vetores oficiais RFC 8032), ativação com código certo/errado/adulterado/de outro aparelho, limite de 30 no servidor, bloqueio de Caixa/Relatórios/Cardápio, carência, vencimento, relógio voltado, mudança de mês, tela Assinatura e Pix. **Não testado:** em aparelho Android e o fluxo real de pagamento Pix.
+
+## 27. v2.15.0 — Licença em arquivo .lic, contador e vínculo ao equipamento
+- **Cadastros 100% livres no plano gratuito:** produtos, clientes, grupos, mesas, colaboradores etc. Só ficam limitados: 30 comandas/mês, Caixa, Relatórios e Cardápio digital.
+- **Arquivo `.lic`:** `licenca_admin.py emitir/renovar` agora grava `ferramentas/licencas/<cliente>_<ID>_<vencimento>.lic` (JSON com o código assinado). Envie esse arquivo ao cliente por WhatsApp/e-mail. Pasta no `.gitignore`.
+- **Aplicar sem digitar:** (a) tocar no arquivo `.lic` e escolher **Comandas** (o app abre e aplica); ou (b) Assinatura › **Aplicar licença (arquivo .lic)** e escolher o arquivo. Colar o código à mão continua disponível, escondido em "Colar o código manualmente".
+- **Contador de validade:** na tela Assinatura, `Nd hh:mm:ss` até o fim do dia do vencimento; em carência mostra o tempo até o bloqueio. Há também um selo "Assinatura ativa · N dia(s)" no PDV.
+- **Vínculo ao equipamento:** o ID (8 caracteres) agora vem do **Android ID** do aparelho (ou machine-id no Linux/Termux), portanto **não muda ao limpar dados/reinstalar** o app no mesmo aparelho; basta reaplicar o `.lic`. Código de outro equipamento é recusado ("Este código é de outra instalação…"). `--id '*'` só com `--teste`.
+- **1 licença = 1 equipamento servidor; clientes ilimitados:** celulares/tablets conectados ao servidor usam o status dele, sem limite de aparelhos.
+- **Atenção:** os IDs e códigos da v2.14.0 (ID aleatório) deixam de valer — emita novos com o ID mostrado na tela Assinatura da v2.15.0. Trocar de aparelho exige nova licença.
+- **Testado (navegador):** aplicar `.lic` pelo seletor de arquivo, recusa de licença de outro equipamento, contador correndo, mesmo equipamento → mesmo ID. **Não testado:** abrir `.lic` pelo Android (código Java sem compilar), aparelho real.
