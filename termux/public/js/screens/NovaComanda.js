@@ -67,6 +67,7 @@ if (!window.renderNovaComanda) {
     };
 
     window.criarComanda = async function() {
+        if (window.licencaPodeCriarComanda && !(await window.licencaPodeCriarComanda())) return;
         const tipo = document.getElementById('nc-tipo').value;
         const mesa = document.getElementById('nc-mesa').value.trim();
         const cliEl = document.getElementById('nc-cliente');

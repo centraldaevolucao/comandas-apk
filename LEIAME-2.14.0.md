@@ -1,4 +1,4 @@
-> **Versão atual do sistema: 2.13.0** — este arquivo é renomeado e atualizado a cada versão (seções numeradas abaixo, da mais antiga à mais nova).
+> **Versão atual do sistema: 2.14.0** — este arquivo é renomeado e atualizado a cada versão (seções numeradas abaixo, da mais antiga à mais nova).
 
 # Comandas 2.3.0 — guia, relatório de correções, testes e pendências
 
@@ -168,3 +168,29 @@ Obs.: itens alterados depois de gerar o recibo em aberto não atualizam o valor 
 - **WhatsApp direto no contato**: usa o telefone do cadastro **ou o informado na própria comanda**; no Android tenta WhatsApp e **WhatsApp Business**. Novo botão **Compartilhar** (menu do Android: e-mail, Drive, Telegram, SMS…) no preview da comanda/recibo e no recibo em aberto.
 - **Testado no navegador**: seletor (ordem, filtro, seleção, +Novo), ordenação de produtos, ver itens, unir com grupo, reabrir (pagamento parcial mantido no fechamento), opções de QR na tela de configurações.
 - **Não testado**: Java/Android (jid do WhatsApp Business, menu Compartilhar), exportação PDF/CSV em aparelho, e o efeito das 4 opções de QR na impressão física/Bluetooth.
+
+## 26. v2.14.0 — Assinatura (controle de pagamento e plano gratuito)
+**Como funciona (resumo):** o cliente paga por Pix → envia o comprovante + o **ID da instalação** → você emite um **código de ativação** com a ferramenta `ferramentas/licenca_admin.py` → o cliente cola o código na tela **Assinatura**. O código é assinado digitalmente (Ed25519, RFC 8032): o app só tem a chave **pública**, então não dá para fabricar códigos. Funciona **offline**; não precisa de servidor seu.
+
+**Plano gratuito (sem assinatura, ou assinatura vencida):** PDV, comandas (até **30 por mês**), produtos e clientes. **Bloqueados:** Caixa (resumo, fechamento e histórico), Relatórios (todos) e Cardápio digital (cardápio do dia, QR Codes e o cardápio do cliente pelo link externo). O caixa abre sozinho para o PDV funcionar. O limite é aplicado **no servidor** (resposta 402) e também avisado na tela; a faixa no PDV mostra "12/30 comandas".
+
+**Assinatura ativa:** tudo liberado. Faixa de aviso nos 7 dias antes de vencer. **Carência:** depois do vencimento tudo continua liberado por 3 dias (ajustável por cliente na emissão); depois volta ao gratuito (os dados não são apagados).
+
+**Seu controle de pagamentos/recebimentos (no SEU computador):**
+- `python3 ferramentas/licenca_admin.py chaves` — uma vez: cria `chave-privada.txt` e mostra a chave pública (já gerada e colocada em `licenca.py`; a chave privada foi entregue à parte).
+- `python3 ferramentas/licenca_admin.py emitir --cliente "Bar do Zé" --id ABCD-EFGH --meses 1 --valor 13.99` — primeira assinatura. Mostra o código para enviar e anota no **livro** `ferramentas/livro-licencas.csv`.
+- `python3 ferramentas/licenca_admin.py renovar --cliente "Bar do Zé" --meses 1 --valor 13.99` — renovação (continua do vencimento se ainda vigente; se já venceu, conta de hoje).
+- `python3 ferramentas/licenca_admin.py listar [--vencendo]` — quem está ativo, vencendo, em carência ou vencido (cobrar) e o total recebido.
+- `... verificar CODIGO` — confere um código.
+- **Guarde `chave-privada.txt` e `livro-licencas.csv` com cópia de segurança; ambos estão no `.gitignore` e NÃO devem ir para o GitHub.** Perder a chave privada = não emitir mais códigos (e trocar a chave obriga a gerar um novo app, invalidando os códigos antigos). Quem tiver a chave consegue emitir códigos.
+- Passos do dia a dia: (1) cliente paga o Pix; (2) você confere o recebimento no banco; (3) `emitir`/`renovar`; (4) envia o código por WhatsApp; (5) `listar` toda semana para cobrar quem venceu.
+
+**Antes de publicar, ajuste:** `window.LICENCA_WHATSAPP` em `js/licenca.js` (seu número com 55+DDD; enquanto for o número de exemplo, o botão "Enviar comprovante" só compartilha/copia o texto), o valor (`valorAssinatura` nas configurações, padrão R$ 13,99) e a chave Pix da assinatura (`pixAssinatura`; o padrão é o do arquivo `Assinatura.js`).
+
+**Limites (importante saber):**
+- É controle por **honra + dificuldade**, não blindado: quem desmontar e alterar o APK pode burlar os bloqueios de tela. O limite de comandas e o bloqueio do caixa/cardápio são checados no servidor do próprio aparelho, que também está dentro do APK. Para a maioria dos clientes isso basta; para blindar de verdade seria preciso um servidor seu.
+- Apagar os dados do app/reinstalar gera um **novo ID** e zera o contador do mês (a licença antiga não vale no ID novo — peça novo código e confira no livro).
+- Voltar o relógio do celular não dá dias extras (o app lembra a maior data vista).
+- A licença fica no aparelho **servidor**; os aparelhos "cliente" da rede usam o status dele.
+- A antiga tela "Gerenciar assinaturas" (senha admin123) **não controla mais nada** — a liberação agora é só por código.
+- **Testado:** emissão/verificação (vetores oficiais RFC 8032), ativação com código certo/errado/adulterado/de outro aparelho, limite de 30 no servidor, bloqueio de Caixa/Relatórios/Cardápio, carência, vencimento, relógio voltado, mudança de mês, tela Assinatura e Pix. **Não testado:** em aparelho Android e o fluxo real de pagamento Pix.

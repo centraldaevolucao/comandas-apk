@@ -81,6 +81,7 @@ async function carregarPDV() {
     if (!container) return;
 
     try {
+        try { await window.licencaCarregar(); await window.licencaGarantirCaixaAberto(); } catch (e) {}   // plano gratuito: caixa abre sozinho
         try {
             const caixaBruto = await apiGet('caixaAtual');
             const cx = Array.isArray(caixaBruto) ? caixaBruto[0] : caixaBruto;
@@ -175,7 +176,7 @@ function renderizarListaAtual() {
     }
     const corG = window.pdvState.caixaCor ? (window.CORES_CAIXA || []).find(x => x.id === window.pdvState.caixaCor) : null;
     const faixa = corG ? '<div style="display:flex;align-items:center;gap:8px;background:' + corG.hex + ';color:#fff;border-radius:10px;padding:7px 12px;margin-bottom:10px;font-weight:700;font-size:0.85rem;"><i class="fas fa-users"></i> ' + (corG.label || corG.id) + '</div>' : '';
-    container.innerHTML = faixa + renderListaComandasPDV();
+    container.innerHTML = (window.licencaFaixa ? window.licencaFaixa() : '') + faixa + renderListaComandasPDV();
 }
 
 function renderListaComandasPDV() {
@@ -411,6 +412,7 @@ window.abrirModalNovaComandaPDV = async function() {
 window.fecharModalNovaComandaPDV = function() { const m = document.getElementById('modal-nova-comanda-pdv'); if (m) m.remove(); };
 
 window.salvarNovaComandaPDV = async function() {
+    if (window.licencaPodeCriarComanda && !(await window.licencaPodeCriarComanda())) { fecharModalNovaComandaPDV(); return; }
     const numero = (document.getElementById('nc-pdv-numero').value || '').trim();
     const mesa = document.getElementById('nc-pdv-mesa').value || '';
     const cliEl = document.getElementById('nc-pdv-cliente');

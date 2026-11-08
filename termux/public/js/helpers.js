@@ -30,7 +30,14 @@ window.apiSave = async function (recurso, dados) {
         body: JSON.stringify(dados)
     };
     const res = window.CX ? await window.CX.fetch(caminho, opcoes) : await fetch(caminho, opcoes);
-    if (!res.ok) throw new Error('Erro ao salvar ' + recurso + ' (' + res.status + ')');
+    if (!res.ok) {
+        if (res.status === 402) {   // assinatura: o servidor explica o motivo
+            let msg = ''; try { msg = (await res.json()).error || ''; } catch (e) {}
+            try { window.dispatchEvent(new CustomEvent('licenca:bloqueio', { detail: { msg: msg } })); } catch (e) {}
+            throw new Error(msg || 'Recurso para assinantes');
+        }
+        throw new Error('Erro ao salvar ' + recurso + ' (' + res.status + ')');
+    }
     return await res.json();
 };
 

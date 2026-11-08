@@ -5,6 +5,7 @@ from pathlib import Path
 from urllib.parse import urlparse, unquote
 import sqlite3, json, os, socket, secrets, base64, mimetypes, time, threading
 import backup_comandas
+import licenca
 
 ROOT = Path(os.getenv("COMANDAS_ROOT") or Path(__file__).resolve().parent)
 PUBLIC_DIR = (ROOT / "public").resolve()
@@ -13,7 +14,7 @@ DB_PATH = DATA_DIR / "database.sqlite"
 HOST, PORT = os.getenv("HOST", "0.0.0.0"), int(os.getenv("PORT", "3000"))
 MAX_BODY = 10 * 1024 * 1024
 DB_LOCK = threading.RLock()
-VERSAO_SERVIDOR = "2.13.0"
+VERSAO_SERVIDOR = "2.14.0"
 INICIO = time.time()
 # Tempo real: cada gravação aumenta REV e acorda quem está ouvindo /api/eventos (SSE)
 REV = {"n": 0, "ultimo": ""}
@@ -23,6 +24,7 @@ OPS = {}                   # X-Op-Id -> resposta já dada (idempotência: reenvi
 OPS_ORDEM = []
 
 DATA_DIR.mkdir(parents=True, exist_ok=True)
+LIC = licenca.Licenca(DATA_DIR)   # assinatura/licença deste aparelho (veja licenca.py)
 mimetypes.add_type("application/javascript", ".js")
 mimetypes.add_type("image/svg+xml", ".svg")
 
@@ -294,6 +296,23 @@ class Handler(BaseHTTPRequestHandler):
         return json.loads(row["dados"]) if row else None
 
     # ---------------- link externo (túnel Cloudflare) ----------------
+    def licenca_bloqueia(self, col, client_id, body):
+        """Regras da assinatura nas gravações. Devolve a mensagem de bloqueio ou None."""
+        if col == "caixas" and LIC.status()["limitado"]:
+            return "Fechamento e histórico de caixa são recursos de assinante."
+        if col == "comandas":
+            existentes = {str(i.get("id")) for i in read_resource("comandas", client_id) if isinstance(i, dict)}
+            itens = body if isinstance(body, list) else [body]
+            novos = []
+            for i in itens:
+                if not isinstance(i, dict): continue
+                iid = str(i.get("id") or "")
+                if not iid: novos.append("n" + novo_id())
+                elif iid not in existentes: novos.append(iid)
+            ok, msg = LIC.permitir_comandas(novos)
+            if not ok: return msg
+        return None
+
     def api_maquininha(self, parts):
         """/api/maquininha/mp/{devices|cobrar|status|cancelar} — ponte para a API Point do Mercado Pago."""
         if not parts or parts[0] != "mp":
@@ -364,6 +383,8 @@ class Handler(BaseHTTPRequestHandler):
             return self.send_json(403, {"error": "Somente no aparelho servidor"})
         if self.colab_valido():
             return False   # colaborador autorizado: usa a API normal (menos o que está bloqueado acima)
+        if LIC.status()["limitado"]:   # cardápio digital (QR / link) é recurso de assinante
+            return self.send_json(402, {"error": "Cardápio digital indisponível: assinatura inativa.", "licenca": True})
         if self.command == "DELETE":
             return self.send_json(403, {"error": "Não permitido pelo link externo"})
         if self.command == "POST" and col in ("qr",) and len(parts) > 1:
@@ -529,6 +550,18 @@ class Handler(BaseHTTPRequestHandler):
         if not col:
             return self.send_json(404, {"error": "Rota não encontrada"})
 
+        # Assinatura: status (qualquer aparelho da rede) e ativação por código (somente rede local)
+        if col == "licenca":
+            if self.command == "GET" and not item_id:
+                return self.send_json(200, LIC.status())
+            if self.command == "POST" and item_id == "ativar":
+                if self.externo(): return self.send_json(403, {"error": "Somente na rede local"})
+                try: body = self.read_json()
+                except ValueError: return self.send_json(400, {"error": "JSON inválido"})
+                ok, msg = LIC.ativar(str((body or {}).get("codigo", "")))
+                return self.send_json(200 if ok else 400, {"ok": ok, "msg": msg, "status": LIC.status()})
+            return self.send_json(405, {"error": "Método não permitido"})
+
         # Configuração DESTE aparelho (modo único/servidor/cliente, função, IP). É um registro só, não uma lista:
         # antes cada gravação criava um item novo e a leitura devolvia uma lista, então nada era relido ao reabrir.
         if col == "device":
@@ -564,6 +597,9 @@ class Handler(BaseHTTPRequestHandler):
                 op = self.headers.get("X-Op-Id")
                 if op and op in OPS:   # reenvio da mesma operação: devolve o mesmo resultado, não grava de novo
                     return self.send_json(200, {**OPS[op], "repetida": True})
+                if not (self.externo() and not self.colab_valido()):
+                    bloqueio = self.licenca_bloqueia(col, client_id, body)
+                    if bloqueio: return self.send_json(402, {"error": bloqueio, "licenca": True})
                 if self.externo() and not self.colab_valido():
                     if col not in EXTERNO_ESCRITA:
                         return self.send_json(403, {"error": "Não permitido pelo link externo"})

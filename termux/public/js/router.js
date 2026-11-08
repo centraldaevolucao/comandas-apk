@@ -154,6 +154,9 @@ window.navigateTo = function(rota) {
         return;
     }
 
+    const grupoBloqueado = window.licencaBloqueia ? window.licencaBloqueia(rota) : null;   // plano gratuito / assinatura vencida
+    if (grupoBloqueado) { window.licencaMostrarBloqueio(grupoBloqueado); return; }
+
     if (!rotaPermitida(rota)) {
         if (typeof window.mostrarToast === 'function')
             window.mostrarToast('🔒 ' + rotaBloqueadaMsg(rota).split('\n')[0]);

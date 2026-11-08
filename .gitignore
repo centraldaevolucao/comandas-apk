@@ -9,3 +9,6 @@ __pycache__/
 .DS_Store
 .idea/
 *.apk
+# Licenças: chave privada e livro de clientes NUNCA vão para o GitHub
+ferramentas/chave-privada.txt
+ferramentas/livro-licencas.csv
