@@ -11,6 +11,8 @@ jobs:
         with: { python-version: '3.11' }
       - uses: gradle/actions/setup-gradle@v4
         with: { gradle-version: 8.9 }
+      - name: Conferir arquivos obrigatórios
+        run: test -f app/src/main/assets/public.zip || (echo 'FALTA app/src/main/assets/public.zip (o .gitignore não pode ignorá-lo)'; exit 1)
       - name: Baixar cloudflared (link externo temporário)
         run: |
           set -e

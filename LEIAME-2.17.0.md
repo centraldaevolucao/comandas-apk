@@ -1,4 +1,4 @@
-> **Versão atual do sistema: 2.16.0** — este arquivo é renomeado e atualizado a cada versão (seções numeradas abaixo, da mais antiga à mais nova).
+> **Versão atual do sistema: 2.17.0** — este arquivo é renomeado e atualizado a cada versão (seções numeradas abaixo, da mais antiga à mais nova).
 
 # Comandas 2.3.0 — guia, relatório de correções, testes e pendências
 
@@ -212,3 +212,11 @@ Obs.: itens alterados depois de gerar o recibo em aberto não atualizam o valor 
 - **Chave:** a mesma chave privada de antes continua valendo (o app do dono importa o `chave-privada.txt`); códigos e `.lic` já emitidos seguem válidos. A chave NÃO fica mais neste repositório (`.gitignore` bloqueia `chave-privada.txt`, `*.lic`, `*.pedido`).
 - As seções 26 e 27 acima citam `ferramentas/licenca_admin.py`: leia como "o app Comandas Licenças".
 - **Testado:** pedido gerado pelo Comandas → importado no app do dono → `.lic` emitido → aplicado no Comandas (estado "ativa"). **Não testado:** compilação do Java e abertura de `.pedido`/`.lic` no Android.
+
+## 29. v2.17.0 — Suporte (chatbot), contato da Central da Evolução e correção do APK sem `public.zip`
+- **Correção importante:** o APK gerado no GitHub abria com *"Não foi possível iniciar o servidor — FileNotFoundException: public.zip"*. Causa: o `.gitignore` tinha `*.zip`, então `app/src/main/assets/public.zip` (o sistema empacotado) nunca ia para o GitHub. Agora o `.gitignore` abre exceção (`!app/src/main/assets/public.zip`) e o workflow **falha com mensagem clara** se o arquivo faltar. **No seu computador:** depois de extrair este zip, rode `git add -f app/src/main/assets/public.zip` uma vez (ou `git add .`, que já funciona com a exceção) e confira com `git ls-files | grep public.zip`.
+- **Contato único** em `js/contato.js`: WhatsApp (91) 98138-5331 e e-mail centraldaevolucao@gmail.com. Usado em Solicitar licença e no Suporte. Para mudar, edite só esse arquivo.
+- **Solicitar licença:** abre uma janela com **WhatsApp** (mensagem pronta com ID do equipamento e o pedido `CMDP1.…`, direto para o número acima), **E-mail** (mesmo texto) ou **Compartilhar arquivo .pedido**.
+- **Suporte:** só WhatsApp e e-mail (telefone e horário removidos). Agora é um **assistente em formato de chatbot** com **101 perguntas detalhadas em 15 assuntos** (primeiros passos, rede, PDV, fechamento, fiado, caixa, cozinha, cardápio/QR, cadastros, estoque, relatórios, impressão, configurações/backup, assinatura/licença, problemas comuns). Menu por assunto, **busca por texto livre** e botão "ainda preciso de ajuda" que abre WhatsApp/e-mail já com o assunto. O conteúdo fica em `js/faq.js` (edite as respostas ali).
+- **Rodapé:** "Comandas v2.17.0 · © 2026 Central da Evolução · Todos os direitos reservados" no Suporte, em Minha Assinatura e no fim do menu lateral. A versão vem de `APP_VERSAO` em `js/contato.js` — **atualizar a cada versão**.
+- **Testado (navegador):** menu e perguntas do chat, busca livre (com e sem resultado), links de WhatsApp/e-mail, janela de Solicitar licença (3 caminhos), rodapés. **Não testado:** no Android (abrir WhatsApp/e-mail pelo app).

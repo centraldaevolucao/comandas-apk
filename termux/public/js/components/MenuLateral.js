@@ -232,6 +232,7 @@ window.renderMenuLateral = function () {
         '            </div>',
         '        </div>',
 
+        '        <div style="margin-top:14px;">' + (window.rodapeVersaoHtml ? window.rodapeVersaoHtml('padding:8px 0;') : '') + '</div>',
         '    </div>',
         '</div>'
     ].join('\n');

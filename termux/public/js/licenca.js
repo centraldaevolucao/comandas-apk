@@ -5,7 +5,6 @@
     'use strict';
     const COR = '#C2185B';
     // Número do WhatsApp que recebe o comprovante (com 55 + DDD). Troque pelo SEU número.
-    window.LICENCA_WHATSAPP = window.LICENCA_WHATSAPP || '5511999999999';
     const VALOR_PADRAO = 13.99;
 
     const GRUPOS = {
@@ -142,6 +141,7 @@
             '<details style="margin-top:10px;"><summary style="font-size:.78rem;color:#777;cursor:pointer;">Colar o código manualmente</summary>' +
             '<textarea id="lic-codigo" rows="3" placeholder="CMD1.…" style="width:100%;box-sizing:border-box;margin-top:6px;padding:10px;border:2px solid #ddd;border-radius:10px;font-family:monospace;font-size:.8rem;"></textarea>' +
             '<button class="btn-outline" style="margin-top:6px;width:100%;" onclick="licencaAtivar()"><i class="fas fa-key"></i> Ativar com o código colado</button></details></div>';
+        h += window.rodapeVersaoHtml ? window.rodapeVersaoHtml('padding:6px 0 16px;') : '';
         box.innerHTML = h;
         iniciarContador();
     }
@@ -211,14 +211,33 @@
         const b64 = btoa(unescape(encodeURIComponent(JSON.stringify(dados)))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
         const conteudo = JSON.stringify(Object.assign({}, dados, { codigo: 'CMDP1.' + b64 }), null, 1);
         const nome = 'pedido-' + String(dados.equipamento).replace(/-/g, '') + '.pedido';
-        const texto = 'Olá! Quero assinar o Comandas.\nEstabelecimento: ' + (dados.estabelecimento || '—') + '\nID do equipamento: ' + dados.equipamento + '\nPedido: CMDP1.' + b64;
-        if (window.AndroidApp && window.AndroidApp.compartilharArquivo) {
-            window.AndroidApp.compartilharArquivo(nome, 'application/octet-stream', btoa(unescape(encodeURIComponent(conteudo))));
-        } else {
-            const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([conteudo], { type: 'application/octet-stream' })); a.download = nome;
-            document.body.appendChild(a); a.click(); a.remove();
-            if (window.LICENCA_WHATSAPP && window.LICENCA_WHATSAPP !== '5511999999999') window.open('https://wa.me/' + window.LICENCA_WHATSAPP + '?text=' + encodeURIComponent(texto), '_blank');
-        }
+        const texto = 'Olá, Central da Evolução! Quero assinar o Comandas.\nEstabelecimento: ' + (dados.estabelecimento || '—') + '\nID do equipamento: ' + dados.equipamento +
+            '\nValor: ' + R(dados.valor) + '\nPedido: CMDP1.' + b64 + '\n(Vou enviar o comprovante do Pix.)';
+        const C = window.CONTATO || {};
+        const old = document.getElementById('modal-licenca-pedido'); if (old) old.remove();
+        const m = document.createElement('div');
+        m.id = 'modal-licenca-pedido';
+        m.style.cssText = 'display:flex;align-items:center;justify-content:center;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:300000;padding:16px;';
+        m.innerHTML = '<div style="background:#fff;border-radius:16px;max-width:360px;width:100%;overflow:hidden;">' +
+            '<div style="background:' + COR + ';color:#fff;padding:14px;font-weight:700;"><i class="fas fa-paper-plane"></i> Solicitar licença</div>' +
+            '<div style="padding:16px;font-size:.88rem;color:#444;line-height:1.5;">Enviaremos o pedido da <b>' + esc(dados.estabelecimento || 'sua loja') + '</b> (equipamento <b>' + esc(dados.equipamento) + '</b>) para a <b>' + esc(C.empresa || '') + '</b>. Depois, mande também o comprovante do Pix.' +
+            '<button class="btn-primary" id="lp-w" style="margin-top:12px;width:100%;background:#1b8f4a;"><i class="fab fa-whatsapp"></i> WhatsApp ' + esc(C.whatsappFmt || '') + '</button>' +
+            '<button class="btn-primary" id="lp-e" style="margin-top:8px;width:100%;background:#1976d2;"><i class="fas fa-envelope"></i> E-mail ' + esc(C.email || '') + '</button>' +
+            '<button class="btn-outline" id="lp-a" style="margin-top:8px;width:100%;"><i class="fas fa-file-export"></i> Compartilhar arquivo .pedido</button>' +
+            '<button class="btn-outline" id="lp-c" style="margin-top:8px;width:100%;border-color:#bbb;color:#666;">Cancelar</button></div></div>';
+        document.body.appendChild(m);
+        m.querySelector('#lp-w').onclick = function () { m.remove(); window.abrirLinkExterno(window.contatoWhatsAppUrl(texto)); };
+        m.querySelector('#lp-e').onclick = function () { m.remove(); window.abrirLinkExterno(window.contatoEmailUrl('Pedido de licença Comandas — ' + dados.equipamento, texto)); };
+        m.querySelector('#lp-c').onclick = function () { m.remove(); };
+        m.querySelector('#lp-a').onclick = function () {
+            m.remove();
+            if (window.AndroidApp && window.AndroidApp.compartilharArquivo) {
+                window.AndroidApp.compartilharArquivo(nome, 'application/octet-stream', btoa(unescape(encodeURIComponent(conteudo))));
+            } else {
+                const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([conteudo], { type: 'application/octet-stream' })); a.download = nome;
+                document.body.appendChild(a); a.click(); a.remove();
+            }
+        };
     };
     window.licencaEnviarComprovante = window.licencaSolicitar;
 

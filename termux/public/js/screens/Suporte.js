@@ -1,124 +1,160 @@
 // ============================================================
-// SUPORTE.JS — Contato e informações de suporte
+// SUPORTE.JS — Assistente (chatbot de perguntas frequentes) + contato: só WhatsApp e e-mail
+// Conteúdo das respostas: js/faq.js · Contato/versão: js/contato.js
 // ============================================================
+(function () {
+    'use strict';
+    const COR = '#C2185B';
+    const norm = function (s) { return String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase(); };
+    const esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
+    const semHtml = function (h) { return String(h || '').replace(/<[^>]+>/g, ' '); };
+    const dados = function () { return window.FAQ_DADOS || []; };
+    let indice = null;
 
-console.log('✔ Suporte.js carregado');
+    function montarIndice() {
+        if (indice) return indice;
+        indice = [];
+        dados().forEach(function (c, ci) {
+            c.itens.forEach(function (it, ii) { indice.push({ ci: ci, ii: ii, q: norm(it.p), k: norm(it.k), r: norm(semHtml(it.r)) }); });
+        });
+        return indice;
+    }
 
-if (window.renderSuporte) {
-    console.log('⚠️ Suporte.js já carregado');
-} else {
-    window.renderSuporte = function() {
-        return [
-            '<div class="app-bar">',
-            '    <button class="icon-btn" onclick="navigateTo(\'comandas\')"><i class="fas fa-arrow-left"></i></button>',
-            '    <h1>Suporte</h1>',
-            '    <div style="width:40px;"></div>',
-            '</div>',
+    function buscar(texto) {
+        const palavras = norm(texto).split(/[^a-z0-9]+/).filter(function (w) { return w.length > 2; });
+        if (!palavras.length) return [];
+        const res = [];
+        montarIndice().forEach(function (x) {
+            let pt = 0;
+            palavras.forEach(function (w) {
+                const raiz = w.length > 5 ? w.slice(0, w.length - 1) : w;            // tolera plural/feminino
+                if (x.q.indexOf(raiz) >= 0) pt += 4;
+                if (x.k.indexOf(raiz) >= 0) pt += 3;
+                if (x.r.indexOf(raiz) >= 0) pt += 1;
+            });
+            if (pt >= 3) res.push({ x: x, pt: pt });
+        });
+        res.sort(function (a, b) { return b.pt - a.pt; });
+        return res.slice(0, 5).map(function (r) { return r.x; });
+    }
 
-            '<div class="content-area" style="padding:12px;">',
-
-            // Cabeçalho
-            '    <div style="text-align:center;padding:30px 20px;background:linear-gradient(135deg, #1976d2 0%, #0d47a1 100%);color:#fff;border-radius:12px;margin-bottom:16px;">',
-            '        <i class="fas fa-headset" style="font-size:3rem;opacity:0.9;"></i>',
-            '        <h2 style="margin-top:12px;font-size:1.3rem;">Como podemos ajudar?</h2>',
-            '        <p style="margin-top:8px;font-size:0.85rem;opacity:0.9;line-height:1.5;">',
-            '            Nossa equipe está pronta para resolver qualquer dúvida ou problema.',
-            '        </p>',
-            '    </div>',
-
-            // Canais
-            '    <div class="card">',
-            '        <div class="card-title"><i class="fas fa-comments"></i> Fale conosco</div>',
-
-            '        <a href="https://wa.me/5511999999999?text=Ol%C3%A1%2C%20preciso%20de%20ajuda%20com%20o%20app" target="_blank" ' +
-            '           style="display:flex;align-items:center;gap:14px;padding:14px 0;text-decoration:none;color:inherit;border-bottom:1px solid #f0f0f0;">',
-            '            <div style="width:44px;height:44px;border-radius:50%;background:#25d36620;display:flex;align-items:center;justify-content:center;flex-shrink:0;">',
-            '                <i class="fab fa-whatsapp" style="color:#25d366;font-size:1.3rem;"></i>',
-            '            </div>',
-            '            <div style="flex:1;">',
-            '                <div style="font-weight:600;">WhatsApp</div>',
-            '                <div style="font-size:0.78rem;color:#666;">(11) 99999-9999 · Resposta rápida</div>',
-            '            </div>',
-            '            <i class="fas fa-external-link-alt" style="color:#ccc;"></i>',
-            '        </a>',
-
-            '        <a href="mailto:suporte@restauranteapp.com" ' +
-            '           style="display:flex;align-items:center;gap:14px;padding:14px 0;text-decoration:none;color:inherit;border-bottom:1px solid #f0f0f0;">',
-            '            <div style="width:44px;height:44px;border-radius:50%;background:#1976d220;display:flex;align-items:center;justify-content:center;flex-shrink:0;">',
-            '                <i class="fas fa-envelope" style="color:#1976d2;font-size:1.3rem;"></i>',
-            '            </div>',
-            '            <div style="flex:1;">',
-            '                <div style="font-weight:600;">E-mail</div>',
-            '                <div style="font-size:0.78rem;color:#666;">suporte@restauranteapp.com</div>',
-            '            </div>',
-            '            <i class="fas fa-external-link-alt" style="color:#ccc;"></i>',
-            '        </a>',
-
-            '        <a href="tel:+551140028922" ' +
-            '           style="display:flex;align-items:center;gap:14px;padding:14px 0;text-decoration:none;color:inherit;">',
-            '            <div style="width:44px;height:44px;border-radius:50%;background:#ff980020;display:flex;align-items:center;justify-content:center;flex-shrink:0;">',
-            '                <i class="fas fa-phone" style="color:#ff9800;font-size:1.3rem;"></i>',
-            '            </div>',
-            '            <div style="flex:1;">',
-            '                <div style="font-weight:600;">Telefone</div>',
-            '                <div style="font-size:0.78rem;color:#666;">(11) 4002-8922 · Seg-Sex 9h-18h</div>',
-            '            </div>',
-            '            <i class="fas fa-external-link-alt" style="color:#ccc;"></i>',
-            '        </a>',
-            '    </div>',
-
-            // FAQ
-            '    <div class="card">',
-            '        <div class="card-title"><i class="fas fa-question-circle"></i> Perguntas frequentes</div>',
-
-            '        <details style="padding:10px 0;border-bottom:1px solid #f0f0f0;">',
-            '            <summary style="cursor:pointer;font-weight:600;font-size:0.9rem;">Como faço backup dos meus dados?</summary>',
-            '            <p style="margin-top:8px;font-size:0.85rem;color:#666;line-height:1.5;">',
-            '                Acesse <b>Configurações → Backup</b>. O sistema gera um arquivo .json com todos os dados.',
-            '            </p>',
-            '        </details>',
-
-            '        <details style="padding:10px 0;border-bottom:1px solid #f0f0f0;">',
-            '            <summary style="cursor:pointer;font-weight:600;font-size:0.9rem;">Como gerar o QR Code das mesas?</summary>',
-            '            <p style="margin-top:8px;font-size:0.85rem;color:#666;line-height:1.5;">',
-            '                Menu → <b>QR Codes das Mesas</b>. Você pode imprimir individualmente ou todos de uma vez.',
-            '            </p>',
-            '        </details>',
-
-            '        <details style="padding:10px 0;border-bottom:1px solid #f0f0f0;">',
-            '            <summary style="cursor:pointer;font-weight:600;font-size:0.9rem;">Não consigo fechar o caixa</summary>',
-            '            <p style="margin-top:8px;font-size:0.85rem;color:#666;line-height:1.5;">',
-            '                Verifique se todas as comandas estão finalizadas. O sistema bloqueia o fechamento enquanto houver comandas em aberto.',
-            '            </p>',
-            '        </details>',
-
-            '        <details style="padding:10px 0;">',
-            '            <summary style="cursor:pointer;font-weight:600;font-size:0.9rem;">Como alterar minha assinatura?</summary>',
-            '            <p style="margin-top:8px;font-size:0.85rem;color:#666;line-height:1.5;">',
-            '                Menu → <b>Assinatura do app</b>. Lá você encontra os planos disponíveis e pode renovar ou cancelar.',
-            '            </p>',
-            '        </details>',
-            '    </div>',
-
-            // Horário
-            '    <div class="card" style="background:#e8f5e9;">',
-            '        <div class="card-title" style="color:#2e7d32;"><i class="fas fa-clock"></i> Horário de atendimento</div>',
-            '        <div style="font-size:0.9rem;color:#555;line-height:1.6;">',
-            '            <div style="display:flex;justify-content:space-between;padding:3px 0;"><span>Segunda a sexta</span><strong>9h às 18h</strong></div>',
-            '            <div style="display:flex;justify-content:space-between;padding:3px 0;"><span>Sábado</span><strong>9h às 13h</strong></div>',
-            '            <div style="display:flex;justify-content:space-between;padding:3px 0;"><span>Domingo e feriados</span><strong>Fechado</strong></div>',
-            '        </div>',
-            '    </div>',
-
-            // Versão
-            '    <div style="text-align:center;padding:20px;font-size:0.75rem;color:#888;">',
-            '        <div><i class="fas fa-code"></i> App Restaurante v1.0.0</div>',
-            '        <div style="margin-top:4px;">© 2026 · Todos os direitos reservados</div>',
-            '    </div>',
-
-            '</div>'
-        ].join('\n');
+    // ---------- tela ----------
+    window.renderSuporte = function () {
+        setTimeout(iniciarChat, 30);
+        const C = window.CONTATO;
+        return '<div class="app-bar"><button class="icon-btn" onclick="navigateTo(\'comandas\')"><i class="fas fa-arrow-left"></i></button><h1>Suporte</h1><div style="width:40px;"></div></div>' +
+            '<div class="content-area" style="padding:10px;display:flex;flex-direction:column;">' +
+            '<div style="display:flex;gap:8px;margin-bottom:10px;">' +
+            '<button class="btn-outline" style="flex:1;border-color:#25d366;color:#1b8f4a;" onclick="suporteAbrirWhats()"><i class="fab fa-whatsapp"></i> WhatsApp<div style="font-size:.68rem;color:#666;font-weight:400;">' + esc(C.whatsappFmt) + '</div></button>' +
+            '<button class="btn-outline" style="flex:1;border-color:#1976d2;color:#1976d2;" onclick="suporteAbrirEmail()"><i class="fas fa-envelope"></i> E-mail<div style="font-size:.68rem;color:#666;font-weight:400;overflow:hidden;text-overflow:ellipsis;">' + esc(C.email) + '</div></button></div>' +
+            '<div id="chat-box" style="background:#f4f4f6;border-radius:14px;padding:10px;height:calc(100vh - 330px);min-height:260px;overflow-y:auto;"></div>' +
+            '<div style="display:flex;gap:8px;margin-top:8px;"><input id="chat-entrada" type="text" placeholder="Digite sua dúvida (ex.: fiado, impressora, licença)" autocomplete="off" ' +
+            'style="flex:1;padding:12px;border:2px solid #ddd;border-radius:24px;font-size:.95rem;" onkeydown="if(event.key===\'Enter\')suporteEnviar()">' +
+            '<button class="btn-primary" style="width:48px;height:48px;border-radius:50%;padding:0;" onclick="suporteEnviar()" aria-label="Enviar"><i class="fas fa-paper-plane"></i></button></div>' +
+            window.rodapeVersaoHtml('padding:16px 0 4px;') +
+            '</div>';
     };
 
-    console.log('✔ Suporte.js carregado');
-}
+    function caixa() { return document.getElementById('chat-box'); }
+    function rolar() { const b = caixa(); if (b) b.scrollTop = b.scrollHeight; }
+
+    function balaoBot(html) {
+        const d = document.createElement('div');
+        d.style.cssText = 'display:flex;gap:8px;margin:8px 0;align-items:flex-end;';
+        d.innerHTML = '<div style="width:30px;height:30px;border-radius:50%;background:' + COR + ';color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="fas fa-robot" style="font-size:.85rem;"></i></div>' +
+            '<div style="background:#fff;border-radius:14px 14px 14px 4px;padding:10px 12px;max-width:85%;font-size:.9rem;line-height:1.5;color:#333;box-shadow:0 1px 3px rgba(0,0,0,.08);">' + html + '</div>';
+        caixa().appendChild(d); rolar();
+    }
+    function balaoUsuario(texto) {
+        const d = document.createElement('div');
+        d.style.cssText = 'display:flex;justify-content:flex-end;margin:8px 0;';
+        d.innerHTML = '<div style="background:' + COR + ';color:#fff;border-radius:14px 14px 4px 14px;padding:10px 12px;max-width:80%;font-size:.9rem;line-height:1.4;">' + esc(texto) + '</div>';
+        caixa().appendChild(d); rolar();
+    }
+    function opcoes(lista) {            // lista: [{ t: texto, f: funcao, cor }]
+        const d = document.createElement('div');
+        d.className = 'chat-opcoes';
+        d.style.cssText = 'display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 10px 38px;';
+        lista.forEach(function (o) {
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.style.cssText = 'border:1.5px solid ' + (o.cor || COR) + ';background:#fff;color:' + (o.cor || COR) + ';border-radius:18px;padding:7px 12px;font-size:.82rem;cursor:pointer;text-align:left;';
+            b.innerHTML = o.t;
+            b.onclick = function () { d.querySelectorAll('button').forEach(function (x) { x.disabled = true; x.style.opacity = '.55'; }); o.f(); };
+            d.appendChild(b);
+        });
+        caixa().appendChild(d); rolar();
+    }
+
+    // ---------- fluxo da conversa ----------
+    function menuPrincipal(saudacao) {
+        balaoBot(saudacao || 'Sobre qual assunto você quer ajuda? Toque em uma opção ou digite sua dúvida abaixo.');
+        const ops = dados().map(function (c, ci) { return { t: '<i class="fas ' + c.icone + '"></i> ' + esc(c.titulo), f: function () { balaoUsuario(c.titulo); categoria(ci); } }; });
+        ops.push({ t: '<i class="fas fa-headset"></i> Falar com a Central da Evolução', cor: '#1b8f4a', f: function () { balaoUsuario('Falar com a Central da Evolução'); contato(); } });
+        opcoes(ops);
+    }
+
+    function categoria(ci) {
+        const c = dados()[ci];
+        balaoBot('<b>' + esc(c.titulo) + '</b> — escolha a pergunta:');
+        const ops = c.itens.map(function (it, ii) { return { t: esc(it.p), f: function () { balaoUsuario(it.p); resposta(ci, ii); } }; });
+        ops.push({ t: '← Voltar ao menu', cor: '#666', f: function () { menuPrincipal(); } });
+        opcoes(ops);
+    }
+
+    function resposta(ci, ii) {
+        const c = dados()[ci], it = c.itens[ii];
+        balaoBot(it.r);
+        setTimeout(function () {
+            balaoBot('Isso resolveu?');
+            opcoes([
+                { t: '👍 Sim, obrigado', cor: '#2e7d32', f: function () { balaoUsuario('Sim, obrigado'); balaoBot('Que bom! Se precisar de mais alguma coisa, é só chamar. 😊'); opcoes([{ t: 'Voltar ao menu', f: function () { menuPrincipal(); } }]); } },
+                { t: '📚 Mais perguntas de ' + esc(c.titulo), f: function () { balaoUsuario('Mais perguntas de ' + c.titulo); categoria(ci); } },
+                { t: '💬 Ainda preciso de ajuda', cor: '#1b8f4a', f: function () { balaoUsuario('Ainda preciso de ajuda'); contato(it.p); } },
+                { t: 'Menu principal', cor: '#666', f: function () { menuPrincipal(); } }
+            ]);
+        }, 250);
+    }
+
+    function contato(assunto) {
+        const C = window.CONTATO;
+        balaoBot('Fale direto com a <b>' + esc(C.empresa) + '</b>:<br>WhatsApp <b>' + esc(C.whatsappFmt) + '</b><br>E-mail <b>' + esc(C.email) + '</b><br><span style="color:#777;font-size:.8rem;">Conte o que aconteceu e, se puder, mande um print da tela.' +
+            (assunto ? ' Já vou preencher o assunto para você.' : '') + '</span>');
+        opcoes([
+            { t: '<i class="fab fa-whatsapp"></i> Abrir WhatsApp', cor: '#1b8f4a', f: function () { suporteAbrirWhats(assunto); menuPrincipal('Posso ajudar em mais alguma coisa?'); } },
+            { t: '<i class="fas fa-envelope"></i> Enviar e-mail', cor: '#1976d2', f: function () { suporteAbrirEmail(assunto); menuPrincipal('Posso ajudar em mais alguma coisa?'); } },
+            { t: 'Voltar ao menu', cor: '#666', f: function () { menuPrincipal(); } }
+        ]);
+    }
+
+    function iniciarChat() {
+        const b = caixa(); if (!b || b.dataset.ok) return;
+        b.dataset.ok = '1';
+        balaoBot('Olá! 👋 Sou o <b>assistente do Comandas</b>. Tenho respostas detalhadas sobre cada parte do sistema (' + dados().reduce(function (n, c) { return n + c.itens.length; }, 0) + ' perguntas).');
+        menuPrincipal();
+    }
+
+    window.suporteEnviar = function () {
+        const inp = document.getElementById('chat-entrada'); if (!inp) return;
+        const t = inp.value.trim(); if (!t) return;
+        inp.value = '';
+        balaoUsuario(t);
+        const achou = buscar(t);
+        if (!achou.length) {
+            balaoBot('Não encontrei uma resposta para isso. Tente outras palavras (ex.: <i>fiado, caixa, impressora, licença, backup</i>) ou fale com a gente.');
+            opcoes([{ t: 'Ver o menu de assuntos', f: function () { menuPrincipal(); } }, { t: '<i class="fas fa-headset"></i> Falar com o suporte', cor: '#1b8f4a', f: function () { balaoUsuario('Falar com o suporte'); contato(t); } }]);
+            return;
+        }
+        balaoBot('Encontrei ' + (achou.length === 1 ? 'esta resposta' : 'estas respostas') + ' — toque para abrir:');
+        const ops = achou.map(function (x) { const it = dados()[x.ci].itens[x.ii]; return { t: esc(it.p), f: function () { balaoUsuario(it.p); resposta(x.ci, x.ii); } }; });
+        ops.push({ t: '<i class="fas fa-headset"></i> Falar com o suporte', cor: '#1b8f4a', f: function () { balaoUsuario('Falar com o suporte'); contato(t); } });
+        opcoes(ops);
+    };
+
+    window.suporteAbrirWhats = function (assunto) {
+        window.abrirLinkExterno(window.contatoWhatsAppUrl('Olá, Central da Evolução! Preciso de ajuda com o Comandas (v' + window.APP_VERSAO + ').' + (assunto ? '\nAssunto: ' + assunto : '')));
+    };
+    window.suporteAbrirEmail = function (assunto) {
+        window.abrirLinkExterno(window.contatoEmailUrl('Suporte Comandas v' + window.APP_VERSAO, 'Olá, preciso de ajuda com o Comandas.' + (assunto ? '\nAssunto: ' + assunto : '') + '\n\nDescreva o problema:\n'));
+    };
+})();
