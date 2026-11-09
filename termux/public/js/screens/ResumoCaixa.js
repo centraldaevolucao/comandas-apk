@@ -33,15 +33,9 @@ window.renderResumoCaixa = function() {
 };
 
 window.voltarResumoCaixa = function() {
-    const origem = window.resumoCaixaOrigem;
     window.resumoCaixaId = null;
     window.resumoCaixaOrigem = null;
-
-    if (origem === 'historico') {
-        navigateTo('historico-caixa');
-    } else {
-        navigateTo('caixa');
-    }
+    window.voltarTela();
 };
 
 // ============================================================

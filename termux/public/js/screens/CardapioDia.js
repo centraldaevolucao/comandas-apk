@@ -33,7 +33,7 @@ window.renderCardapioDia = function() {
 
     return [
         '<div class="app-bar">',
-        '    <button class="icon-btn" onclick="navigateTo(\'comandas\')"><i class="fas fa-arrow-left"></i></button>',
+        '    <button class="icon-btn" onclick="voltarTela()"><i class="fas fa-arrow-left"></i></button>',
         '    <h1>Cardápio do Dia</h1>',
         '    <button class="icon-btn" onclick="salvarCardapioDia()" title="Salvar"><i class="fas fa-save"></i></button>',
         '</div>',

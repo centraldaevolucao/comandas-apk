@@ -37,7 +37,7 @@ window.renderComandas = function () {
     return line(
         '<div class="app-bar">',
         // 🔙 BOTÃO VOLTAR → sempre vai para o PDV
-        '    <button class="icon-btn" onclick="window.navigateTo(\'pdv\')" title="Voltar"><i class="fas fa-arrow-left"></i></button>',
+        '    <button class="icon-btn" onclick="voltarTela()" title="Voltar"><i class="fas fa-arrow-left"></i></button>',
         '    <h1>' + tituloAba() + '</h1>',
         '    <div style="display:flex;gap:2px;">',
         '        <button class="icon-btn" style="position:relative;" onclick="navigateTo(\'pedidos-pendentes\')" title="Pedidos pendentes">',

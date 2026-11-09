@@ -12,7 +12,7 @@ window.renderUsuarios = function() {
     setTimeout(atualizarListaUsuarios, 50);
     return [
         '<div class="app-bar">',
-        '    <button class="icon-btn" onclick="navigateTo(\'configuracoes\')"><i class="fas fa-arrow-left"></i></button>',
+        '    <button class="icon-btn" onclick="voltarTela()"><i class="fas fa-arrow-left"></i></button>',
         '    <h1>Usuários do Sistema</h1>',
         '    <button class="icon-btn" onclick="abrirMenu()"><i class="fas fa-bars"></i></button>',
         '</div>',

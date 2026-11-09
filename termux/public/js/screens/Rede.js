@@ -7,7 +7,7 @@ window.renderRede = function () {
     setTimeout(window.redeAtualizar, 30);
     return [
         '<div class="app-bar">',
-        '  <button class="icon-btn" onclick="(window.perfilDados&&window.perfilDados())?navigateTo(window.perfilRotaInicial()):navigateTo(\'configuracoes\')"><i class="fas fa-arrow-left"></i></button>',
+        '  <button class="icon-btn" onclick="voltarTela()"><i class="fas fa-arrow-left"></i></button>',
         '  <h1>Rede e conexão</h1>',
         '  <button class="icon-btn" onclick="redeAtualizar()" title="Atualizar"><i class="fas fa-sync-alt"></i></button>',
         '</div>',

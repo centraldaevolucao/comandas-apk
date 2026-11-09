@@ -18,7 +18,7 @@ window.renderCadastroCliente = function() {
 
     var html = '';
     html += '<div class="app-bar">';
-    html += '    <button class="icon-btn" onclick="navigateTo(\'clientes\')"><i class="fas fa-arrow-left"></i></button>';
+    html += '    <button class="icon-btn" onclick="voltarTela()"><i class="fas fa-arrow-left"></i></button>';
     html += '    <h1>' + (editando ? 'Editar Cliente' : 'Novo Cliente') + '</h1>';
     html += '    <button class="icon-btn" onclick="salvarCliente()" title="Salvar"><i class="fas fa-save"></i></button>';
     html += '</div>';

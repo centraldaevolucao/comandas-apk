@@ -10,7 +10,7 @@ if (!window.renderImpressoras) {
 
         return [
             '<div class="app-bar">',
-            '    <button class="icon-btn" onclick="navigateTo(\'configuracoes\')"><i class="fas fa-arrow-left"></i></button>',
+            '    <button class="icon-btn" onclick="voltarTela()"><i class="fas fa-arrow-left"></i></button>',
             '    <h1>Impressoras</h1>',
             '    <div style="width:40px;"></div>',
             '</div>',

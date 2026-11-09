@@ -58,7 +58,7 @@ window.podeAcessar = function (permissao) {
 // ------------------------------------------------------------
 // LIMITE DE COMANDAS
 // ------------------------------------------------------------
-window.LIMITE_COMANDAS_DIA = 20;
+window.LIMITE_COMANDAS_DIA = 30;
 
 window.comandasCriadasHoje = async function () {
     try {

@@ -514,11 +514,7 @@ console.log('✔ acoes.js carregado');
         const principal = pd ? (pd.menu ? 'home' : window.perfilRotaInicial()) : 'home';
         const rota = (location.hash || '#home').substring(1) || 'home';
         if (rota === principal) return 'sair';                                  // já no Menu Principal
-        window.__navPop = true;
-        try {
-            if (window.__profundidade && window.__profundidade() > 1) history.back();   // ainda há telas para voltar
-            else window.navigateTo(principal);                                          // último voltar: Menu Principal
-        } finally { setTimeout(function () { window.__navPop = false; }, 50); }
+        window.voltarTela();
         return 'voltou';
     };
 

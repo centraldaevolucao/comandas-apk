@@ -35,7 +35,7 @@ window.renderGarcom = function() {
 
     return [
         '<div class="app-bar">',
-        '    <button class="icon-btn" onclick="navigateTo(\'comandas\')"><i class="fas fa-arrow-left"></i></button>',
+        '    <button class="icon-btn" onclick="voltarTela()"><i class="fas fa-arrow-left"></i></button>',
         '    <h1>Meus Pedidos</h1>',
         '    <div style="display:flex;gap:2px;">',
         '        <button class="icon-btn" onclick="abrirModalNovaComandaGarcom()" title="Nova comanda"><i class="fas fa-plus"></i></button>',
@@ -95,7 +95,7 @@ window.renderGarcom = function() {
 function renderSelecionarGarcom() {
     return [
         '<div class="app-bar">',
-        '    <button class="icon-btn" onclick="navigateTo(\'comandas\')"><i class="fas fa-arrow-left"></i></button>',
+        '    <button class="icon-btn" onclick="voltarTela()"><i class="fas fa-arrow-left"></i></button>',
         '    <h1>Painel do Garçom</h1>',
         '    <div style="width:40px;"></div>',
         '</div>',

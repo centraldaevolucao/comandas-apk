@@ -14,7 +14,7 @@ window.renderCadastroUsuarioSistema = function() {
 
     return [
         '<div class="app-bar">',
-        '    <button class="icon-btn" onclick="navigateTo(\'usuarios\')"><i class="fas fa-arrow-left"></i></button>',
+        '    <button class="icon-btn" onclick="voltarTela()"><i class="fas fa-arrow-left"></i></button>',
         '    <h1>' + (editando ? 'Editar Usuário' : 'Novo Usuário') + '</h1>',
         '    <button class="icon-btn" onclick="salvarUsuarioSistema()" title="Salvar"><i class="fas fa-save"></i></button>',
         '</div>',

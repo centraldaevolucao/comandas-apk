@@ -102,7 +102,7 @@ if (!window.renderDetalheComanda) {
 
         return [
             '<div class="app-bar">',
-            '    <button class="icon-btn" onclick="voltar()"><i class="fas fa-arrow-left"></i></button>',
+            '    <button class="icon-btn" onclick="voltarTela()"><i class="fas fa-arrow-left"></i></button>',
             '    <h1 id="detalhe-titulo">Comanda</h1>',
             '    <div style="display:flex;gap:2px;">',
             '        <button class="icon-btn" onclick="editarComanda()" title="Editar"><i class="fas fa-pen"></i></button>',
@@ -1412,12 +1412,17 @@ if (!window.renderDetalheComanda) {
 
     // Cobra na maquininha (se configurada) e devolve os dados do cartão; null = cancelado.
     window.cobrarCartaoSeNecessario = async function (forma, valor) {
-        if ((forma !== 'debito' && forma !== 'credito') || !window.maquininhaCobrar) return {};
+        if ((forma !== 'debito' && forma !== 'credito' && forma !== 'pix') || !window.maquininhaCobrar) return {};
         const c = window.comandaAtual || {};
-        const r = await window.maquininhaCobrar({ valor: valor, forma: forma, ref: String(c.id || ''), descricao: 'Comanda ' + (c.numero || c.nome || '') });
+        // Com maquininhas cadastradas, pergunta em qual delas o valor será recebido (respeitando as do garçom)
+        const maq = await window.maquininhaEscolher(forma, c.garcom);
+        if (maq === null) return null;       // cancelou
+        if (maq === false) return {};        // nenhuma cadastrada: comportamento simples
+        const base = { maquinaId: maq.id, maquinaNome: maq.nome || '' };
+        if (forma === 'pix') return { maquininha: Object.assign({ provider: maq.provider }, base) };   // PIX: só identifica a máquina
+        const r = await window.maquininhaCobrar({ valor: valor, forma: forma, ref: String(c.id || ''), descricao: 'Comanda ' + (c.numero || c.nome || ''), maquina: maq });
         if (!r) return null;
-        if (r.provider === 'nenhuma') return {};
-        return { maquininha: { provider: r.provider, nsu: r.nsu, autorizacao: r.autorizacao, bandeira: r.bandeira, ultimos4: r.ultimos4, parcelas: r.parcelas, idTransacao: r.idTransacao } };
+        return { maquininha: Object.assign({ provider: r.provider, nsu: r.nsu, autorizacao: r.autorizacao, bandeira: r.bandeira, ultimos4: r.ultimos4, parcelas: r.parcelas, idTransacao: r.idTransacao }, base) };
     };
 
     window.adicionarPagamentoTemp = async function () {
@@ -1445,7 +1450,7 @@ if (!window.renderDetalheComanda) {
     window.editarPagamentoTemp = function (idx) {
         const p = window.pagamentosTemp[idx];
         if (!p) return;
-        if (p.maquininha && p.maquininha.provider !== 'nenhuma') { window.avisar('Pagamento já aprovado na maquininha: não é possível alterar. Exclua e cobre novamente.'); return; }
+        if (p.maquininha && (p.maquininha.nsu || p.maquininha.idTransacao || p.maquininha.autorizacao)) { window.avisar('Pagamento já aprovado na maquininha: não é possível alterar. Exclua e cobre novamente.'); return; }
         const antigo = document.getElementById('modal-edit-pag'); if (antigo) antigo.remove();
 
         const totais = calcularTotais(window.comandaAtual);
@@ -1500,6 +1505,7 @@ if (!window.renderDetalheComanda) {
         const salvar = function () {
             const v = parseFloat(String(document.getElementById('ep-valor').value).replace(',', '.'));
             if (isNaN(v) || v <= 0) { document.getElementById('ep-erro').textContent = 'Informe um valor maior que zero.'; return; }
+            if (window.pagamentosTemp[idx].forma !== window._editPagForma) delete window.pagamentosTemp[idx].maquininha;   // trocou a forma: escolhe a máquina de novo
             window.pagamentosTemp[idx].forma = window._editPagForma;
             window.pagamentosTemp[idx].valor = Math.round(v * 100) / 100;
             fechar();
@@ -1610,7 +1616,7 @@ if (!window.renderDetalheComanda) {
         const isFiado = document.getElementById('pg-fiado').checked;
         if (!isFiado) {   // cartão pré-preenchido ainda sem cobrança na maquininha
             for (const pg of window.pagamentosTemp) {
-                if ((pg.forma === 'debito' || pg.forma === 'credito') && !pg.maquininha && !pg.anterior) {
+                if ((pg.forma === 'debito' || pg.forma === 'credito' || pg.forma === 'pix') && !pg.maquininha && !pg.anterior) {
                     const ex = await window.cobrarCartaoSeNecessario(pg.forma, Number(pg.valor));
                     if (ex === null) return;
                     Object.assign(pg, ex);
@@ -1739,6 +1745,8 @@ if (!window.renderDetalheComanda) {
     /** Bloco do QR do PIX (valor da comanda). destino: 'impressao' | 'preview' (mostra se qualquer opção ligada). */
     window.blocoPixQR = function (config, valor, estilo, tipo) {
         if (!config.pixRestaurante) return '';
+        valor = Number(valor) || 0;
+        if (valor <= 0.004) return '';   // QR só existe se houver pagamento em PIX (e mostra só o valor do PIX)
         if (estilo === 'forcar') {
             const u = window.qrUrl(window.gerarPixComValor(config.pixRestaurante, valor), '150x150');
             return '<div data-pix-qr="1" style="text-align:center;margin-top:12px;"><hr style="border:none;border-top:1px dashed #000;margin:10px 0;"><div style="font-weight:bold;font-size:11px;">PAGUE COM PIX</div><img src="' + u + '" style="width:140px;height:140px;margin:5px auto;display:block;"><div style="font-size:10px;">Valor: ' + formatMoney(valor) + '</div>' + (config.pixChave ? '<div style="font-size:10px;">PIX: <b>' + window.pixFormatarChave(config.pixTipo, config.pixChave) + '</b></div>' : '') + '</div>';
@@ -1803,7 +1811,7 @@ if (!window.renderDetalheComanda) {
                     <div style="display:flex; justify-content:space-between; padding:3px 0;"><span>Subtotal:</span><span>${formatMoney(totais.subtotal)}</span></div>
                     ${totais.desconto > 0 ? `<div style="display:flex; justify-content:space-between; padding:3px 0;"><span>Desconto:</span><span>-${formatMoney(totais.desconto)}</span></div>` : ''}
                     <div style="display:flex; justify-content:space-between; font-size:14px; font-weight:bold; margin-top:10px;"><span>TOTAL:</span><span>${formatMoney(totais.total)}</span></div>
-                    ${window.blocoPixQR(config, totais.total, 'preview', 'comanda')}
+                    ${window.blocoPixQR(config, window.pixValorPago(c), 'preview', 'comanda')}
                     <hr style="border:none; border-top:1px dashed #000; margin:10px 0;">
                     <div style="text-align:center; font-size:10px;">Obrigado pela preferência!</div>
                 </div>
@@ -1839,7 +1847,7 @@ if (!window.renderDetalheComanda) {
               '<div style="display:flex; justify-content:space-between; padding:2px 0;"><span>Pendente desta comanda:</span><span>' + formatMoney(atualPend) + '</span></div>' +
               '<div style="display:flex; justify-content:space-between; font-weight:bold; padding:2px 0;"><span>TOTAL GERAL PENDENTE:</span><span>' + formatMoney(pa2.valor + atualPend) + '</span></div>'
             : '';
-        const blocoPixHTML = aberto ? window.blocoPixQR(config, totais.total, 'forcar', 'recibo') : window.blocoPixQR(config, totais.total, 'preview', 'recibo');
+        const blocoPixHTML = aberto ? window.blocoPixQR(config, window.pixValorPago(c), 'forcar', 'recibo') : window.blocoPixQR(config, window.pixValorPago(c), 'preview', 'recibo');
 
             htmlPreview = `
                 <div style="font-family:monospace; font-size:12px; padding:10px; max-width:300px; margin:0 auto; background:#fff; border:1px solid #ddd; border-radius:8px;">
@@ -2077,7 +2085,7 @@ if (!window.renderDetalheComanda) {
                     ${totais.desconto > 0 ? `<div><span>Desconto:</span><span>-${formatMoney(totais.desconto)}</span></div>` : ''}
                     <div class="total-final"><span>TOTAL:</span><span>${formatMoney(totais.total)}</span></div>
                 </div>
-                ${window.blocoPixQR(config, totais.total, 'impressao', 'comanda')}
+                ${window.blocoPixQR(config, window.pixValorPago(c), 'impressao', 'comanda')}
                 <div class="footer">Obrigado pela preferência!</div>
                 <br><br><br>
                 <script>window.onload=function(){setTimeout(function(){window.print(); window.close();},300);}<\/script>
@@ -2128,7 +2136,7 @@ if (!window.renderDetalheComanda) {
             `;
         });
 
-        const blocoPixHTML = window.blocoPixQR(config, totais.total, 'impressao', 'recibo');
+        const blocoPixHTML = window.blocoPixQR(config, window.pixValorPago(c), 'impressao', 'recibo');
 
         const html = `
             <html><head><title>Recibo ${c.numero}</title>

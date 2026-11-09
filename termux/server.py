@@ -14,7 +14,7 @@ DB_PATH = DATA_DIR / "database.sqlite"
 HOST, PORT = os.getenv("HOST", "0.0.0.0"), int(os.getenv("PORT", "3000"))
 MAX_BODY = 10 * 1024 * 1024
 DB_LOCK = threading.RLock()
-VERSAO_SERVIDOR = "2.17.0"
+VERSAO_SERVIDOR = "2.18.0"
 INICIO = time.time()
 # Tempo real: cada gravação aumenta REV e acorda quem está ouvindo /api/eventos (SSE)
 REV = {"n": 0, "ultimo": ""}
@@ -146,18 +146,28 @@ def local_ip():
 # ---------------- Maquininha: Mercado Pago Point (API de integração) ----------------
 MP_BASE = os.environ.get("MP_BASE", "https://api.mercadopago.com")
 
-def maq_config():
-    """Lê as credenciais da maquininha salvas em Configurações (ficam só no aparelho servidor)."""
+def maq_config(maq_id=None):
+    """Lê as credenciais da maquininha salvas em Configurações (ficam só no aparelho servidor).
+    Com várias maquininhas (config.maquininhas), escolhe pelo id; sem id, a primeira."""
     try:
         cfg = read_resource("configuracoes", None) or [{}]
         cfg = cfg[0] if isinstance(cfg, list) and cfg else {}
     except Exception:
         cfg = {}
-    return (cfg.get("maquininha") or {}) if isinstance(cfg, dict) else {}
+    if not isinstance(cfg, dict):
+        return {}
+    lista = cfg.get("maquininhas")
+    if isinstance(lista, list) and lista:
+        if maq_id:
+            for m in lista:
+                if isinstance(m, dict) and str(m.get("id")) == str(maq_id):
+                    return m
+        return lista[0] if isinstance(lista[0], dict) else {}
+    return cfg.get("maquininha") or {}
 
-def mp_chamar(metodo, caminho, corpo=None):
+def mp_chamar(metodo, caminho, corpo=None, maq_id=None):
     import ssl, urllib.request, urllib.error
-    m = maq_config()
+    m = maq_config(maq_id)
     token = (m.get("mpToken") or "").strip()
     if not token:
         return 400, {"error": "Informe o Access Token do Mercado Pago em Configurações › Maquininha."}
@@ -336,9 +346,15 @@ class Handler(BaseHTTPRequestHandler):
                 corpo = json.loads(self.rfile.read(n).decode("utf-8") or "{}") if n else {}
             except Exception:
                 corpo = {}
-        dev = (corpo.get("deviceId") or maq_config().get("mpDeviceId") or "").strip()
+        qs = self.path.split("?", 1)[1] if "?" in self.path else ""
+        maq_id = str(corpo.get("maqId") or "")
+        for kv in qs.split("&"):
+            if kv.startswith("maq="):
+                from urllib.parse import unquote
+                maq_id = unquote(kv[4:])
+        dev = (corpo.get("deviceId") or maq_config(maq_id).get("mpDeviceId") or "").strip()
         if sub == "devices" and self.command == "GET":
-            st, r = mp_chamar("GET", "/point/integration-api/devices?offset=0&limit=50")
+            st, r = mp_chamar("GET", "/point/integration-api/devices?offset=0&limit=50", maq_id=maq_id)
             return self.send_json(st, r)
         if sub == "cobrar" and self.command == "POST":
             if not dev:
@@ -353,7 +369,7 @@ class Handler(BaseHTTPRequestHandler):
                 pag["installments_cost"] = "seller"
             body = {"amount": centavos, "description": str(corpo.get("descricao") or "Comanda")[:100], "payment": pag,
                     "additional_info": {"external_reference": str(corpo.get("ref") or "")[:64], "print_on_terminal": True}}
-            st, r = mp_chamar("POST", "/point/integration-api/devices/%s/payment-intents" % dev, body)
+            st, r = mp_chamar("POST", "/point/integration-api/devices/%s/payment-intents" % dev, body, maq_id=maq_id)
             if isinstance(r, dict):
                 r["deviceId"] = dev
             return self.send_json(st, r)
@@ -365,13 +381,13 @@ class Handler(BaseHTTPRequestHandler):
                     pid = kv[3:]
             if not pid or not all(ch.isalnum() or ch in "-_" for ch in pid):
                 return self.send_json(400, {"error": "id inválido"})
-            st, r = mp_chamar("GET", "/point/integration-api/payment-intents/" + pid)
+            st, r = mp_chamar("GET", "/point/integration-api/payment-intents/" + pid, maq_id=maq_id)
             return self.send_json(st, r)
         if sub == "cancelar" and self.command == "POST":
             pid = str(corpo.get("id") or "")
             if not dev or not pid or not all(ch.isalnum() or ch in "-_" for ch in pid):
                 return self.send_json(400, {"error": "Dados inválidos"})
-            st, r = mp_chamar("DELETE", "/point/integration-api/devices/%s/payment-intents/%s" % (dev, pid))
+            st, r = mp_chamar("DELETE", "/point/integration-api/devices/%s/payment-intents/%s" % (dev, pid), maq_id=maq_id)
             return self.send_json(st, r)
         return self.send_json(405, {"error": "Método não permitido"})
 

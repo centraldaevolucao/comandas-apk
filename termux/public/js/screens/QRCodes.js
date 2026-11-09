@@ -14,7 +14,7 @@ window.renderQRCodes = function() {
 
     return [
         '<div class="app-bar">',
-        '    <button class="icon-btn" onclick="navigateTo(\'comandas\')"><i class="fas fa-arrow-left"></i></button>',
+        '    <button class="icon-btn" onclick="voltarTela()"><i class="fas fa-arrow-left"></i></button>',
         '    <h1>QR Codes das Mesas</h1>',
         '    <button class="icon-btn" onclick="salvarMesasQRCodes()" title="Salvar"><i class="fas fa-save"></i></button>',
         '</div>',

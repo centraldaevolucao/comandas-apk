@@ -12,7 +12,9 @@ from datetime import date, datetime, timedelta
 # ---- Chave PÚBLICA do emissor (hex, 32 bytes). Gerada por: python3 ferramentas/licenca_admin.py chaves ----
 CHAVE_PUBLICA_HEX = "1451bac3783a9b23d4001030168cd1145ce25ac7c421c98318b2048bfb25e4e1"
 
-LIMITE_COMANDAS_MES = 30        # plano gratuito / assinatura vencida
+LIMITE_COMANDAS_DIA = 30        # plano gratuito / assinatura vencida: comandas criadas por DIA
+LIMITE_COMANDAS_MES = LIMITE_COMANDAS_DIA   # nome antigo (compatibilidade)
+TESTE_CURINGA_MAX_DIAS = 30     # licença de teste sem equipamento fixo ('*'): no máximo 30 dias
 CARENCIA_PADRAO_DIAS = 3        # depois do vencimento, tudo continua funcionando por estes dias
 AVISO_DIAS = 7                  # aviso de renovação
 PREFIXO = "CMD1"
@@ -122,26 +124,63 @@ def ler_codigo(codigo, publica_hex=None):
     try:
         txt = "".join(str(codigo or "").split())
         pre, corpo_b64, sig_b64 = txt.split(".")
-        if pre != PREFIXO: return None, "Código inválido."
+        if pre != PREFIXO: return None, "Código inválido: não começa com CMD1."
         corpo = _b64d(corpo_b64); sig = _b64d(sig_b64)
-        pub = bytes.fromhex(publica_hex or CHAVE_PUBLICA_HEX)
-        if not verificar(pub, corpo, sig): return None, "Código inválido ou adulterado."
-        dados = json.loads(corpo.decode("utf-8"))
-        date.fromisoformat(dados["fim"]); date.fromisoformat(dados["ini"])
-        return dados, None
     except Exception:
-        return None, "Código inválido."
+        return None, "Código incompleto ou com caracteres a mais. Copie o código inteiro (começa com CMD1.) ou use o arquivo .rlic."
+    try:
+        pub = bytes.fromhex(publica_hex or CHAVE_PUBLICA_HEX)
+        if not verificar(pub, corpo, sig):
+            return None, "Assinatura não confere: esta licença foi gerada com outra chave (não a oficial do Comandas). No app Comandas Licenças, importe a chave original em Ajustes e gere a licença de novo."
+        dados = json.loads(corpo.decode("utf-8"))
+        ini = date.fromisoformat(dados["ini"]); fim = date.fromisoformat(dados["fim"])
+    except Exception:
+        return None, "Licença com dados ilegíveis."
+    if fim < ini: return None, "Licença com datas inválidas."
+    if dados.get("i") == "*":                              # sem equipamento fixo: só teste, e curto
+        if dados.get("p") != "teste": return None, "Licença sem equipamento definido só é aceita como TESTE."
+        if (fim - ini).days > TESTE_CURINGA_MAX_DIAS: return None, "Licença de teste sem equipamento fixo vale no máximo %d dias." % TESTE_CURINGA_MAX_DIAS
+    return dados, None
+
+_B64 = set("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_")
 
 def extrair_codigo(texto):
-    """Aceita o conteúdo de um arquivo .lic (JSON com 'codigo') ou o código puro (CMD1.…)."""
+    """Aceita o conteúdo de um arquivo .rlic/.lic (JSON com 'codigo'), um .txt, uma mensagem de WhatsApp/e-mail com o
+    código no meio, ou o código puro — mesmo com quebras de linha/espaços dentro dele."""
     t = str(texto or "").strip().lstrip("\ufeff")
+    t = t.replace("\u200b", "").replace("\u200c", "").replace("\u200d", "").replace("\u00a0", " ")
     if t.startswith("{"):
-        try: return str(json.loads(t).get("codigo", ""))
-        except Exception: return ""
-    for linha in t.splitlines():
-        linha = linha.strip()
-        if linha.startswith(PREFIXO + "."): return linha
-    return t
+        try:
+            j = json.loads(t)
+            if isinstance(j, dict): t = str(j.get("codigo", ""))
+        except Exception: pass
+    pos = t.find(PREFIXO + ".")
+    if pos < 0: return t
+    primeiro = None
+    while pos >= 0:                                        # o texto pode citar "CMD1." em instruções: usa a ocorrência que forma um código completo
+        cand = _ler_codigo_em(t, pos)
+        if cand:
+            if primeiro is None: primeiro = cand[0]
+            if cand[1]: return cand[0]
+        pos = t.find(PREFIXO + ".", pos + 1)
+    return primeiro or t[t.find(PREFIXO + "."):]
+
+def _ler_codigo_em(t, pos):
+    """(codigo, completo) a partir de t[pos:], ignorando quebras de linha dentro do código; None se não parece código."""
+    i = pos + len(PREFIXO) + 1
+    corpo = []
+    while i < len(t) and t[i] != ".":                      # parte 1: dados
+        if t[i] in _B64: corpo.append(t[i])
+        elif not t[i].isspace(): break
+        i += 1
+    if i >= len(t) or t[i] != "." or not corpo: return None
+    i += 1
+    sig = []
+    while i < len(t) and len(sig) < 86:                    # parte 2: assinatura = 64 bytes = 86 caracteres
+        if t[i] in _B64: sig.append(t[i])
+        elif not t[i].isspace(): break
+        i += 1
+    return PREFIXO + "." + "".join(corpo) + "." + "".join(sig), len(sig) == 86
 
 # ----------------------------------------------------------------------------------------------------------
 # Estado da licença neste aparelho (arquivo data/licenca.json — sobrevive a "zerar movimentação")
@@ -217,17 +256,19 @@ class Licenca:
             return False, "Já existe uma licença com validade maior (até " + atual["fim"] + ")."
         with self.lock:
             self.e["codigo"] = "".join(str(codigo).split()); self._gravar()
+        if dados.get("p") == "teste": return True, "Licença de TESTE ativada: acesso total até " + dados["fim"] + "."
         return True, "Assinatura ativada até " + dados["fim"] + "."
 
     def status(self):
         h = self.hoje()
-        mes = h.strftime("%Y-%m")
-        usadas = len(self.e.get("contadas", {}).get(mes, []))
-        s = {"instalacaoId": self.instalacao_id, "equipamentoVinculado": self.vinculado, "hoje": h.isoformat(), "limiteComandas": LIMITE_COMANDAS_MES,
-             "comandasMes": usadas, "estado": "gratis", "limitado": True, "cliente": "", "validade": None, "diasRestantes": None, "plano": "gratis"}
+        dia = h.isoformat()
+        usadas = len(self.e.get("contadas", {}).get(dia, []))
+        s = {"instalacaoId": self.instalacao_id, "equipamentoVinculado": self.vinculado, "hoje": h.isoformat(), "limiteComandas": LIMITE_COMANDAS_DIA,
+             "comandasDia": usadas, "comandasMes": usadas, "teste": False, "estado": "gratis", "limitado": True, "cliente": "", "validade": None, "diasRestantes": None, "plano": "gratis"}
         d = self._licenca_valida()
         if d:
             fim = date.fromisoformat(d["fim"]); g = int(d.get("g", CARENCIA_PADRAO_DIAS))
+            if d.get("p") == "teste": g = 0; s["teste"] = True          # teste: acesso total e sem carência
             dias = (fim - h).days
             s.update({"cliente": d.get("c", ""), "validade": d["fim"], "diasRestantes": dias, "plano": d.get("p", "mensal"), "carenciaDias": g})
             if dias >= 0: s.update(estado="ativa", limitado=False, aviso=dias <= AVISO_DIAS)
@@ -238,15 +279,15 @@ class Licenca:
     def permitir_comandas(self, ids_novos):
         """ids_novos: ids de comandas que estão sendo CRIADAS agora. Registra (conta) e devolve (ok, msg)."""
         if not ids_novos: return True, ""
-        st = self.status(); mes = st["hoje"][:7]
+        st = self.status(); mes = st["hoje"]                  # chave = dia (YYYY-MM-DD)
         with self.lock:
             cont = self.e.setdefault("contadas", {})
             usados = set(cont.get(mes, []))
             faltam = [i for i in ids_novos if i not in usados]
-            if st["limitado"] and len(usados) + len(faltam) > LIMITE_COMANDAS_MES:
-                return False, "Limite de %d comandas por mês do plano gratuito atingido. Assine para continuar sem limite." % LIMITE_COMANDAS_MES
+            if st["limitado"] and len(usados) + len(faltam) > LIMITE_COMANDAS_DIA:
+                return False, "Limite de %d comandas por dia do plano gratuito atingido. Assine para continuar sem limite." % LIMITE_COMANDAS_DIA
             if faltam:
                 usados.update(faltam); cont[mes] = sorted(usados)
-                for k in sorted(cont)[:-3]: cont.pop(k, None)   # guarda só os últimos meses
+                for k in sorted(cont)[:-7]: cont.pop(k, None)   # guarda só os últimos dias
                 self._gravar()
         return True, ""
