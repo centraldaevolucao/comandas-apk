@@ -69,14 +69,22 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-            <!-- abrir arquivo de licença .lic (Arquivos, WhatsApp, e-mail…) -->
+            <!-- abrir arquivo de licença .rlic (Arquivos, WhatsApp, e-mail…); .lic antigo também -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="content" android:host="*" android:mimeType="*/*" android:pathPattern=".*\\.rlic" />
+                <data android:scheme="content" android:host="*" android:mimeType="*/*" android:pathPattern=".*\\..*\\.rlic" />
+                <data android:scheme="file" android:host="*" android:mimeType="*/*" android:pathPattern=".*\\.rlic" />
                 <data android:scheme="content" android:host="*" android:mimeType="*/*" android:pathPattern=".*\\.lic" />
-                <data android:scheme="content" android:host="*" android:mimeType="*/*" android:pathPattern=".*\\..*\\.lic" />
                 <data android:scheme="file" android:host="*" android:mimeType="*/*" android:pathPattern=".*\\.lic" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="content" android:mimeType="application/x-comandas-licenca" />
+                <data android:scheme="file" android:mimeType="application/x-comandas-licenca" />
             </intent-filter>
             <!-- retorno das maquininhas (Cielo LIO / Stone / SumUp) -->
             <intent-filter>

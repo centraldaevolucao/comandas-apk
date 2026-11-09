@@ -181,6 +181,14 @@ if (!window.renderConfiguracoes) {
             html += '    </div>';
             html += '</div>';
 
+            // ============ MAQUININHAS ============
+            html += '<div class="card" style="background:#FCE4EC;border-radius:12px;padding:16px;margin-bottom:12px;cursor:pointer;" onclick="maquininhaConfigurar()">';
+            html += '    <div style="display:flex;justify-content:space-between;align-items:center;">';
+            html += '        <div><div style="font-weight:600;font-size:0.95rem;">Maquininhas de cartão</div><div style="font-size:0.75rem;color:#666;">Selecione e configure várias maquininhas (débito, crédito e PIX). Vincule ao garçom em Colaboradores.</div></div>';
+            html += '        <i class="fas fa-credit-card" style="color:#C2185B;font-size:1.3rem;"></i>';
+            html += '    </div>';
+            html += '</div>';
+
             // ============ COLABORADOR PADRÃO ============
             html += '<div class="card" style="background:#FCE4EC;border-radius:12px;padding:16px;margin-bottom:12px;">';
             html += '    <div style="font-weight:700;font-size:1rem;text-align:center;margin-bottom:8px;">Colaborador padrão</div>';

@@ -20,7 +20,7 @@ window.renderCadastroMesa = function() {
 
     return [
         '<div class="app-bar">',
-        '    <button class="icon-btn" onclick="navigateTo(\'mesas\')"><i class="fas fa-arrow-left"></i></button>',
+        '    <button class="icon-btn" onclick="voltarTela()"><i class="fas fa-arrow-left"></i></button>',
         '    <h1>' + (editando ? 'Editar Mesa' : 'Nova Mesa') + '</h1>',
         '    <div style="width:40px;"></div>',
         '</div>',

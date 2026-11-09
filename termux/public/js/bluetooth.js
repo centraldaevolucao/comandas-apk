@@ -119,12 +119,13 @@ console.log('✔ bluetooth.js carregado');
         L.push({ t: LINHA });
         if (calc.desconto > 0) { L.push({ t: duas('Subtotal', fmt(calc.subtotal)) }); L.push({ t: duas('Desconto', '-' + fmt(calc.desconto)) }); }
         L.push({ t: duas('TOTAL', fmt(calc.total)), b: 1, g: 1 });
-        const qrImp = window.pixQrAtivo && window.pixQrAtivo(config, 'impressao', tipo === 'recibo' ? 'recibo' : 'comanda');
+        const pixVal = window.pixValorPago ? window.pixValorPago(c) : 0;
+        const qrImp = pixVal > 0.004 && window.pixQrAtivo && window.pixQrAtivo(config, 'impressao', tipo === 'recibo' ? 'recibo' : 'comanda');
         if (qrImp) {
             L.push({ t: LINHA });
             L.push({ t: 'PAGUE COM PIX', b: 1, c: 1 });
-            L.push({ qr: window.gerarPixComValor(config.pixRestaurante, calc.total) });
-            L.push({ t: 'Valor: ' + fmt(calc.total), c: 1 });
+            L.push({ qr: window.gerarPixComValor(config.pixRestaurante, pixVal) });
+            L.push({ t: 'Valor PIX: ' + fmt(pixVal), c: 1 });
             if (config.pixChave) L.push({ t: 'PIX: ' + window.pixFormatarChave(config.pixTipo, config.pixChave), c: 1 });
         }
         if (tipo === 'recibo') {
@@ -140,11 +141,11 @@ console.log('✔ bluetooth.js carregado');
                     L.push({ t: duas('TOTAL GERAL PENDENTE', fmt(pa.valor + atual)), b: 1 });
                 }
             }
-            if (config.exibirPixRecibo && config.pixRestaurante && window.gerarPixComValor && window.qrUrl) {
-                const rr = await qrRaster(window.gerarPixComValor(config.pixRestaurante, calc.total), 192);
-                if (rr) { L.push({ t: 'PAGAMENTO VIA PIX', c: 1, b: 1 }); L.push({ raster: rr }); L.push({ t: 'Valor: ' + fmt(calc.total), c: 1 }); }
+            if (pixVal > 0.004 && config.exibirPixRecibo && config.pixRestaurante && window.gerarPixComValor && window.qrUrl) {
+                const rr = await qrRaster(window.gerarPixComValor(config.pixRestaurante, pixVal), 192);
+                if (rr) { L.push({ t: 'PAGAMENTO VIA PIX', c: 1, b: 1 }); L.push({ raster: rr }); L.push({ t: 'Valor PIX: ' + fmt(pixVal), c: 1 }); }
             }
-            if (config.pixChave && !qrImp) L.push({ t: 'PIX: ' + (window.pixFormatarChave ? window.pixFormatarChave(config.pixTipo, config.pixChave) : config.pixChave), c: 1 });
+            if (config.pixChave && !qrImp && pixVal > 0.004) L.push({ t: 'PIX: ' + (window.pixFormatarChave ? window.pixFormatarChave(config.pixTipo, config.pixChave) : config.pixChave), c: 1 });
             L.push({ t: 'Obrigado pela preferencia!', c: 1 });
         }
         return L;

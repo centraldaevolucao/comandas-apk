@@ -56,7 +56,7 @@ if (!window.renderNovaComanda) {
 
         return [
             '<div class="app-bar">',
-            '    <button class="icon-btn" onclick="voltar()"><i class="fas fa-arrow-left"></i></button>',
+            '    <button class="icon-btn" onclick="voltarTela()"><i class="fas fa-arrow-left"></i></button>',
             '    <h1>Nova Comanda (' + (tipoComanda === 'balcao' ? 'Balcão' : tipoComanda === 'delivery' ? 'Delivery' : 'Mesa') + ')</h1>',
             '    <div style="width:40px;"></div>',
             '</div>',

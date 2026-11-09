@@ -25,7 +25,7 @@ window.renderProdutosVendidos = function() {
 
     return [
         '<div class="app-bar">',
-        '    <button class="icon-btn" onclick="navigateTo(\'comandas\')"><i class="fas fa-arrow-left"></i></button>',
+        '    <button class="icon-btn" onclick="voltarTela()"><i class="fas fa-arrow-left"></i></button>',
         '    <h1>Produtos Vendidos</h1>',
         '    <button class="icon-btn" onclick="imprimirProdutosVendidos()" title="Imprimir"><i class="fas fa-print"></i></button>',
         '</div>',

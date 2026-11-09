@@ -198,11 +198,17 @@ window.navigateTo = function(rota) {
         if (typeof window.aplicarPermissoesUI === 'function') window.aplicarPermissoesUI();
         if (typeof window.aplicarPerfilUI === 'function') window.aplicarPerfilUI();
 
-        // Voltar (navegador/Android): ao voltar não empilha de novo, senão o histórico nunca desce.
+        // Pilha de telas própria: "voltar" sempre volta à tela anterior de verdade (e depois de salvar um cadastro
+        // não fica repetindo a lista). O histórico do navegador só guarda a rota atual.
         try {
-            const mesmaRota = window.location.hash === '#' + rota;
-            if (window.__navPop || !history.state || mesmaRota) history.replaceState({ rota: rota }, '', '#' + rota);
-            else { history.pushState({ rota: rota }, '', '#' + rota); window.__prof = (window.__prof || 1) + 1; }
+            const p = window.__pilha;
+            if (!window.__navVoltando) {
+                const i = p.lastIndexOf(rota);
+                if (p[p.length - 1] === rota) { /* atualização da mesma tela */ }
+                else if (i >= 0 && !/^(detalhe-|editar-|nova-|cadastro-|resumo-)/.test(rota)) p.length = i + 1;   // voltou a uma tela já aberta (ex.: lista após salvar, Menu): descarta o que veio depois
+                else { p.push(rota); if (p.length > 40) p.shift(); }
+            }
+            history.replaceState({ rota: rota }, '', '#' + rota);
         } catch (e) {}
 
         const content = app.querySelector('.content-area');
@@ -221,15 +227,36 @@ window.navigateTo = function(rota) {
     }
 };
 
-window.voltar = function() {
-    const destino = window.rotaOrigem || 'pdv';
-    window.navigateTo(destino);
-};
+window.__pilha = [];
+window.__profundidade = function () { return window.__pilha.length; };
 
-window.__profundidade = function () { return window.__prof || 1; };
-window.addEventListener('popstate', function(e) {
-    if (window.__prof > 1) window.__prof--;
-    if (e.state && e.state.rota) {
+function __rotaPrincipal() {
+    const pd = window.perfilDados ? window.perfilDados() : null;
+    return pd ? (pd.menu ? 'home' : (window.perfilRotaInicial ? window.perfilRotaInicial() : 'pdv')) : 'home';
+}
+
+// Botão "voltar" de TODAS as telas: volta para a tela de onde o usuário veio; sem tela anterior, vai ao Menu Principal.
+window.voltarTela = function () {
+    const p = window.__pilha;
+    const principal = __rotaPrincipal();
+    const atual = (location.hash || '#home').substring(1) || 'home';
+    let destino = principal;
+    if (p.length > 1) { p.pop(); destino = p[p.length - 1]; }
+    else if (atual === principal) return false;                     // já no início
+    else { window.__pilha = []; }
+    window.__navVoltando = true;
+    try { window.navigateTo(destino); } finally { window.__navVoltando = false; }
+    if ((location.hash || '').substring(1) !== destino) {            // destino bloqueado (permissão/licença): fica onde estava
+        if (p[p.length - 1] !== atual) p.push(atual);
+        return false;
+    }
+    if (!window.__pilha.length) window.__pilha.push(destino);
+    return true;
+};
+window.voltar = window.voltarTela;
+
+window.addEventListener('popstate', function (e) {
+    if (e.state && e.state.rota && ('#' + e.state.rota) !== location.hash) {
         window.__navPop = true;
         try { window.navigateTo(e.state.rota); } finally { window.__navPop = false; }
     }

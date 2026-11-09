@@ -11,12 +11,46 @@
     const dinheiro = function (v) { return 'R$ ' + Number(v || 0).toFixed(2).replace('.', ','); };
     const espera = function (ms) { return new Promise(function (r) { setTimeout(r, ms); }); };
 
-    window.maquininhaConfig = async function () {
-        try { const a = window.normalizarArray(await apiGet('configuracoes')); return (a[0] && a[0].maquininha) || {}; } catch (e) { return {}; }
+    // Lista de maquininhas (config.maquininhas). A configuração antiga (uma só) é convertida automaticamente.
+    function lerMaquinas(cfg) {
+        cfg = cfg || {};
+        if (Array.isArray(cfg.maquininhas)) return cfg.maquininhas.slice();
+        const o = cfg.maquininha;
+        if (o && o.provider && o.provider !== 'nenhuma') return [Object.assign({ id: 'mq-1', nome: NOMES[o.provider] ? NOMES[o.provider].split(' (')[0] : 'Maquininha', ativa: true }, o)];
+        return [];
+    }
+    window.maquininhasLista = async function () {
+        try { const a = window.normalizarArray(await apiGet('configuracoes')); return lerMaquinas(a[0]); } catch (e) { return []; }
     };
-    window.maquininhaAtiva = async function () {
-        const m = await window.maquininhaConfig();
-        return (m.provider && m.provider !== 'nenhuma') ? m.provider : null;
+    window.maquininhaConfig = async function () { const l = await window.maquininhasLista(); return l[0] || {}; };
+    window.maquininhaAtiva = async function () { const l = (await window.maquininhasLista()).filter(function (m) { return m.ativa !== false; }); return l.length ? l[0].provider : null; };
+
+    // Quais máquinas podem receber: as ativas; se o garçom tem máquinas registradas, só as dele (ativas); senão todas as ativas do caixa.
+    window.maquininhasDisponiveis = async function (garcomNome) {
+        const ativas = (await window.maquininhasLista()).filter(function (m) { return m.ativa !== false; });
+        if (!ativas.length || !garcomNome) return ativas;
+        let col = null;
+        try { const cs = window.normalizarArray(await apiGet('colaboradores')); const n = String(garcomNome).trim().toLowerCase(); col = cs.find(function (x) { return String(x.nome || '').trim().toLowerCase() === n; }); } catch (e) {}
+        const ids = (col && Array.isArray(col.maquininhas)) ? col.maquininhas.map(String) : [];
+        const dele = ativas.filter(function (m) { return ids.indexOf(String(m.id)) >= 0; });
+        return dele.length ? dele : ativas;
+    };
+
+    // Pergunta em qual máquina o pagamento (débito/crédito/PIX) será recebido. null = cancelou; false = nenhuma máquina configurada.
+    window.maquininhaEscolher = function (forma, garcomNome) {
+        return window.maquininhasDisponiveis(garcomNome).then(function (lista) {
+            if (!lista.length) return false;
+            if (lista.length === 1) return lista[0];
+            return new Promise(function (resolve) {
+                const rot = { debito: 'Débito', credito: 'Crédito', pix: 'PIX' }[forma] || forma;
+                const ov = overlay(topo('Receber em qual maquininha?') +
+                    '<div style="padding:14px 16px;overflow-y:auto;"><div style="color:#555;font-size:.85rem;margin-bottom:8px;">Pagamento em <b>' + esc(rot) + '</b>. Escolha a maquininha:</div>' +
+                    lista.map(function (m, i) { return '<button data-i="' + i + '" class="btn-outline" style="width:100%;text-align:left;margin-bottom:8px;padding:12px;"><i class="fas fa-credit-card" style="color:' + COR + ';"></i> <b>' + esc(m.nome || 'Maquininha') + '</b><br><small style="color:#777;">' + esc((NOMES[m.provider] || m.provider || '')) + '</small></button>'; }).join('') +
+                    '</div><div style="padding:0 16px 16px;"><button data-can class="btn-outline" style="width:100%;">Cancelar</button></div>');
+                ov.querySelectorAll('[data-i]').forEach(function (b) { b.onclick = function () { ov.remove(); resolve(lista[parseInt(b.dataset.i)]); }; });
+                ov.querySelector('[data-can]').onclick = function () { ov.remove(); resolve(null); };
+            });
+        });
     };
 
     function overlay(html) {
@@ -73,7 +107,9 @@
     }
 
     // ---------- Mercado Pago (via servidor) ----------
+    let maqAtual = '';
     async function mp(metodo, caminho, corpo) {
+        if (maqAtual) { if (metodo === 'GET') caminho += (caminho.indexOf('?') >= 0 ? '&' : '?') + 'maq=' + encodeURIComponent(maqAtual); else corpo = Object.assign({ maqId: maqAtual }, corpo || {}); }
         const r = await fetch('/api/maquininha/mp/' + caminho, { method: metodo, headers: { 'Content-Type': 'application/json' }, body: corpo ? JSON.stringify(corpo) : undefined, cache: 'no-store' });
         let j = {}; try { j = await r.json(); } catch (e) {}
         if (!r.ok) throw new Error(j.message || j.error || ('Erro ' + r.status));
@@ -184,7 +220,8 @@
 
     // ---------- API pública ----------
     window.maquininhaCobrar = async function (p) {
-        const m = await window.maquininhaConfig();
+        const m = p.maquina || await window.maquininhaConfig();
+        maqAtual = String(m.id || '');
         const prov = m.provider || 'nenhuma';
         if (prov === 'nenhuma') return { ok: true, provider: 'nenhuma' };
         if (prov === 'manual') { const parc = null; return formManual(p, parc); }
@@ -203,8 +240,9 @@
 
     // Texto curto do cartão para recibo/impressão. Ex.: "Visa final 4242 · NSU 123456 · Aut ABC · 3x"
     window.maquininhaTexto = function (mq) {
-        if (!mq || mq.provider === 'nenhuma') return '';
+        if (!mq || (mq.provider === 'nenhuma' && !mq.maquinaNome)) return '';
         const a = [];
+        if (mq.maquinaNome) a.push('Maquininha: ' + mq.maquinaNome);
         if (mq.bandeira) a.push(mq.bandeira + (mq.ultimos4 ? ' final ' + mq.ultimos4 : '')); else if (mq.ultimos4) a.push('final ' + mq.ultimos4);
         if (mq.nsu) a.push('NSU ' + mq.nsu);
         if (mq.autorizacao) a.push('Aut ' + mq.autorizacao);
@@ -212,50 +250,83 @@
         return a.join(' · ');
     };
 
-    // ---------- Tela de configuração ----------
+    // ---------- Tela de configuração (várias maquininhas) ----------
+    async function salvarLista(lista) {
+        const arr = window.normalizarArray(await apiGet('configuracoes')); const cfg = arr[0] || {};
+        cfg.maquininhas = lista;
+        cfg.maquininha = lista[0] ? Object.assign({}, lista[0]) : { provider: 'nenhuma' };   // compatibilidade com versões antigas
+        await apiSave('configuracoes', [cfg]);
+    }
+    const OPS = ['manual', 'mercadopago', 'cielolio', 'stone', 'sumup', 'simulado', 'nenhuma'];
+    const AJ = {
+        nenhuma: 'Só identifica em qual maquininha o valor foi recebido (sem cobrança automática).',
+        manual: 'Funciona com qualquer maquininha (PagBank, Rede, GetNet…): ao receber, informa NSU, autorização e bandeira do comprovante.',
+        mercadopago: 'Requer maquininha Point em modo PDV, com o Access Token da sua conta. Precisa de internet. O token fica gravado neste aparelho.',
+        cielolio: 'Somente no Android da própria Cielo LIO, com credenciais do Cielo Developers.',
+        stone: 'Somente no Android com o aplicativo Stone instalado. Formato do link a confirmar com o suporte Stone.',
+        sumup: 'Somente no Android com o app SumUp instalado e Affiliate Key.',
+        simulado: 'Aprova automaticamente após 2 segundos. Apenas para testar o fluxo; não cobra nada.'
+    };
+
+    function formMaquina(m0) {
+        return new Promise(function (resolve) {
+            const m = Object.assign({ provider: 'manual', ativa: true }, m0 || {});
+            const ops = OPS.map(function (k) { return '<option value="' + k + '"' + (m.provider === k ? ' selected' : '') + '>' + esc(NOMES[k]) + '</option>'; }).join('');
+            const ov = overlay(topo(m0 && m0.id ? 'Editar maquininha' : 'Nova maquininha') +
+                '<div style="padding:14px 16px;overflow-y:auto;">' + campo('mq-nome', 'Nome da maquininha', m.nome, 'text', 'Ex.: Caixa 1, Balcão, Mercado Pago') +
+                '<label style="display:block;font-size:.8rem;color:#666;margin-top:10px;">Provedor</label><select id="mq-prov" style="width:100%;padding:11px;border:2px solid #ddd;border-radius:10px;font-size:1rem;">' + ops + '</select>' +
+                '<div id="mq-ajuda" style="font-size:.8rem;color:#777;margin-top:8px;line-height:1.35;"></div>' +
+                '<div id="mq-mp" style="display:none;">' + campo('mq-mptoken', 'Access Token (Mercado Pago)', m.mpToken, 'password') + campo('mq-mpdev', 'ID da maquininha (Point)', m.mpDeviceId, 'text') +
+                '<button id="mq-buscar" class="btn-outline" style="width:100%;margin-top:8px;">Buscar maquininhas da conta</button><div id="mq-devs" style="font-size:.85rem;margin-top:6px;"></div></div>' +
+                '<div id="mq-lio" style="display:none;">' + campo('mq-lioclient', 'Client ID (Cielo LIO)', m.lioClient) + campo('mq-liotoken', 'Access Token (Cielo LIO)', m.lioToken, 'password') + '</div>' +
+                '<div id="mq-sum" style="display:none;">' + campo('mq-sumkey', 'Affiliate Key (SumUp)', m.sumupKey, 'password') + '</div>' +
+                '</div><div style="display:flex;gap:10px;padding:0 16px 16px;"><button data-can class="btn-outline" style="flex:1;">Cancelar</button><button data-ok class="btn-primary" style="flex:1;">Salvar</button></div>');
+            const sel = ov.querySelector('#mq-prov');
+            const val = function (id) { const e = ov.querySelector('#' + id); return e ? e.value.trim() : ''; };
+            const atual = function () { const v = sel.value; ov.querySelector('#mq-mp').style.display = v === 'mercadopago' ? 'block' : 'none'; ov.querySelector('#mq-lio').style.display = v === 'cielolio' ? 'block' : 'none'; ov.querySelector('#mq-sum').style.display = v === 'sumup' ? 'block' : 'none'; ov.querySelector('#mq-ajuda').textContent = AJ[v] || ''; };
+            sel.onchange = atual; atual();
+            const montar = function () { return Object.assign({}, m, { id: m.id || ('mq-' + Date.now()), nome: val('mq-nome') || (NOMES[sel.value] || 'Maquininha').split(' (')[0], provider: sel.value, mpToken: val('mq-mptoken'), mpDeviceId: val('mq-mpdev'), lioClient: val('mq-lioclient'), lioToken: val('mq-liotoken'), sumupKey: val('mq-sumkey') }); };
+            ov.querySelector('#mq-buscar').onclick = async function () {
+                const box = ov.querySelector('#mq-devs'); box.textContent = 'Buscando…';
+                try {
+                    const nova = montar(); m.id = nova.id;
+                    const lista = await window.maquininhasLista(); const k = lista.findIndex(function (x) { return x.id === nova.id; });
+                    if (k >= 0) lista[k] = nova; else lista.push(nova);
+                    await salvarLista(lista);       // o servidor lê o token da configuração
+                    maqAtual = nova.id;
+                    const j = await mp('GET', 'devices');
+                    const dv = j.devices || [];
+                    box.innerHTML = dv.length ? dv.map(function (d) { return '<div><a href="#" data-id="' + esc(d.id) + '" style="color:' + COR + ';">' + esc(d.id) + '</a> — ' + esc(d.operating_mode || '') + '</div>'; }).join('') : 'Nenhuma maquininha encontrada.';
+                    box.querySelectorAll('a').forEach(function (a) { a.onclick = function (e) { e.preventDefault(); ov.querySelector('#mq-mpdev').value = a.dataset.id; }; });
+                } catch (e) { box.textContent = 'Erro: ' + e.message; }
+            };
+            ov.querySelector('[data-ok]').onclick = function () { const r = montar(); ov.remove(); resolve(r); };
+            ov.querySelector('[data-can]').onclick = function () { ov.remove(); resolve(null); };
+        });
+    }
+
     window.maquininhaConfigurar = async function () {
-        const m = await window.maquininhaConfig();
-        const ops = Object.keys(NOMES).map(function (k) { return '<option value="' + k + '"' + ((m.provider || 'nenhuma') === k ? ' selected' : '') + '>' + esc(NOMES[k]) + '</option>'; }).join('');
-        const ov = overlay(topo('Maquininha de cartão') +
-            '<div style="padding:14px 16px;overflow-y:auto;">' +
-            '<label style="font-size:.8rem;color:#666;">Provedor</label><select id="mq-prov" style="width:100%;padding:11px;border:2px solid #ddd;border-radius:10px;font-size:1rem;">' + ops + '</select>' +
-            '<div id="mq-ajuda" style="font-size:.8rem;color:#777;margin-top:8px;line-height:1.35;"></div>' +
-            '<div id="mq-mp" style="display:none;">' + campo('mq-mptoken', 'Access Token (Mercado Pago)', m.mpToken, 'password') + campo('mq-mpdev', 'ID da maquininha (Point)', m.mpDeviceId, 'text') +
-            '<button id="mq-buscar" class="btn-outline" style="width:100%;margin-top:8px;">Buscar maquininhas da conta</button><div id="mq-devs" style="font-size:.85rem;margin-top:6px;"></div></div>' +
-            '<div id="mq-lio" style="display:none;">' + campo('mq-lioclient', 'Client ID (Cielo LIO)', m.lioClient) + campo('mq-liotoken', 'Access Token (Cielo LIO)', m.lioToken, 'password') + '</div>' +
-            '<div id="mq-sum" style="display:none;">' + campo('mq-sumkey', 'Affiliate Key (SumUp)', m.sumupKey, 'password') + '</div>' +
-            '</div><div style="display:flex;gap:10px;padding:0 16px 16px;"><button data-can class="btn-outline" style="flex:1;">Fechar</button><button data-ok class="btn-primary" style="flex:1;">Salvar</button></div>');
-        const AJ = {
-            nenhuma: 'Comportamento atual: débito/crédito apenas registram o valor.',
-            manual: 'Funciona com qualquer maquininha (PagBank, Rede, GetNet…): ao receber, informa NSU, autorização e bandeira do comprovante.',
-            mercadopago: 'Requer maquininha Point em modo PDV, com o Access Token da sua conta. Celular/servidor precisa de internet. O token fica gravado neste aparelho.',
-            cielolio: 'Somente no Android da própria Cielo LIO, com credenciais do Cielo Developers.',
-            stone: 'Somente no Android com o aplicativo Stone instalado. Formato do link a confirmar com o suporte Stone.',
-            sumup: 'Somente no Android com o app SumUp instalado e Affiliate Key. Disponibilidade no Brasil a confirmar com a SumUp.',
-            simulado: 'Aprova automaticamente após 2 segundos. Apenas para testar o fluxo; não cobra nada.'
+        let lista = await window.maquininhasLista();
+        const ov = overlay('<div id="mq-corpo"></div>');
+        const desenhar = function () {
+            const itens = lista.length ? lista.map(function (m, i) {
+                return '<div style="border:1px solid #eee;border-radius:12px;padding:10px 12px;margin-bottom:8px;display:flex;align-items:center;gap:10px;">' +
+                    '<div style="flex:1;min-width:0;"><div style="font-weight:700;">' + esc(m.nome || 'Maquininha') + (m.ativa === false ? ' <span style="font-size:.7rem;color:#c62828;">(inativa)</span>' : '') + '</div><div style="font-size:.75rem;color:#777;">' + esc(NOMES[m.provider] || m.provider || '') + '</div></div>' +
+                    '<label class="toggle"><input type="checkbox" data-at="' + i + '"' + (m.ativa !== false ? ' checked' : '') + '><span class="slider"></span></label>' +
+                    '<button data-ed="' + i + '" class="btn-outline" style="padding:6px 10px;"><i class="fas fa-pen"></i></button>' +
+                    '<button data-ex="' + i + '" class="btn-outline" style="padding:6px 10px;border-color:#c62828;color:#c62828;"><i class="fas fa-trash"></i></button></div>';
+            }).join('') : '<div style="color:#777;text-align:center;padding:14px 0;">Nenhuma maquininha cadastrada. Débito, crédito e PIX apenas registram o valor.</div>';
+            ov.querySelector('#mq-corpo').innerHTML = topo('Maquininhas') +
+                '<div style="padding:14px 16px;overflow-y:auto;max-height:70vh;"><div style="font-size:.8rem;color:#666;margin-bottom:10px;line-height:1.35;">Cadastre uma ou várias maquininhas. Ao receber em <b>débito, crédito ou PIX</b>, o sistema pergunta em qual delas. Para limitar por garçom, abra <b>Colaboradores</b> e marque as maquininhas dele (sem marcação = todas as ativas).</div>' + itens +
+                '<button data-novo class="btn-primary" style="width:100%;margin-top:6px;"><i class="fas fa-plus"></i> Adicionar maquininha</button></div>' +
+                '<div style="padding:0 16px 16px;"><button data-fim class="btn-outline" style="width:100%;">Fechar</button></div>';
+            const c = ov.querySelector('#mq-corpo');
+            c.querySelectorAll('[data-at]').forEach(function (e) { e.onchange = async function () { lista[+e.dataset.at].ativa = e.checked; await salvarLista(lista); desenhar(); }; });
+            c.querySelectorAll('[data-ed]').forEach(function (b) { b.onclick = async function () { const r = await formMaquina(lista[+b.dataset.ed]); if (r) { lista[+b.dataset.ed] = r; await salvarLista(lista); } lista = await window.maquininhasLista(); desenhar(); }; });
+            c.querySelectorAll('[data-ex]').forEach(function (b) { b.onclick = async function () { if (await window.confirmar('Excluir a maquininha "' + (lista[+b.dataset.ex].nome || '') + '"?', { perigo: true, ok: 'Excluir' })) { lista.splice(+b.dataset.ex, 1); await salvarLista(lista); } desenhar(); }; });
+            c.querySelector('[data-novo]').onclick = async function () { const r = await formMaquina(null); if (r) { lista = await window.maquininhasLista(); const k = lista.findIndex(function (x) { return x.id === r.id; }); if (k >= 0) lista[k] = r; else lista.push(r); await salvarLista(lista); } desenhar(); };
+            c.querySelector('[data-fim]').onclick = function () { ov.remove(); };
         };
-        const sel = ov.querySelector('#mq-prov');
-        const atual = function () { const v = sel.value; ov.querySelector('#mq-mp').style.display = v === 'mercadopago' ? 'block' : 'none'; ov.querySelector('#mq-lio').style.display = v === 'cielolio' ? 'block' : 'none'; ov.querySelector('#mq-sum').style.display = v === 'sumup' ? 'block' : 'none'; ov.querySelector('#mq-ajuda').textContent = AJ[v] || ''; };
-        sel.onchange = atual; atual();
-        const val = function (id) { const e = ov.querySelector('#' + id); return e ? e.value.trim() : ''; };
-        ov.querySelector('#mq-buscar').onclick = async function () {
-            const box = ov.querySelector('#mq-devs'); box.textContent = 'Buscando…';
-            try {
-                // salva o token antes: o servidor lê da configuração
-                await salvar(false);
-                const j = await mp('GET', 'devices');
-                const lista = j.devices || [];
-                box.innerHTML = lista.length ? lista.map(function (d) { return '<div><a href="#" data-id="' + esc(d.id) + '" style="color:' + COR + ';">' + esc(d.id) + '</a> — ' + esc(d.operating_mode || '') + '</div>'; }).join('') : 'Nenhuma maquininha encontrada.';
-                box.querySelectorAll('a').forEach(function (a) { a.onclick = function (e) { e.preventDefault(); ov.querySelector('#mq-mpdev').value = a.dataset.id; }; });
-            } catch (e) { box.textContent = 'Erro: ' + e.message; }
-        };
-        async function salvar(fechar) {
-            const arr = window.normalizarArray(await apiGet('configuracoes')); const cfg = arr[0] || {};
-            cfg.maquininha = { provider: sel.value, mpToken: val('mq-mptoken'), mpDeviceId: val('mq-mpdev'), lioClient: val('mq-lioclient'), lioToken: val('mq-liotoken'), sumupKey: val('mq-sumkey') };
-            await apiSave('configuracoes', [cfg]);
-            if (fechar) { ov.remove(); if (window.mostrarToast) window.mostrarToast('✅ Maquininha configurada'); }
-        }
-        ov.querySelector('[data-ok]').onclick = function () { salvar(true); };
-        ov.querySelector('[data-can]').onclick = function () { ov.remove(); };
+        desenhar();
     };
 })();

@@ -11,7 +11,7 @@ window.renderEditarComanda = function() {
 
     return [
         '<div class="app-bar">',
-        '    <button class="icon-btn" onclick="navigateTo(\'detalhe-comanda\')"><i class="fas fa-arrow-left"></i></button>',
+        '    <button class="icon-btn" onclick="voltarTela()"><i class="fas fa-arrow-left"></i></button>',
         '    <h1>Editar Comanda</h1>',
         '    <div style="width:40px;"></div>',
         '</div>',

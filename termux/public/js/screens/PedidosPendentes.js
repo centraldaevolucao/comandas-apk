@@ -9,7 +9,7 @@ if (!window.renderPedidosPendentes) {
         setTimeout(carregarPedidosPendentes, 50);
         return [
             '<div class="app-bar">',
-            '    <button class="icon-btn" onclick="voltar()"><i class="fas fa-arrow-left"></i></button>',
+            '    <button class="icon-btn" onclick="voltarTela()"><i class="fas fa-arrow-left"></i></button>',
             '    <h1>Pedidos Pendentes</h1>',
             '    <div style="width:40px;"></div>',
             '</div>',

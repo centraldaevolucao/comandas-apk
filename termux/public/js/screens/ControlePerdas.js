@@ -43,7 +43,7 @@ window.renderControlePerdas = function() {
 
     return [
         '<div class="app-bar">',
-        '    <button class="icon-btn" onclick="navigateTo(\'comandas\')"><i class="fas fa-arrow-left"></i></button>',
+        '    <button class="icon-btn" onclick="voltarTela()"><i class="fas fa-arrow-left"></i></button>',
         '    <h1>Controle de Perdas</h1>',
         '    <div style="display:flex;gap:2px;">',
         '        <button class="icon-btn" onclick="imprimirRelatorioPerdas()" title="Imprimir"><i class="fas fa-print"></i></button>',

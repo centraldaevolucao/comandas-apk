@@ -42,15 +42,17 @@
     window.renderSuporte = function () {
         setTimeout(iniciarChat, 30);
         const C = window.CONTATO;
-        return '<div class="app-bar"><button class="icon-btn" onclick="navigateTo(\'comandas\')"><i class="fas fa-arrow-left"></i></button><h1>Suporte</h1><div style="width:40px;"></div></div>' +
+        return '<div class="app-bar"><button class="icon-btn" onclick="voltarTela()"><i class="fas fa-arrow-left"></i></button><h1>Suporte</h1><div style="width:40px;"></div></div>' +
             '<div class="content-area" style="padding:10px;display:flex;flex-direction:column;">' +
             '<div style="display:flex;gap:8px;margin-bottom:10px;">' +
             '<button class="btn-outline" style="flex:1;border-color:#25d366;color:#1b8f4a;" onclick="suporteAbrirWhats()"><i class="fab fa-whatsapp"></i> WhatsApp<div style="font-size:.68rem;color:#666;font-weight:400;">' + esc(C.whatsappFmt) + '</div></button>' +
             '<button class="btn-outline" style="flex:1;border-color:#1976d2;color:#1976d2;" onclick="suporteAbrirEmail()"><i class="fas fa-envelope"></i> E-mail<div style="font-size:.68rem;color:#666;font-weight:400;overflow:hidden;text-overflow:ellipsis;">' + esc(C.email) + '</div></button></div>' +
-            '<div id="chat-box" style="background:#f4f4f6;border-radius:14px;padding:10px;height:calc(100vh - 330px);min-height:260px;overflow-y:auto;"></div>' +
+            '<div id="chat-box" style="background:#f4f4f6;border-radius:14px;padding:10px;height:calc(100vh - 420px);min-height:260px;overflow-y:auto;"></div>' +
             '<div style="display:flex;gap:8px;margin-top:8px;"><input id="chat-entrada" type="text" placeholder="Digite sua dúvida (ex.: fiado, impressora, licença)" autocomplete="off" ' +
             'style="flex:1;padding:12px;border:2px solid #ddd;border-radius:24px;font-size:.95rem;" onkeydown="if(event.key===\'Enter\')suporteEnviar()">' +
             '<button class="btn-primary" style="width:48px;height:48px;border-radius:50%;padding:0;" onclick="suporteEnviar()" aria-label="Enviar"><i class="fas fa-paper-plane"></i></button></div>' +
+            '<div style="background:#fff;border-radius:12px;padding:10px 12px;margin-top:10px;font-size:.8rem;color:#555;line-height:1.5;box-shadow:0 1px 3px rgba(0,0,0,.06);"><b><i class="far fa-clock"></i> Horário de atendimento</b><br>' + C.horarios.map(esc).join('<br>') + '</div>' +
+            '<style>.chat-r ol,.chat-r ul{margin:6px 0 6px 0;padding-left:20px}.chat-r li{margin:5px 0}.chat-r .dica{background:#fff8e1;border-left:3px solid #ffb300;border-radius:6px;padding:7px 9px;margin-top:8px;font-size:.85rem}</style>' +
             window.rodapeVersaoHtml('padding:16px 0 4px;') +
             '</div>';
     };
@@ -62,7 +64,7 @@
         const d = document.createElement('div');
         d.style.cssText = 'display:flex;gap:8px;margin:8px 0;align-items:flex-end;';
         d.innerHTML = '<div style="width:30px;height:30px;border-radius:50%;background:' + COR + ';color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="fas fa-robot" style="font-size:.85rem;"></i></div>' +
-            '<div style="background:#fff;border-radius:14px 14px 14px 4px;padding:10px 12px;max-width:85%;font-size:.9rem;line-height:1.5;color:#333;box-shadow:0 1px 3px rgba(0,0,0,.08);">' + html + '</div>';
+            '<div class="chat-r" style="background:#fff;border-radius:14px 14px 14px 4px;padding:10px 12px;max-width:88%;font-size:.9rem;line-height:1.5;color:#333;box-shadow:0 1px 3px rgba(0,0,0,.08);">' + html + '</div>';
         caixa().appendChild(d); rolar();
     }
     function balaoUsuario(texto) {
@@ -119,7 +121,7 @@
     function contato(assunto) {
         const C = window.CONTATO;
         balaoBot('Fale direto com a <b>' + esc(C.empresa) + '</b>:<br>WhatsApp <b>' + esc(C.whatsappFmt) + '</b><br>E-mail <b>' + esc(C.email) + '</b><br><span style="color:#777;font-size:.8rem;">Conte o que aconteceu e, se puder, mande um print da tela.' +
-            (assunto ? ' Já vou preencher o assunto para você.' : '') + '</span>');
+            (assunto ? ' Já vou preencher o assunto para você.' : '') + '</span><br><span style="color:#777;font-size:.8rem;"><i class="far fa-clock"></i> ' + C.horarios.map(esc).join(' · ') + '</span>');
         opcoes([
             { t: '<i class="fab fa-whatsapp"></i> Abrir WhatsApp', cor: '#1b8f4a', f: function () { suporteAbrirWhats(assunto); menuPrincipal('Posso ajudar em mais alguma coisa?'); } },
             { t: '<i class="fas fa-envelope"></i> Enviar e-mail', cor: '#1976d2', f: function () { suporteAbrirEmail(assunto); menuPrincipal('Posso ajudar em mais alguma coisa?'); } },

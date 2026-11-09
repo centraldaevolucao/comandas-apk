@@ -21,7 +21,7 @@ window.renderHistoricoCaixa = function() {
 
     return [
         '<div class="app-bar">',
-        '    <button class="icon-btn" onclick="navigateTo(\'caixa\')"><i class="fas fa-arrow-left"></i></button>',
+        '    <button class="icon-btn" onclick="voltarTela()"><i class="fas fa-arrow-left"></i></button>',
         '    <h1>Histórico de Caixas</h1>',
         '    <button class="icon-btn" onclick="carregarHistoricoCaixa()" title="Atualizar"><i class="fas fa-sync-alt"></i></button>',
         '</div>',

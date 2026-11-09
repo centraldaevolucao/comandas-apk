@@ -1,6 +1,6 @@
 /* Assinatura / licença — telas e bloqueios do plano gratuito.
    O status vem do servidor (GET /api/licenca); a verificação do código é feita lá (assinatura digital).
-   Plano gratuito (ou assinatura vencida): até 30 comandas por mês e SEM Caixa (histórico/fechamento), Relatórios e Cardápio digital. */
+   Plano gratuito (ou assinatura vencida): até 30 comandas por dia e SEM Caixa (histórico/fechamento), Relatórios e Cardápio digital. */
 (function () {
     'use strict';
     const COR = '#C2185B';
@@ -58,8 +58,8 @@
     window.licencaPodeCriarComanda = async function () {
         const s = await window.licencaCarregar();
         if (!s || !s.limitado) return true;
-        if (s.comandasMes >= s.limiteComandas) {
-            modalUpsell('Limite do plano gratuito', 'Você já criou <b>' + s.comandasMes + ' de ' + s.limiteComandas + ' comandas</b> neste mês.<br>Assine para criar comandas sem limite e liberar Caixa, Relatórios e Cardápio digital.');
+        if (s.comandasDia >= s.limiteComandas) {
+            modalUpsell('Limite do plano gratuito', 'Você já criou <b>' + s.comandasDia + ' de ' + s.limiteComandas + ' comandas</b> hoje.<br>Assine para criar comandas sem limite e liberar Caixa, Relatórios e Cardápio digital.');
             return false;
         }
         return true;
@@ -76,11 +76,11 @@
         const s = window.LICENCA.status; if (!s) return '';
         let txt = '', cor = '#e65100', bg = '#fff3e0';
         if (s.estado === 'gratis' || s.estado === 'vencida') {
-            txt = (s.estado === 'vencida' ? 'Assinatura vencida em ' + dataBR(s.validade) + ' · ' : 'Plano gratuito · ') + s.comandasMes + '/' + s.limiteComandas + ' comandas no mês';
-            if (s.comandasMes >= s.limiteComandas) { cor = '#c62828'; bg = '#ffebee'; }
+            txt = (s.estado === 'vencida' ? 'Assinatura vencida em ' + dataBR(s.validade) + ' · ' : 'Plano gratuito · ') + s.comandasDia + '/' + s.limiteComandas + ' comandas hoje';
+            if (s.comandasDia >= s.limiteComandas) { cor = '#c62828'; bg = '#ffebee'; }
         } else if (s.estado === 'carencia') { txt = 'Assinatura vencida — acesso liberado por mais ' + Math.max(0, (s.carenciaDias || 0) + s.diasRestantes + 1) + ' dia(s). Renove!'; cor = '#c62828'; bg = '#ffebee'; }
-        else if (s.aviso) { txt = 'Sua assinatura vence em ' + s.diasRestantes + ' dia(s) (' + dataBR(s.validade) + ')'; }
-        else return '<div onclick="navigateTo(\'assinatura\')" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px;background:#e8f5e9;color:#2e7d32;border-radius:20px;padding:4px 12px;margin-bottom:8px;font-size:.72rem;font-weight:600;"><i class="fas fa-crown"></i> Assinatura ativa · ' + s.diasRestantes + ' dia(s)</div>';
+        else if (s.aviso) { txt = (s.teste ? 'Sua licença de teste termina em ' : 'Sua assinatura vence em ') + s.diasRestantes + ' dia(s) (' + dataBR(s.validade) + ')'; }
+        else return '<div onclick="navigateTo(\'assinatura\')" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px;background:#e8f5e9;color:#2e7d32;border-radius:20px;padding:4px 12px;margin-bottom:8px;font-size:.72rem;font-weight:600;"><i class="fas fa-crown"></i> ' + (s.teste ? 'Licença de teste' : 'Assinatura ativa') + ' · ' + s.diasRestantes + ' dia(s)</div>';
         return '<div onclick="navigateTo(\'assinatura\')" style="cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:8px;background:' + bg + ';color:' + cor + ';border-radius:10px;padding:8px 12px;margin-bottom:10px;font-size:.8rem;font-weight:600;"><span><i class="fas fa-crown"></i> ' + txt + '</span><span style="text-decoration:underline;white-space:nowrap;">' + (s.limitado ? 'Assinar' : 'Renovar') + '</span></div>';
     };
 
@@ -102,7 +102,7 @@
 
     window.renderAssinatura = function () {
         setTimeout(carregarTelaAssinatura, 30);
-        return '<div class="app-bar"><button class="icon-btn" onclick="voltar()"><i class="fas fa-arrow-left"></i></button><h1>Assinatura</h1><div style="width:40px;"></div></div>' +
+        return '<div class="app-bar"><button class="icon-btn" onclick="voltarTela()"><i class="fas fa-arrow-left"></i></button><h1>Assinatura</h1><div style="width:40px;"></div></div>' +
             '<div class="content-area" id="assinatura-conteudo" style="padding:12px;"><p class="empty-state">Carregando...</p></div>';
     };
 
@@ -112,16 +112,16 @@
         if (!s) { box.innerHTML = '<p class="empty-state" style="color:#c62828;">Não foi possível ler a assinatura. Verifique a conexão com o servidor.</p>'; return; }
         const valor = await valorAssinatura();
         let cartao;
-        if (s.estado === 'ativa') cartao = ['#e8f5e9', '#2e7d32', 'fa-check-circle', 'Assinatura ativa', 'Válida até <b>' + dataBR(s.validade) + '</b>' + (s.cliente ? '<br>Cliente: ' + esc(s.cliente) : '') + '<div id="lic-contador" data-fim="' + esc(s.validade) + '" style="margin-top:10px;font-size:1.5rem;font-weight:700;font-family:monospace;color:#2e7d32;"></div><div style="font-size:.72rem;color:#777;">tempo restante (dias · hh:mm:ss)</div>'];
+        if (s.estado === 'ativa') cartao = ['#e8f5e9', '#2e7d32', s.teste ? 'fa-flask' : 'fa-check-circle', s.teste ? 'Licença de TESTE — acesso total' : 'Assinatura ativa', 'Válida até <b>' + dataBR(s.validade) + '</b>' + (s.cliente ? '<br>Cliente: ' + esc(s.cliente) : '') + '<div id="lic-contador" data-fim="' + esc(s.validade) + '" style="margin-top:10px;font-size:1.5rem;font-weight:700;font-family:monospace;color:#2e7d32;"></div><div style="font-size:.72rem;color:#777;">tempo restante (dias · hh:mm:ss)</div>'];
         else if (s.estado === 'carencia') cartao = ['#fff3e0', '#e65100', 'fa-triangle-exclamation', 'Assinatura vencida', 'Venceu em <b>' + dataBR(s.validade) + '</b>. Tudo segue liberado por poucos dias — renove para não perder o acesso.<div id="lic-contador" data-fim="' + esc(s.validade) + '" data-carencia="' + (s.carenciaDias || 0) + '" style="margin-top:10px;font-size:1.3rem;font-weight:700;font-family:monospace;color:#e65100;"></div><div style="font-size:.72rem;color:#777;">tempo até o bloqueio</div>'];
         else if (s.estado === 'vencida') cartao = ['#ffebee', '#c62828', 'fa-lock', 'Assinatura vencida', 'Venceu em <b>' + dataBR(s.validade) + '</b>. Você está no plano gratuito.'];
-        else cartao = ['#f3f3f3', '#555', 'fa-gift', 'Plano gratuito', 'Comandas neste mês: <b>' + s.comandasMes + ' de ' + s.limiteComandas + '</b>'];
+        else cartao = ['#f3f3f3', '#555', 'fa-gift', 'Plano gratuito', 'Comandas hoje: <b>' + s.comandasDia + ' de ' + s.limiteComandas + '</b>'];
         let h = '<div style="padding:22px 16px;background:linear-gradient(135deg,' + COR + ',#880E4F);color:#fff;border-radius:12px;margin-bottom:14px;text-align:center;"><i class="fas fa-crown" style="font-size:2.4rem;color:#ffd54f;"></i>' +
             '<div style="font-size:1.25rem;font-weight:700;margin-top:8px;">Comandas Premium</div><div style="font-size:.85rem;opacity:.95;margin-top:6px;">Comandas ilimitadas, Caixa, Relatórios e Cardápio digital por <b>' + R(valor) + '/mês</b></div></div>';
         h += '<div style="text-align:center;padding:14px;background:' + cartao[0] + ';border-radius:12px;margin-bottom:14px;"><i class="fas ' + cartao[2] + '" style="color:' + cartao[1] + ';font-size:1.8rem;"></i><div style="font-weight:700;color:' + cartao[1] + ';margin-top:6px;">' + cartao[3] + '</div><div style="font-size:.85rem;color:#555;margin-top:4px;line-height:1.4;">' + cartao[4] + '</div></div>';
 
         h += '<div style="background:#fff;border-radius:12px;padding:14px;margin-bottom:14px;box-shadow:0 2px 8px rgba(0,0,0,.06);font-size:.88rem;">' +
-            '<div style="display:flex;gap:10px;"><div style="flex:1;"><b>Gratuito</b><div style="color:#666;margin-top:4px;line-height:1.6;">✔ PDV e comandas<br>✔ ' + s.limiteComandas + ' comandas/mês<br>✔ Todos os cadastros (produtos, clientes, grupos, mesas, equipe)<br>✘ Caixa<br>✘ Relatórios<br>✘ Cardápio digital</div></div>' +
+            '<div style="display:flex;gap:10px;"><div style="flex:1;"><b>Gratuito</b><div style="color:#666;margin-top:4px;line-height:1.6;">✔ PDV e comandas<br>✔ ' + s.limiteComandas + ' comandas por dia<br>✔ Todos os cadastros (produtos, clientes, grupos, mesas, equipe)<br>✘ Caixa<br>✘ Relatórios<br>✘ Cardápio digital</div></div>' +
             '<div style="flex:1;"><b style="color:' + COR + ';">Premium</b><div style="color:#666;margin-top:4px;line-height:1.6;">✔ Tudo do gratuito<br>✔ Comandas ilimitadas<br>✔ Caixa completo<br>✔ Relatórios<br>✔ Cardápio digital<br>✔ Suporte</div></div></div></div>';
 
         h += '<div style="background:#fff;border-radius:12px;padding:14px;margin-bottom:14px;box-shadow:0 2px 8px rgba(0,0,0,.06);">' +
@@ -132,12 +132,12 @@
 
         h += '<div style="background:#fff;border-radius:12px;padding:14px;margin-bottom:14px;box-shadow:0 2px 8px rgba(0,0,0,.06);">' +
             '<div style="font-weight:700;margin-bottom:8px;">Como ' + (s.estado === 'ativa' ? 'renovar' : 'assinar') + '</div>' +
-            '<div style="font-size:.88rem;color:#444;line-height:1.5;"><b>1.</b> Pague ' + R(valor) + ' por Pix.<br><b>2.</b> Toque em <b>Solicitar licença</b> e envie o pedido e o comprovante pelo WhatsApp.<br><b>3.</b> Você recebe um arquivo <b>.lic</b>: toque em <b>Aplicar licença</b>.</div>' +
+            '<div style="font-size:.88rem;color:#444;line-height:1.5;"><b>1.</b> Pague ' + R(valor) + ' por Pix.<br><b>2.</b> Toque em <b>Solicitar licença</b> e envie o pedido e o comprovante pelo WhatsApp.<br><b>3.</b> Você recebe um arquivo <b>.rlic</b>: toque em <b>Aplicar licença</b>.</div>' +
             '<button class="btn-primary" style="margin-top:10px;" onclick="licencaPix()"><i class="fas fa-qrcode"></i> Pagar com Pix (' + R(valor) + ')</button>' +
             '<button class="btn-outline" style="margin-top:8px;width:100%;" onclick="licencaSolicitar()"><i class="fas fa-paper-plane"></i> Solicitar licença (enviar pedido)</button>' +
-            '<input type="file" id="lic-arquivo" accept="*/*" style="display:none;" onchange="licencaLerArquivo(this)">' +
-            '<button class="btn-primary" style="margin-top:14px;background:#2e7d32;" onclick="document.getElementById(\'lic-arquivo\').click()"><i class="fas fa-file-circle-check"></i> Aplicar licença (arquivo .lic)</button>' +
-            '<div style="font-size:.74rem;color:#777;margin-top:6px;">Recebeu o arquivo <b>.lic</b> pelo WhatsApp ou e-mail? Toque nele e escolha Comandas, ou use o botão acima. Sem digitar nada.</div>' +
+            '<input type="file" id="lic-arquivo" accept=".rlic" style="display:none;" onchange="licencaLerArquivo(this)">' +
+            '<button class="btn-primary" style="margin-top:14px;background:#2e7d32;" onclick="document.getElementById(\'lic-arquivo\').click()"><i class="fas fa-file-circle-check"></i> Aplicar licença (arquivo .rlic)</button>' +
+            '<div style="font-size:.74rem;color:#777;margin-top:6px;">Recebeu o arquivo <b>Assinatura.rlic</b> pelo WhatsApp ou e-mail? Toque nele e escolha Comandas, ou use o botão acima e escolha o arquivo <b>.rlic</b>. Sem digitar nada.</div>' +
             '<details style="margin-top:10px;"><summary style="font-size:.78rem;color:#777;cursor:pointer;">Colar o código manualmente</summary>' +
             '<textarea id="lic-codigo" rows="3" placeholder="CMD1.…" style="width:100%;box-sizing:border-box;margin-top:6px;padding:10px;border:2px solid #ddd;border-radius:10px;font-family:monospace;font-size:.8rem;"></textarea>' +
             '<button class="btn-outline" style="margin-top:6px;width:100%;" onclick="licencaAtivar()"><i class="fas fa-key"></i> Ativar com o código colado</button></details></div>';
@@ -181,11 +181,12 @@
     window.licencaLerArquivo = function (inp) {
         const f = inp.files && inp.files[0]; inp.value = '';
         if (!f) return;
+        if (!/\.(rlic|lic|txt)$/i.test(f.name || '')) { window.avisar('Escolha o arquivo de licença (Assinatura.rlic, extensão .rlic).'); return; }
         if (f.size > 65536) { window.avisar('Este arquivo não parece uma licença do Comandas.'); return; }
         const r = new FileReader();
         r.onload = function () {
             const t = String(r.result || '');
-            if (t.indexOf('CMD1.') < 0) { window.avisar('Este arquivo não é uma licença do Comandas (.lic).'); return; }
+            if (t.indexOf('CMD1.') < 0) { window.avisar('Este arquivo não é uma licença do Comandas (.rlic).'); return; }
             window.licencaAplicarTexto(t);
         };
         r.onerror = function () { window.avisar('Não foi possível ler o arquivo.'); };
@@ -256,7 +257,7 @@
             '<div style="padding:16px;"><img src="' + window.qrUrl(pix, '300x300') + '" alt="QR Pix" style="width:220px;height:220px;border:2px dashed ' + COR + ';border-radius:12px;padding:8px;">' +
             '<div style="font-size:.75rem;color:#777;margin:10px 0 4px;">Pix copia e cola</div><div style="font-size:.7rem;word-break:break-all;max-height:56px;overflow:hidden;color:#333;">' + esc(pix) + '</div>' +
             '<button class="btn-outline" style="margin-top:10px;width:100%;" id="lic-copiar-pix"><i class="far fa-copy"></i> Copiar código Pix</button>' +
-            '<div style="font-size:.78rem;color:#777;margin-top:10px;">Depois de pagar, toque em <b>Solicitar licença</b>, envie o pedido e aguarde o arquivo .lic.</div>' +
+            '<div style="font-size:.78rem;color:#777;margin-top:10px;">Depois de pagar, toque em <b>Solicitar licença</b>, envie o pedido e aguarde o arquivo .rlic.</div>' +
             '<button class="btn-primary" style="margin-top:10px;width:100%;" id="lic-fechar-pix">Fechar</button></div></div>';
         document.body.appendChild(m);
         m.querySelector('#lic-copiar-pix').onclick = function () { window.licencaCopiar(pix); };

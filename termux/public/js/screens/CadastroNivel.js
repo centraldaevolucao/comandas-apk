@@ -21,7 +21,7 @@ window.renderCadastroNivel = function() {
 
     return [
         '<div class="app-bar">',
-        '    <button class="icon-btn" onclick="navigateTo(\'niveis-acesso\')"><i class="fas fa-arrow-left"></i></button>',
+        '    <button class="icon-btn" onclick="voltarTela()"><i class="fas fa-arrow-left"></i></button>',
         '    <h1>' + (editando ? 'Editar Nível' : 'Novo Nível') + '</h1>',
         '    <div style="width:40px;"></div>',
         '</div>',

@@ -22,7 +22,7 @@ window.renderTotaisEspecie = function() {
 
     return [
         '<div class="app-bar">',
-        '    <button class="icon-btn" onclick="navigateTo(\'comandas\')"><i class="fas fa-arrow-left"></i></button>',
+        '    <button class="icon-btn" onclick="voltarTela()"><i class="fas fa-arrow-left"></i></button>',
         '    <h1>Totais por Espécie</h1>',
         '    <button class="icon-btn" onclick="imprimirTotaisEspecie()" title="Imprimir"><i class="fas fa-print"></i></button>',
         '</div>',

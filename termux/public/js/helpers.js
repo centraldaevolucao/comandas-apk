@@ -708,6 +708,12 @@ window.compartilharImagem = async function (dataUrl, nome, texto, telefone, modo
 };
 
 
+/** Soma dos pagamentos em PIX da comanda (o QR só aparece com PIX e leva só esse valor). */
+window.pixValorPago = function (c) {
+    const a = (window.normalizarArray ? window.normalizarArray(c && c.pagamentos) : ((c && c.pagamentos) || []));
+    return Math.round(a.filter(function (p) { return p && p.forma === 'pix'; }).reduce(function (t, p) { return t + (Number(p.valor) || 0); }, 0) * 100) / 100;
+};
+
 /** Opções de QR do PIX: 'impressao' (recibo/comanda impressos) e 'whatsapp' (imagem enviada). */
 window.pixQrAtivo = function (config, destino, tipo) {
     if (!config || !config.pixRestaurante) return false;

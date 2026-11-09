@@ -86,7 +86,7 @@ public class MainActivity extends Activity {
     private static final Pattern URL_TUNEL = Pattern.compile("https://[a-z0-9-]+\\.trycloudflare\\.com");
 
     /** Retorno do app da maquininha: comandaspay://<provedor>?... → entrega ao JavaScript. */
-    // ---- Licença (.lic) aberta de fora do app (Arquivos, WhatsApp…): lê o texto e entrega ao JavaScript ----
+    // ---- Licença (.rlic) aberta de fora do app (Arquivos, WhatsApp…): lê o texto e entrega ao JavaScript ----
     private String licencaPendente = null;
     private boolean paginaPronta = false;
 
@@ -99,7 +99,7 @@ public class MainActivity extends Activity {
             if (in == null) return;
             java.io.ByteArrayOutputStream bo = new java.io.ByteArrayOutputStream();
             byte[] buf = new byte[2048]; int n;
-            while ((n = in.read(buf)) > 0 && bo.size() < 16384) bo.write(buf, 0, n);   // licença é pequena: limite de 16 KB
+            while ((n = in.read(buf)) > 0 && bo.size() < 16384) bo.write(buf, 0, n);   // licença é pequena: limite de 16 KB (.rlic)
             in.close();
             String txt = bo.toString("UTF-8");
             if (!txt.contains("CMD1.")) return;   // não é uma licença

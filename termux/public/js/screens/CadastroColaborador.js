@@ -14,10 +14,11 @@ window.renderCadastroColaborador = function() {
     const acessoAtivo = !!(u && u.id);
 
     setTimeout(preencherSelectsColaborador, 30);
+    setTimeout(window.colabMaquininhasPreencher, 40);
 
     return [
         '<div class="app-bar">',
-        '    <button class="icon-btn" onclick="navigateTo(\'colaboradores\')"><i class="fas fa-arrow-left"></i></button>',
+        '    <button class="icon-btn" onclick="voltarTela()"><i class="fas fa-arrow-left"></i></button>',
         '    <h1>' + (editando ? 'Editar Colaborador' : 'Novo Colaborador') + '</h1>',
         '    <div style="width:40px;"></div>',
         '</div>',
@@ -56,6 +57,13 @@ window.renderCadastroColaborador = function() {
         '        <div class="card" style="background:#FCE4EC;padding:15px;font-size:0.8rem;" id="col-permissoes-card">',
         '            <strong style="color:var(--primary-color);">ℹ️ Permissões deste nível</strong>',
         '            <div style="margin-top:8px;line-height:1.6;" id="col-permissoes-texto">Carregando...</div>',
+        '        </div>',
+
+        // ---- Maquininhas do colaborador/garçom ----
+        '        <div class="card" id="col-maq-card" style="background:#fff;border:2px solid #e0e0e0;display:none;">',
+        '            <div style="font-weight:700;font-size:0.95rem;"><i class="fas fa-credit-card" style="color:#C2185B;"></i> Maquininhas deste garçom</div>',
+        '            <div style="font-size:0.75rem;color:#888;margin:4px 0 8px;">Marque as maquininhas que ele usa. Sem marcação = todas as maquininhas ativas do caixa.</div>',
+        '            <div id="col-maq-lista"></div>',
         '        </div>',
 
         // ---- ACESSO AO SISTEMA (toggle) ----
@@ -115,6 +123,21 @@ window.renderCadastroColaborador = function() {
         '    </div>',
         '</div>'
     ].join('\n');
+};
+
+// ============================================================
+// MAQUININHAS DO COLABORADOR
+// ============================================================
+window.colabMaquininhasPreencher = async function () {
+    const card = document.getElementById('col-maq-card'), box = document.getElementById('col-maq-lista');
+    if (!card || !box || !window.maquininhasLista) return;
+    const lista = await window.maquininhasLista();
+    if (!lista.length) { card.style.display = 'none'; return; }
+    const sel = ((window.colaboradorEditando || {}).maquininhas || []).map(String);
+    box.innerHTML = lista.map(function (m) {
+        return '<label style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #f0f0f0;"><input type="checkbox" class="col-maq-chk" value="' + String(m.id).replace(/"/g, '') + '"' + (sel.indexOf(String(m.id)) >= 0 ? ' checked' : '') + '> <span>' + String(m.nome || 'Maquininha').replace(/</g, '&lt;') + (m.ativa === false ? ' <small style="color:#c62828;">(inativa)</small>' : '') + '</span></label>';
+    }).join('');
+    card.style.display = 'block';
 };
 
 // ============================================================
@@ -329,6 +352,9 @@ window.salvarColaborador = async function() {
         funcao: funcaoId ? funcaoNome : '',
         nivelAcesso: nivel
     };
+    if (document.getElementById('col-maq-card') && document.getElementById('col-maq-card').style.display !== 'none') {
+        dados.maquininhas = Array.prototype.map.call(document.querySelectorAll('.col-maq-chk:checked'), function (e) { return e.value; });
+    } else if (c.maquininhas) dados.maquininhas = c.maquininhas;
 
     let atualizado = false;
     for (let i = 0; i < lista.length; i++) {

@@ -39,7 +39,7 @@ if (window.renderMovimentacaoEstoque) {
 
         return [
             '<div class="app-bar">',
-            '    <button class="icon-btn" onclick="navigateTo(\'comandas\')"><i class="fas fa-arrow-left"></i></button>',
+            '    <button class="icon-btn" onclick="voltarTela()"><i class="fas fa-arrow-left"></i></button>',
             '    <h1>Movimentação de Estoque</h1>',
             '    <div style="display:flex;gap:2px;">',
             '        <button class="icon-btn" onclick="imprimirMovimentacaoEstoque()" title="Imprimir"><i class="fas fa-print"></i></button>',

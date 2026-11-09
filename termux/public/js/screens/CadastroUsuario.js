@@ -4,7 +4,7 @@ console.log('✔ CadastroUsuario.js carregado');
 window.renderCadastroUsuario = function() {
     return [
         '<div class="app-bar">',
-        '    <button class="icon-btn" onclick="navigateTo(\'login\')"><i class="fas fa-arrow-left"></i></button>',
+        '    <button class="icon-btn" onclick="voltarTela()"><i class="fas fa-arrow-left"></i></button>',
         '    <h1>Criar Conta</h1>',
         '    <div style="width:40px;"></div>',
         '</div>',
