@@ -40,12 +40,52 @@ window.iniciarSessao = async function () {
     } catch (e) {}
 };
 
+// ------------------------------------------------------------
+// CATÁLOGO DE TELAS E FUNÇÕES (editável por nível de acesso)
+// ------------------------------------------------------------
+window.PERMISSOES_CATALOGO = [
+    { grupo: 'Atendimento', itens: [['pdv.acessar', 'PDV / Comandas'], ['comandas.ver', 'Ver comandas e pedidos pendentes'], ['comandas.criar', 'Criar comandas'], ['comandas.editar', 'Editar comandas'], ['garcom.acessar', 'Tela do garçom']] },
+    { grupo: 'Cozinha', itens: [['cozinha.acessar', 'Tela da cozinha']] },
+    { grupo: 'Caixa', itens: [['caixa.abrir', 'Caixa: abrir, receber e fechar'], ['caixa.historico', 'Histórico de caixa']] },
+    { grupo: 'Cadastros', itens: [['produtos.ver', 'Ver produtos'], ['produtos.editar', 'Editar produtos'], ['grupos.editar', 'Grupos'], ['adicionais.editar', 'Adicionais'], ['clientes.ver', 'Ver clientes e pendências'], ['clientes.editar', 'Editar clientes'], ['mesas.editar', 'Mesas e QR Codes']] },
+    { grupo: 'Equipe', itens: [['colaboradores.ver', 'Ver colaboradores, funções e níveis'], ['colaboradores.editar', 'Editar colaboradores, funções e níveis'], ['usuarios.gerenciar', 'Gerenciar usuários e senhas']] },
+    { grupo: 'Estoque', itens: [['perdas.registrar', 'Controle de perdas'], ['estoque.movimentar', 'Movimentação de estoque']] },
+    { grupo: 'Relatórios', itens: [['relatorios.ver', 'Relatórios']] },
+    { grupo: 'Sistema', itens: [['configuracoes.ver', 'Ver configurações'], ['configuracoes.editar', 'Editar configurações, impressoras, PIX e cardápio do dia'], ['backup.gerenciar', 'Backup']] }
+];
+(function () {
+    const todas = []; window.PERMISSOES_CATALOGO.forEach(function (g) { g.itens.forEach(function (i) { todas.push(i[0]); }); });
+    window.PERMISSOES_TODAS = todas;
+    const atend = ['pdv.acessar', 'comandas.ver', 'comandas.criar', 'comandas.editar', 'garcom.acessar', 'clientes.ver'];
+    window.PERMISSOES_PADRAO_NIVEL = {
+        admin: ['*'],
+        gerente: todas.filter(function (x) { return x !== 'usuarios.gerenciar'; }),
+        atendente: atend,
+        garcom: atend,
+        caixa: atend.concat(['caixa.abrir', 'caixa.historico']),
+        cozinha: ['cozinha.acessar']
+    };
+})();
+
+/** Permissões de um nível (as editadas pelo dono; senão o padrão do nível; senão nenhuma). */
+window.permissoesDoNivel = function (nivel) {
+    const lista = window.__niveisCache || [];
+    const n = lista.find(function (x) { return String(x.id) === String(nivel); });
+    if (n && Array.isArray(n.permissoes)) return n.permissoes;
+    return window.PERMISSOES_PADRAO_NIVEL[nivel] || null;
+};
+
 window.temPermissao = function (permissao) {
     const u = window.obterUsuarioLogado();
     if (!u) return true;
     if (u.isDono || u.nivel === 'admin') return true;
+    // O nível de acesso (editável em Níveis de acesso) manda; sem lista editada, vale a permissão gravada no usuário
+    const pn = window.permissoesDoNivel(u.nivel);
+    const explicito = (window.__niveisCache || []).some(function (x) { return String(x.id) === String(u.nivel) && Array.isArray(x.permissoes); });
+    if (explicito) return pn.indexOf('*') >= 0 || pn.indexOf(permissao) >= 0;
     if (Array.isArray(u.permissoes) && u.permissoes.indexOf('*') >= 0) return true;
     if (Array.isArray(u.permissoes) && u.permissoes.indexOf(permissao) >= 0) return true;
+    if (pn && (pn.indexOf('*') >= 0 || pn.indexOf(permissao) >= 0)) return true;
     return false;
 };
 

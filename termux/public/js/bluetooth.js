@@ -104,7 +104,7 @@ console.log('✔ bluetooth.js carregado');
         const calc = window.calcularTotais ? window.calcularTotais(c) : { subtotal: c.subtotal || 0, desconto: 0, total: c.total || 0 };
         const cor = window.obterCorCaixaDaComanda ? await window.obterCorCaixaDaComanda(c) : null;
         const L = [];
-        L.push({ t: String(config.nomeImpressao || 'Comandas').toUpperCase(), b: 1, c: 1, g: 1 });
+        if (config.imprimirNome !== false) L.push({ t: String(config.nomeImpressao || 'Comandas').toUpperCase(), b: 1, c: 1, g: 1 });
         L.push({ t: tipo === 'recibo' ? 'RECIBO DE PAGAMENTO' : 'COMANDA', c: 1, b: 1 });
         if (tipo === 'recibo') L.push({ t: c.pagamentoPendente ? 'PENDENTE (FIADO)' : 'PAGO', c: 1, b: 1 });
         if (cor) L.push({ t: String(cor.label || cor.id).toUpperCase(), c: 1, b: 1 });

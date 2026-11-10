@@ -56,15 +56,7 @@ async function atualizarListaFuncoes() {
 
         // Se vazio, cria as funções padrão
         if (window.funcoesCache.length === 0) {
-            window.funcoesCache = [
-                { id: 1, nome: 'Garçom' },
-                { id: 2, nome: 'Atendente' },
-                { id: 3, nome: 'Caixa' },
-                { id: 4, nome: 'Cozinheiro' },
-                { id: 5, nome: 'Barman' },
-                { id: 6, nome: 'Gerente' },
-                { id: 7, nome: 'Recepcionista' }
-            ];
+            window.funcoesCache = window.FUNCOES_PADRAO.map(function (f) { return Object.assign({}, f); });
             await apiSave('funcoes', window.funcoesCache);
         }
 
@@ -119,6 +111,8 @@ function renderListaFuncoes() {
             '        <i class="fas fa-briefcase" style="color:var(--primary-color);font-size:0.8rem;margin-right:6px;"></i>' +
                      f.nome +
             '    </div>' +
+            '    <div class="lista-item-sub">Nível: ' + String((window.niveisListaCache || []).concat(window.__niveisCache || []).filter(function (n) { return String(n.id) === String(f.nivelAcesso || 'atendente'); }).map(function (n) { return n.nome; })[0] || f.nivelAcesso || 'Atendente').replace(/</g, '&lt;') +
+            '  ·  <i class="fas ' + (f.modoCliente === false ? 'fa-eye-slash' : 'fa-link') + '"></i> ' + (f.modoCliente === false ? 'oculta no modo cliente' : 'aparece no modo cliente') + '</div>' +
             (emUso > 0 ? '    <div class="lista-item-sub">' + emUso + ' colaborador(es) usam esta função</div>' : '') +
             '</div>' +
             '<button class="btn-limpar" onclick="event.stopPropagation(); excluirFuncao(' + f.id + ')" title="Excluir" style="margin-right:4px;">' +

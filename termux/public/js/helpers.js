@@ -716,14 +716,20 @@ window.pixValorPago = function (c) {
 
 /** Opções de QR do PIX: 'impressao' (recibo/comanda impressos) e 'whatsapp' (imagem enviada). */
 window.pixQrAtivo = function (config, destino, tipo) {
+    // destino: 'impressao' (visualização/Bluetooth) | 'whatsapp' (WhatsApp direto ao cliente cadastrado) | 'compartilhar' (terceiros)
     if (!config || !config.pixRestaurante) return false;
-    // opções separadas (comanda/recibo × impressão/compartilhamento); sem elas vale a opção antiga
-    const chave = (destino === 'whatsapp' ? 'pixQr' : 'pixQr') + (tipo === 'recibo' ? 'Recibo' : 'Comanda') + (destino === 'whatsapp' ? 'Compart' : 'Imp');
-    if (tipo && config[chave] !== undefined) return config[chave] === true;
-    if (destino === 'whatsapp') return config.pixQrWhatsapp === true;
+    const T = tipo === 'recibo' ? 'Recibo' : 'Comanda';
+    if (tipo) {
+        if (destino === 'impressao') { if (config['pixQr' + T + 'Imp'] !== undefined) return config['pixQr' + T + 'Imp'] === true; }
+        else if (destino === 'compartilhar') { if (config['pixQr' + T + 'Compart'] !== undefined) return config['pixQr' + T + 'Compart'] === true; }
+        else { // whatsapp direto: cai na opção de compartilhar se ainda não existir a própria
+            if (config['pixQr' + T + 'Zap'] !== undefined) return config['pixQr' + T + 'Zap'] === true;
+            if (config['pixQr' + T + 'Compart'] !== undefined) return config['pixQr' + T + 'Compart'] === true;
+        }
+    }
+    if (destino === 'whatsapp' || destino === 'compartilhar') return config.pixQrWhatsapp === true;
     return (config.pixQrImpressao !== undefined ? config.pixQrImpressao : config.exibirPixRecibo) === true;
 };
-
 
 /** Telefone (só dígitos, com 55) do cliente da comanda; se não houver, pergunta (nova conversa no WhatsApp). */
 window.telefoneWhatsApp = async function (c, perguntar) {

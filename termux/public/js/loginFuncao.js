@@ -12,29 +12,49 @@ console.log('✔ loginFuncao.js carregado');
     window.sessaoToken = function () { try { return localStorage.getItem('sessToken') || ''; } catch (e) { return ''; } };
     window.sessaoGuardar = function (t) { try { t ? localStorage.setItem('sessToken', t) : localStorage.removeItem('sessToken'); } catch (e) {} };
 
-    /** Pergunta a função do aparelho; devolve (via callback) o id escolhido ou null se cancelou. */
-    window.perguntarFuncao = function (atual, aoEscolher) {
+    /** Pergunta a função do aparelho; devolve (via callback) o id escolhido ou null se cancelou.
+     *  Lista as funções cadastradas (Colaboradores › Funções) marcadas para o modo cliente, mais "Cardápio do dia"
+     *  e, se o administrador habilitou no modo servidor, "Modo Treinamento". */
+    window.perguntarFuncao = async function (atual, aoEscolher) {
         const old = document.getElementById('modal-funcao'); if (old) old.remove();
+        try { if (window.carregarPerfisDinamicos) await window.carregarPerfisDinamicos(); } catch (e) {}
+        const itens = [];
+        Object.keys(window.PERFIS).forEach(function (k) {
+            const p = window.PERFIS[k];
+            if (k.indexOf('f:') === 0) itens.push({ id: k, nome: p.nome, icone: p.icone, sub: p.livre ? 'Entra sem cadastro' : 'Nível: ' + nomeNivel(p.nivel) + (exigeLogin() ? ' · exige login' : '') });
+        });
+        if (!itens.length) ['garcom', 'cozinha', 'caixa'].forEach(function (k) { const p = window.PERFIS[k]; itens.push({ id: k, nome: p.nome, icone: p.icone, sub: LIVRES.indexOf(k) >= 0 ? 'Entra sem cadastro' : 'Exige login de colaborador' }); });
+        itens.push({ id: 'cardapio', nome: window.PERFIS.cardapio.nome, icone: window.PERFIS.cardapio.icone, sub: 'Somente o cardápio do dia' });
+        if ((window.__cfgLogin || {}).treinamento) itens.push({ id: 'treinamento', nome: 'Modo Treinamento', icone: 'fa-graduation-cap', sub: 'Administrador · acesso total às funções' });
         const m = document.createElement('div');
         m.id = 'modal-funcao'; m.className = 'modal-overlay';
         m.style.cssText = 'display:flex;align-items:center;justify-content:center;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:300000;padding:16px;';
-        let h = '<div style="background:#fff;border-radius:16px;max-width:380px;width:100%;overflow:hidden;box-shadow:0 8px 30px rgba(0,0,0,.35);">' +
-            '<div style="background:#C2185B;color:#fff;padding:14px 16px;font-weight:700;">Qual a função deste aparelho?</div><div style="padding:14px 16px;">';
-        Object.keys(window.PERFIS).forEach(function (k) {
-            const p = window.PERFIS[k];
-            h += '<button type="button" data-f="' + k + '" style="display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:12px;margin-bottom:8px;border-radius:12px;border:2px solid ' + (k === atual ? '#C2185B' : '#e0e0e0') + ';background:' + (k === atual ? '#FCE4EC' : '#fff') + ';font-size:1rem;">' +
-                '<i class="fas ' + p.icone + '" style="color:#C2185B;width:24px;text-align:center;"></i><span style="flex:1;"><b>' + p.nome + '</b><br><small style="color:#777;">' + (LIVRES.indexOf(k) >= 0 ? 'Entra sem cadastro' : 'Exige login de colaborador') + '</small></span></button>';
+        let h = '<div style="background:#fff;border-radius:16px;max-width:380px;width:100%;max-height:88vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 8px 30px rgba(0,0,0,.35);">' +
+            '<div style="background:#C2185B;color:#fff;padding:14px 16px;font-weight:700;">Qual a função deste aparelho?</div><div style="padding:14px 16px;overflow-y:auto;">';
+        itens.forEach(function (p) {
+            const ativo = p.id === atual;
+            h += '<button type="button" data-f="' + p.id + '" style="display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:12px;margin-bottom:8px;border:2px solid ' + (ativo ? '#C2185B' : '#e0e0e0') + ';background:' + (ativo ? '#FCE4EC' : '#fff') + ';border-radius:12px;cursor:pointer;">' +
+                '<i class="fas ' + p.icone + '" style="color:#C2185B;width:24px;text-align:center;"></i><span style="flex:1;min-width:0;"><b>' + esc(p.nome) + '</b><br><small style="color:#666;">' + esc(p.sub) + '</small></span></button>';
         });
         h += '<button type="button" id="mf-cancelar" class="btn-outline" style="width:100%;">Cancelar</button></div></div>';
         m.innerHTML = h; document.body.appendChild(m);
         m.querySelectorAll('button[data-f]').forEach(function (b) { b.onclick = function () { m.remove(); aoEscolher(b.getAttribute('data-f')); }; });
         document.getElementById('mf-cancelar').onclick = function () { m.remove(); aoEscolher(null); };
     };
+    function esc(t) { return String(t == null ? '' : t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+    function nomeNivel(id) { const n = (window.__niveisCache || []).find(function (x) { return String(x.id) === String(id); }); return n ? n.nome : String(id || ''); }
+    function exigeLogin() { return (window.__cfgLogin || {}).exigir !== false; }
 
     function precisaLogin() {
         const mt = window.MT || {};
         if (window.__semConfigLocal) return false;
-        return mt.tipoDispositivo === 'cliente' && LIVRES.indexOf(mt.funcaoDispositivo || 'garcom') < 0;
+        if (mt.tipoDispositivo !== 'cliente') return false;
+        const f = mt.funcaoDispositivo || 'garcom';
+        if (f === 'treinamento') return true;                       // administrador: sempre exige login
+        if (!exigeLogin()) return false;                            // Configurações › "Exigir login": desligado
+        const p = window.PERFIS[f];
+        if (p && p.livre) return false;
+        return LIVRES.indexOf(f) < 0;
     }
 
     async function sessaoValida() {
@@ -57,7 +77,7 @@ console.log('✔ loginFuncao.js carregado');
 
     function mostrarLogin() {
         if (document.getElementById('login-funcao')) return;
-        const nome = (window.PERFIS[window.MT.funcaoDispositivo] || {}).nome || 'esta função';
+        const nome = window.MT.funcaoDispositivo === 'treinamento' ? 'Modo Treinamento (administrador)' : ((window.PERFIS[window.MT.funcaoDispositivo] || {}).nome || 'esta função');
         const o = document.createElement('div');
         o.id = 'login-funcao';
         o.style.cssText = 'position:fixed;inset:0;background:rgba(60,0,30,.92);z-index:300000;display:flex;align-items:center;justify-content:center;padding:16px;';
@@ -80,6 +100,9 @@ console.log('✔ loginFuncao.js carregado');
                 const r = await window.CX.fetch('/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: email, senha: senha }) });
                 const d = await r.json();
                 if (!r.ok || !d.ok) { erro.textContent = d.msg || 'E-mail ou senha inválidos.'; return; }
+                if (window.MT.funcaoDispositivo === 'treinamento' && !(d.usuario && (d.usuario.nivel === 'admin' || d.usuario.isDono))) {
+                    erro.textContent = 'O Modo Treinamento é só para administrador.'; return;
+                }
                 window.sessaoGuardar(d.token || '');
                 fecharOverlay();
                 if (window.navigateTo) window.navigateTo(window.perfilRotaInicial ? window.perfilRotaInicial() : 'home');

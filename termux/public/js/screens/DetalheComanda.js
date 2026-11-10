@@ -1757,7 +1757,7 @@ if (!window.renderDetalheComanda) {
             const u = window.qrUrl(window.gerarPixComValor(config.pixRestaurante, valor), '150x150');
             return '<div data-pix-qr="1" style="text-align:center;margin-top:12px;"><hr style="border:none;border-top:1px dashed #000;margin:10px 0;"><div style="font-weight:bold;font-size:11px;">PAGUE COM PIX</div><img src="' + u + '" style="width:140px;height:140px;margin:5px auto;display:block;"><div style="font-size:10px;">Valor: ' + formatMoney(valor) + '</div>' + (config.pixChave ? '<div style="font-size:10px;">PIX: <b>' + window.pixFormatarChave(config.pixTipo, config.pixChave) + '</b></div>' : '') + '</div>';
         }
-        const imp = window.pixQrAtivo(config, 'impressao', tipo), wa = window.pixQrAtivo(config, 'whatsapp', tipo);
+        const imp = window.pixQrAtivo(config, 'impressao', tipo), wa = window.pixQrAtivo(config, 'whatsapp', tipo) || window.pixQrAtivo(config, 'compartilhar', tipo);
         if (!imp && !wa) return '';
         const mostrar = estilo === 'impressao' ? imp : true;
         if (!mostrar) return '';
@@ -1782,7 +1782,7 @@ if (!window.renderDetalheComanda) {
         try { const arr = window.normalizarArray(await apiGet('configuracoes')); config = arr[0] || {}; } catch (e) {}
 
         const nomeEmpresa = config.nomeImpressao || 'App Restaurante';
-        const urlLogo = config.urlLogo || '';
+        const urlLogo = config.imprimirLogo === false ? '' : (config.urlLogo || '');
         const c = aberto ? Object.assign({}, window.comandaAtual, { pagamentos: window.pagamentosTemp, troco: (window.recebimentoAtual || {}).troco || 0 }) : window.comandaAtual;
         const totais = calcularTotais(c);
         const corCaixa = await window.obterCorCaixaDaComanda(c);
@@ -1804,7 +1804,7 @@ if (!window.renderDetalheComanda) {
             htmlPreview = `
                 <div style="font-family:monospace; font-size:12px; padding:10px; max-width:300px; margin:0 auto; background:#fff; border:1px solid #ddd; border-radius:8px;">
                     ${logoHTML}
-                    <div style="text-align:center; font-size:16px; font-weight:bold; margin-bottom:5px;">${nomeEmpresa}</div>
+                    ${config.imprimirNome === false ? '' : '<div style="text-align:center; font-size:16px; font-weight:bold; margin-bottom:5px;">' + nomeEmpresa + '</div>'}
                     <div style="text-align:center; font-size:10px; margin-bottom:10px;">COMPROVANTE DE CONSUMO</div>
                     ${faixaCorPreview}
                     <hr style="border:none; border-top:1px dashed #000; margin:10px 0;">
@@ -1858,7 +1858,7 @@ if (!window.renderDetalheComanda) {
             htmlPreview = `
                 <div style="font-family:monospace; font-size:12px; padding:10px; max-width:300px; margin:0 auto; background:#fff; border:1px solid #ddd; border-radius:8px;">
                     ${logoHTML}
-                    <div style="text-align:center; font-size:16px; font-weight:bold; margin-bottom:5px;">${nomeEmpresa}</div>
+                    ${config.imprimirNome === false ? '' : '<div style="text-align:center; font-size:16px; font-weight:bold; margin-bottom:5px;">' + nomeEmpresa + '</div>'}
                     <div style="text-align:center; font-size:10px; margin-bottom:10px;">${aberto ? 'RECIBO EM ABERTO' : 'RECIBO DE PAGAMENTO'}</div>
                     <div style="text-align:center;font-weight:bold;font-size:12px;margin:0 0 6px;padding:4px;border-radius:4px;${aberto ? 'background:#fff3e0;color:#e65100;' : (c.pagamentoPendente ? 'background:#fff3e0;color:#e65100;' : 'background:#e8f5e9;color:#2e7d32;')}">${aberto ? '⏳ AGUARDANDO PAGAMENTO' : (c.pagamentoPendente ? '⚠ PENDENTE (FIADO): ' + formatMoney(c.valorPendente || 0) : '✔ PAGO')}</div>
                     ${faixaCorPreview}
@@ -1964,7 +1964,7 @@ if (!window.renderDetalheComanda) {
                 try { cfgW = window.normalizarArray(await apiGet('configuracoes'))[0] || {}; } catch (e) {}
                 const bq = alvo.querySelector('[data-pix-qr]');
                 const antes = bq ? bq.style.display : '';
-                if (bq) bq.style.display = window.pixQrAtivo(cfgW, 'whatsapp', tipo === 'recibo' ? 'recibo' : 'comanda') ? '' : 'none';   // QR no WhatsApp conforme a configuração
+                if (bq) bq.style.display = window.pixQrAtivo(cfgW, outros ? 'compartilhar' : 'whatsapp', tipo === 'recibo' ? 'recibo' : 'comanda') ? '' : 'none';   // QR no WhatsApp conforme a configuração
                 let png;
                 try { png = await window.elementoParaPng(alvo); } finally { if (bq) bq.style.display = antes; }
                 const nome = (tipo === 'comanda' ? 'comanda-' : 'recibo-') + (window.comandaAtual.numero || '') + '.png';
@@ -1987,7 +1987,7 @@ if (!window.renderDetalheComanda) {
         let texto = '';
 
         if (tipo === 'comanda') {
-            texto += `*${nomeEmpresa}*\n`;
+            if (config.imprimirNome !== false) texto += `*${nomeEmpresa}*\n`;
             texto += `COMPROVANTE DE CONSUMO\n`;
             texto += linhaCor + `\n`;
             texto += `Comanda: ${c.numero} | Mesa: ${formatarMesa(c.mesa)}\n`;
@@ -2001,7 +2001,7 @@ if (!window.renderDetalheComanda) {
             texto += `*TOTAL: ${formatMoney(totais.total)}*\n\n`;
             texto += `Obrigado pela preferência!`;
         } else {
-            texto += `*${nomeEmpresa}*\n`;
+            if (config.imprimirNome !== false) texto += `*${nomeEmpresa}*\n`;
             texto += `RECIBO DE PAGAMENTO\n${c.pagamentoPendente ? 'PENDENTE (FIADO)' : 'PAGO'}\n`;
             texto += linhaCor + `\n`;
             texto += `Comanda: ${c.numero} | Mesa: ${formatarMesa(c.mesa)}\n`;
@@ -2040,7 +2040,7 @@ if (!window.renderDetalheComanda) {
         try { const arr = window.normalizarArray(await apiGet('configuracoes')); config = arr[0] || {}; } catch (e) {}
 
         const nomeEmpresa = config.nomeImpressao || 'App Restaurante';
-        const urlLogo = config.urlLogo || '';
+        const urlLogo = config.imprimirLogo === false ? '' : (config.urlLogo || '');
         const c = window.comandaAtual;
         const totais = calcularTotais(c);
         const corCaixa = await window.obterCorCaixaDaComanda(c);
@@ -2075,7 +2075,7 @@ if (!window.renderDetalheComanda) {
             </style></head><body>
                 <div class="header">
                     ${logoHTML}
-                    <h2>${nomeEmpresa}</h2>
+                    ${config.imprimirNome === false ? '' : '<h2>' + nomeEmpresa + '</h2>'}
                     <p>COMPROVANTE DE CONSUMO</p>
                 </div>
                 ${faixaCorHTML}
@@ -2109,7 +2109,7 @@ if (!window.renderDetalheComanda) {
         try { const arr = window.normalizarArray(await apiGet('configuracoes')); config = arr[0] || {}; } catch (e) {}
 
         const nomeEmpresa = config.nomeImpressao || 'App Restaurante';
-        const urlLogo = config.urlLogo || '';
+        const urlLogo = config.imprimirLogo === false ? '' : (config.urlLogo || '');
         const c = window.comandaAtual;
         const totais = calcularTotais(c);
         const corCaixa = await window.obterCorCaixaDaComanda(c);
@@ -2164,7 +2164,7 @@ if (!window.renderDetalheComanda) {
             </style></head><body>
                 <div class="header">
                     ${logoHTML}
-                    <h2>${nomeEmpresa}</h2>
+                    ${config.imprimirNome === false ? '' : '<h2>' + nomeEmpresa + '</h2>'}
                     <p>RECIBO DE PAGAMENTO</p>
                     <p><b>${c.pagamentoPendente ? 'PENDENTE (FIADO)' : 'PAGO'}</b></p>
                 </div>

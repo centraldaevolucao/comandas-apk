@@ -84,8 +84,8 @@ async function carregarTipoDispositivo() {
     html += '        <div class="card-title"><i class="fas fa-id-badge"></i> Função deste aparelho</div>';
     html += '        <div class="field" style="margin-bottom:6px;">';
     html += '            <select id="mt-funcao" onchange="mtTrocarFuncao(this.value)">';
-    Object.keys(window.PERFIS || {}).forEach(function (k) {
-        html += '                <option value="' + k + '"' + ((mt.funcaoDispositivo || 'garcom') === k ? ' selected' : '') + '>' + window.PERFIS[k].nome + '</option>';
+    opcoesFuncaoCliente(mt.funcaoDispositivo || 'garcom').forEach(function (o) {
+        html += '                <option value="' + o[0] + '"' + ((mt.funcaoDispositivo || 'garcom') === o[0] ? ' selected' : '') + '>' + o[1] + '</option>';
     });
     html += '            </select>';
     html += '            <small id="mt-funcao-desc" style="display:block;margin-top:6px;color:#666;line-height:1.4;">' + descricaoFuncao(mt.funcaoDispositivo || 'garcom') + '</small>';
@@ -120,6 +120,21 @@ async function carregarTipoDispositivo() {
 
     // Servidor info
     html += '<div id="mt-cfg-servidor" style="display:' + (tipo === 'servidor' ? 'block' : 'none') + ';">';
+    html += '    <div class="card" style="background:#fff;">';
+    html += '        <div class="card-title"><i class="fas fa-wifi"></i> Roteador Wi-Fi do celular</div>';
+    html += '        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">';
+    html += '            <div style="font-size:0.8rem;color:#666;line-height:1.4;">Liga o hotspot deste celular para os aparelhos clientes conectarem (funciona sem internet).</div>';
+    html += '            <label class="toggle"><input type="checkbox" id="mt-hotspot" onchange="mtHotspot(this.checked)"><span class="slider"></span></label>';
+    html += '        </div>';
+    html += '        <div id="mt-hotspot-info" style="font-size:0.8rem;margin-top:8px;color:#444;"></div>';
+    html += '        <button class="btn-outline" style="width:100%;margin-top:8px;" onclick="mtAbrirHotspotSistema()"><i class="fas fa-cog"></i> Abrir Roteador Wi-Fi do Android (com internet)</button>';
+    html += '    </div>';
+    html += '    <div class="card" style="background:#fff;">';
+    html += '        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">';
+    html += '            <div><div class="card-title" style="margin-bottom:4px;"><i class="fas fa-graduation-cap"></i> Modo Treinamento</div><div style="font-size:0.8rem;color:#666;line-height:1.4;">Mostra, na escolha da função dos aparelhos clientes, a opção de entrar como administrador com acesso total. Exige login de administrador.</div></div>';
+    html += '            <label class="toggle"><input type="checkbox" id="mt-treinamento" onchange="mtTreinamento(this.checked)"><span class="slider"></span></label>';
+    html += '        </div>';
+    html += '    </div>';
     html += '    <div class="card" style="background:#e8f5e9;border-left:4px solid #4caf50;">';
     html += '        <div class="card-title" style="color:#2e7d32;"><i class="fas fa-globe"></i> Servidor ativo</div>';
     html += '        <div style="font-size:0.85rem;color:#555;line-height:1.6;">';
@@ -160,6 +175,14 @@ async function carregarTipoDispositivo() {
     html += '</div>';
 
     c.innerHTML = html;
+    try {
+        if (window.carregarPerfisDinamicos) window.carregarPerfisDinamicos().then(function () {
+            const t = document.getElementById('mt-treinamento'); if (t) t.checked = !!(window.__cfgLogin || {}).treinamento;
+            const sel = document.getElementById('mt-funcao');
+            if (sel) { const atual = window.MT.funcaoDispositivo || 'garcom'; sel.innerHTML = opcoesFuncaoCliente(atual).map(function (o) { return '<option value="' + o[0] + '"' + (o[0] === atual ? ' selected' : '') + '>' + o[1] + '</option>'; }).join(''); }
+        });
+        if (window.AndroidApp && window.AndroidApp.hotspotInfo) { const i = JSON.parse(window.AndroidApp.hotspotInfo()); const h = document.getElementById('mt-hotspot'); if (h) h.checked = !!i.ligado; hotspotInfoRender(i); }
+    } catch (e) {}
     obterIPServidor();
 }
 
@@ -378,7 +401,20 @@ console.log('✔ TipoDispositivo.js pronto (porta padrão: ' + window.PORTA_PADR
 // ============================================================
 // Função do aparelho (modo cliente)
 // ============================================================
+function opcoesFuncaoCliente(atual) {
+    const r = [];
+    Object.keys(window.PERFIS || {}).forEach(function (k) { if (k.indexOf('f:') === 0) r.push([k, window.PERFIS[k].nome]); });
+    if (!r.length) ['garcom', 'cozinha', 'caixa'].forEach(function (k) { r.push([k, window.PERFIS[k].nome]); });
+    r.push(['cardapio', window.PERFIS.cardapio.nome]);
+    if ((window.__cfgLogin || {}).treinamento || atual === 'treinamento') r.push(['treinamento', 'Modo Treinamento (administrador)']);
+    if (atual && !r.some(function (o) { return o[0] === atual; }) && window.PERFIS[atual]) r.push([atual, window.PERFIS[atual].nome]);
+    return r;
+}
+
 function descricaoFuncao(k) {
+    if (k === 'treinamento') return 'Administrador: acesso total a todas as funções. Exige login de administrador.';
+    const p = window.PERFIS && window.PERFIS[k];
+    if (p && p.registrada) return 'Função cadastrada · nível de acesso "' + p.nivel + '": vê só as telas liberadas para o nível (Colaboradores › Níveis de acesso).';
     return ({
         garcom:   'Vê só o PDV: abre e atende comandas.',
         cozinha:  'Vê só a Cozinha.',
@@ -386,6 +422,40 @@ function descricaoFuncao(k) {
         cardapio: 'Vê só o Cardápio do Dia (marcar o que acabou), sem menu.'
     })[k] || '';
 }
+
+window.mtTreinamento = async function (on) {
+    try {
+        const arr = window.normalizarArray(await apiGet('configuracoes')); const cfg = arr[0] || {};
+        cfg.modoTreinamento = !!on;
+        await apiSave('configuracoes', [cfg]);
+        window.__cfgLogin = Object.assign({}, window.__cfgLogin, { treinamento: !!on });
+        mostrarStatus(on ? '✅ Modo Treinamento habilitado: aparece na escolha da função dos clientes.' : 'Modo Treinamento desabilitado.', 'success');
+    } catch (e) { mostrarStatus('Erro: ' + e.message, 'error'); }
+};
+
+function hotspotInfoRender(i) {
+    const box = document.getElementById('mt-hotspot-info'); if (!box) return;
+    if (i.ligado) box.innerHTML = '📶 <b>Ligado.</b> Rede: <b>' + (i.ssid || '—') + '</b> · Senha: <b>' + (i.senha || '—') + '</b><br>IP do servidor: <b>' + (i.ip || '—') + '</b> (use no aparelho cliente).';
+    else box.textContent = i.msg || '';
+}
+window.mtHotspot = function (on) {
+    const A = window.AndroidApp;
+    const sw = document.getElementById('mt-hotspot');
+    if (!A || !A.hotspotLigar) { if (sw) sw.checked = false; mostrarStatus('Disponível só no aplicativo Android.', 'error'); return; }
+    if (on) A.hotspotLigar(); else A.hotspotDesligar();
+    let n = 0;
+    const t = setInterval(function () {
+        n++;
+        let i = {}; try { i = JSON.parse(A.hotspotInfo()); } catch (e) {}
+        hotspotInfoRender(i);
+        if (sw && on && !i.ligado && /falhou|erro|Permita|Use o/.test(i.msg || '')) { sw.checked = false; clearInterval(t); }
+        if (n > 10 || (on && i.ligado) || (!on && !i.ligado)) clearInterval(t);
+    }, 1000);
+};
+window.mtAbrirHotspotSistema = function () {
+    if (window.AndroidApp && window.AndroidApp.abrirConfigHotspot) window.AndroidApp.abrirConfigHotspot();
+    else mostrarStatus('Disponível só no aplicativo Android.', 'error');
+};
 
 window.mtTrocarFuncao = async function (funcao) {
     window.MT.funcaoDispositivo = funcao;

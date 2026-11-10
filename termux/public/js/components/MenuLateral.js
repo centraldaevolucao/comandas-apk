@@ -15,7 +15,7 @@ window.renderMenuLateral = function () {
         try {
             const configArr = window.normalizarArray(await apiGet('configuracoes'));
             const config = configArr[0] || {};
-            const logoEmpresa = config.urlLogo || '';
+            const logoEmpresa = config.urlLogo || config.urlIcone || '';
             const nomeEmpresa = config.nomeImpressao || 'App Restaurante';
 
             const headerDiv = document.getElementById('menu-header-titulo');

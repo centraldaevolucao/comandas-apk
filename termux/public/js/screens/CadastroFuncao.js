@@ -12,6 +12,7 @@ window.renderCadastroFuncao = function() {
 
     const f = window.funcaoEditando || {};
     const editando = !!f.id;
+    setTimeout(window.funcaoPreencherNiveis, 30);
 
     return [
         '<div class="app-bar">',
@@ -25,6 +26,16 @@ window.renderCadastroFuncao = function() {
         '        <div class="field">',
         '            <label>Nome da função *</label>',
         '            <input type="text" id="func-nome" maxlength="30" placeholder="Ex: Garçom, Caixa, Cozinheiro" value="' + (f.nome || '') + '">',
+        '        </div>',
+
+        '        <div class="field">',
+        '            <label>Nível de acesso</label>',
+        '            <select id="func-nivel"></select>',
+        '            <small style="display:block;margin-top:4px;color:#888;">O nível define as telas e funções liberadas (edite em Níveis de acesso).</small>',
+        '        </div>',
+        '        <div class="card" style="background:#fff;padding:12px 15px;display:flex;justify-content:space-between;align-items:center;gap:10px;">',
+        '            <div><div style="font-weight:600;font-size:0.95rem;">Aparece no modo cliente</div><div style="font-size:0.75rem;color:#666;margin-top:3px;line-height:1.4;">Mostra esta função na escolha "Qual a função deste aparelho?" dos aparelhos clientes.</div></div>',
+        '            <label class="toggle"><input type="checkbox" id="func-modo-cliente" ' + (f.modoCliente === false ? '' : 'checked') + '><span class="slider"></span></label>',
         '        </div>',
 
         '        <div class="card" style="background:#FCE4EC;padding:15px;font-size:0.8rem;">',
@@ -42,6 +53,16 @@ window.renderCadastroFuncao = function() {
         '    </div>',
         '</div>'
     ].join('\n');
+};
+
+window.funcaoPreencherNiveis = async function () {
+    const sel = document.getElementById('func-nivel'); if (!sel) return;
+    let niveis = [];
+    try { niveis = window.normalizarArray(await apiGet('niveisAcesso')); } catch (e) {}
+    if (!niveis.length) niveis = [{ id: 'admin', nome: 'Administrador' }, { id: 'gerente', nome: 'Gerente' }, { id: 'atendente', nome: 'Atendente' }, { id: 'caixa', nome: 'Caixa' }, { id: 'cozinha', nome: 'Cozinha' }];
+    const f = window.funcaoEditando || {};
+    const atual = f.nivelAcesso || 'atendente';
+    sel.innerHTML = niveis.map(function (n) { return '<option value="' + String(n.id).replace(/"/g, '') + '"' + (String(n.id) === String(atual) ? ' selected' : '') + '>' + String(n.nome).replace(/</g, '&lt;') + '</option>'; }).join('');
 };
 
 // ============================================================
@@ -69,10 +90,12 @@ window.salvarFuncao = async function() {
         return;
     }
 
-    const dados = {
+    const dados = Object.assign({}, f, {
         id: f.id || Date.now(),
-        nome: nome
-    };
+        nome: nome,
+        nivelAcesso: (document.getElementById('func-nivel') || {}).value || f.nivelAcesso || 'atendente',
+        modoCliente: !!(document.getElementById('func-modo-cliente') || {}).checked
+    });
 
     let atualizado = false;
     for (let i = 0; i < lista.length; i++) {

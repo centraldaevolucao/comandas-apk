@@ -28,6 +28,7 @@
         // Verifica Sessão
         if (typeof window.iniciarSessao === 'function') {
             await window.iniciarSessao();
+            if (window.carregarPerfisDinamicos) window.carregarPerfisDinamicos().then(function () { if (window.aplicarPerfilUI) window.aplicarPerfilUI(); });
         }
 
         // ---------------------------------------------------------

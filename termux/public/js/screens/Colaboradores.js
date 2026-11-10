@@ -103,7 +103,7 @@ function obterNivel(id) {
     return { id: 'atendente', nome: 'Atendente', icon: 'fa-user-tie', cor: '#1976d2' };
 }
 
-function usuarioDoColaborador(colabId) {
+function usuarioPorColaboradorId(colabId) {
     for (let i = 0; i < window.usuariosListaCache.length; i++) {
         if (String(window.usuariosListaCache[i].colaboradorId) === String(colabId)) {
             return window.usuariosListaCache[i];
@@ -115,45 +115,36 @@ function usuarioDoColaborador(colabId) {
 // ============================================================
 // RENDER CHIPS DE FILTRO
 // ============================================================
+function colabCombina(c, f) {
+    if (!f) return true;
+    const usu = usuarioPorColaboradorId(c.id);
+    if (f === 'com') return !!usu && usu.ativo !== false;
+    if (f === 'sem') return !usu;
+    if (f === 'inativo') return !!usu && usu.ativo === false;
+    if (f.indexOf('f:') === 0) {
+        const id = f.slice(2);
+        const fn = window.funcoesListaCache.find(function (x) { return String(x.id) === id; });
+        return String(c.funcaoId) === id || (!!fn && !c.funcaoId && String(c.funcao || '').toLowerCase() === String(fn.nome || '').toLowerCase());
+    }
+    if (f.indexOf('n:') === 0) return String(c.nivelAcesso || 'atendente') === f.slice(2);
+    return true;
+}
+
 function renderChipsColaboradores() {
     const container = document.getElementById('colaboradores-chips');
     if (!container) return;
-
-    // Filtros fixos + níveis do sistema
-    const filtros = [
-        { id: '', label: 'Todos', icon: 'fa-users' },
-        { id: 'garcom', label: 'Garçons', icon: 'fa-user-tie', custom: true },
-        { id: 'cozinha', label: 'Cozinha', icon: 'fa-utensils' },
-        { id: 'caixa', label: 'Caixa', icon: 'fa-cash-register' }
-    ];
-
-    let html = filtros.map(f => {
-        const ativo = window.colaboradorFiltroNivel === f.id ? 'ativo' : '';
-        let count = 0;
-        
-        if (f.id === '') count = window.colaboradoresCache.length;
-        else if (f.id === 'garcom') {
-            count = window.colaboradoresCache.filter(c => {
-                const func = String(c.funcao || '').toLowerCase();
-                const nivel = String(c.nivelAcesso || '').toLowerCase();
-                return func.includes('garçom') || func.includes('garcom') || nivel === 'atendente';
-            }).length;
-        } else {
-            count = window.colaboradoresCache.filter(c => {
-                const func = String(c.funcao || '').toLowerCase();
-                const nivel = String(c.nivelAcesso || '').toLowerCase();
-                return nivel === f.id || func.includes(f.id);
-            }).length;
-        }
-
+    const filtros = [{ id: '', label: 'Todos', icon: 'fa-users' }];
+    window.funcoesListaCache.forEach(function (fn) { filtros.push({ id: 'f:' + fn.id, label: fn.nome, icon: 'fa-briefcase' }); });
+    window.niveisListaCache.forEach(function (n) { filtros.push({ id: 'n:' + n.id, label: 'Nível ' + n.nome, icon: n.icon || 'fa-shield-halved' }); });
+    filtros.push({ id: 'com', label: 'Com acesso', icon: 'fa-key' }, { id: 'sem', label: 'Sem acesso', icon: 'fa-user-slash' }, { id: 'inativo', label: 'Acesso inativo', icon: 'fa-ban' });
+    container.innerHTML = filtros.map(function (f) {
+        const count = window.colaboradoresCache.filter(function (c) { return colabCombina(c, f.id); }).length;
+        if (f.id && f.id !== 'com' && f.id !== 'sem' && f.id !== 'inativo' && count === 0 && f.id.indexOf('f:') !== 0) return '';   // oculta níveis vazios
+        const ativo = window.colaboradorFiltroNivel === f.id;
         const style = ativo ? 'background:var(--primary-color);border-color:var(--primary-color);color:#fff;' : '';
-        
-        return '<button class="chip-grupo ' + ativo + '" style="' + style + '" onclick="filtrarPorNivelColaborador(\'' + f.id + '\')">' +
-               '<i class="fas ' + f.icon + '"></i> ' + f.label + ' (' + count + ')' +
-               '</button>';
+        return '<button class="chip-grupo ' + (ativo ? 'ativo' : '') + '" style="flex:0 0 auto;' + style + '" onclick="filtrarPorNivelColaborador(\'' + f.id + '\')">' +
+               '<i class="fas ' + f.icon + '"></i> ' + String(f.label).replace(/</g, '&lt;') + ' (' + count + ')</button>';
     }).join('');
-
-    container.innerHTML = html;
 }
 
 window.filtrarPorNivelColaborador = function(nivel) {
@@ -169,22 +160,7 @@ window.filtrarPorNivelColaborador = function(nivel) {
 function renderListaColaboradores() {
     let lista = window.colaboradoresCache.slice();
 
-    // 🔥 Aplica o filtro de chips
-    if (window.colaboradorFiltroNivel) {
-        if (window.colaboradorFiltroNivel === 'garcom') {
-            lista = lista.filter(c => {
-                const func = String(c.funcao || '').toLowerCase();
-                const nivel = String(c.nivelAcesso || '').toLowerCase();
-                return func.includes('garçom') || func.includes('garcom') || func.includes('atendente') || nivel === 'atendente' || nivel === 'garcom';
-            });
-        } else {
-            lista = lista.filter(c => {
-                const func = String(c.funcao || '').toLowerCase();
-                const nivel = String(c.nivelAcesso || '').toLowerCase();
-                return nivel === window.colaboradorFiltroNivel || func.includes(window.colaboradorFiltroNivel);
-            });
-        }
-    }
+    if (window.colaboradorFiltroNivel) lista = lista.filter(function (c) { return colabCombina(c, window.colaboradorFiltroNivel); });
 
     // Filtro de busca por texto
     const busca = String(window.colaboradorTermoBusca || '').trim().toLowerCase();
@@ -212,7 +188,7 @@ function renderListaColaboradores() {
         const c = lista[i];
         const nomeFuncao = obterNomeFuncaoAtual(c);
         const nivel = obterNivel(c.nivelAcesso || 'atendente');
-        const usuario = usuarioDoColaborador(c.id);
+        const usuario = usuarioPorColaboradorId(c.id);
 
         let linhaSub = '';
         if (nomeFuncao) {
@@ -279,7 +255,7 @@ window.editarColaborador = function(id) {
     for (let i = 0; i < window.colaboradoresCache.length; i++) {
         if (String(window.colaboradoresCache[i].id) === String(id)) {
             window.colaboradorEditando = window.colaboradoresCache[i];
-            window.usuarioDoColaborador = usuarioDoColaborador(id);
+            window.usuarioDoColaborador = usuarioPorColaboradorId(id);
             navigateTo('cadastro-colaborador');
             return;
         }

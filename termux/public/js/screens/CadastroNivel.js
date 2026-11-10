@@ -17,6 +17,7 @@ window.renderCadastroNivel = function() {
     setTimeout(function() {
         renderPaletaCores();
         renderPaletaIcones();
+        renderPermissoesNivel();
     }, 50);
 
     return [
@@ -38,6 +39,12 @@ window.renderCadastroNivel = function() {
         '        <div class="field">',
         '            <label>Descrição</label>',
         '            <input type="text" id="niv-desc" maxlength="60" placeholder="Ex: Pode ver relatórios e gerenciar estoque" value="' + (n.descricao || '') + '">',
+        '        </div>',
+
+        // Telas e funções liberadas
+        '        <div class="field">',
+        '            <label>Telas e funções deste nível</label>',
+        '            <div id="niv-perms"></div>',
         '        </div>',
 
         // Cor
@@ -78,6 +85,36 @@ window.renderCadastroNivel = function() {
         '    </div>',
         '</div>'
     ].join('\n');
+};
+
+// ============================================================
+// TELAS E FUNÇÕES POR NÍVEL
+// ============================================================
+function renderPermissoesNivel() {
+    const box = document.getElementById('niv-perms'); if (!box) return;
+    const n = window.nivelEditando || {};
+    const admin = n.id === 'admin';
+    let marcadas = Array.isArray(n.permissoes) ? n.permissoes : (window.PERMISSOES_PADRAO_NIVEL[n.id] || []);
+    const todas = marcadas.indexOf('*') >= 0;
+    let h = admin ? '<div class="card" style="background:#fff3e0;padding:10px;font-size:0.8rem;color:#e65100;margin-bottom:8px;"><i class="fas fa-crown"></i> Administrador sempre tem acesso total.</div>' : '';
+    window.PERMISSOES_CATALOGO.forEach(function (g, gi) {
+        h += '<div class="card" style="background:#fff;padding:10px 12px;margin-bottom:8px;">' +
+             '<div style="display:flex;justify-content:space-between;align-items:center;"><b style="font-size:0.85rem;">' + g.grupo + '</b>' +
+             (admin ? '' : '<button type="button" class="btn-limpar" style="font-size:0.7rem;color:#C2185B;" onclick="marcarGrupoNivel(' + gi + ')">marcar/desmarcar</button>') + '</div>';
+        g.itens.forEach(function (it) {
+            h += '<label style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:6px 0;font-size:0.85rem;border-top:1px solid #f3f3f3;">' +
+                 '<span>' + it[1] + '</span><input type="checkbox" class="niv-perm" data-g="' + gi + '" value="' + it[0] + '" style="width:20px;height:20px;accent-color:#C2185B;" ' +
+                 ((todas || marcadas.indexOf(it[0]) >= 0) ? 'checked ' : '') + (admin ? 'disabled' : '') + '></label>';
+        });
+        h += '</div>';
+    });
+    box.innerHTML = h;
+}
+
+window.marcarGrupoNivel = function (gi) {
+    const bs = Array.prototype.filter.call(document.querySelectorAll('.niv-perm'), function (b) { return b.getAttribute('data-g') === String(gi); });
+    const todas = bs.every(function (b) { return b.checked; });
+    bs.forEach(function (b) { b.checked = !todas; });
 };
 
 // ============================================================
@@ -182,7 +219,8 @@ window.salvarNivel = async function() {
         descricao: descricao,
         cor: cor,
         icon: icon,
-        protegido: n.protegido === true
+        protegido: n.protegido === true,
+        permissoes: n.id === 'admin' ? ['*'] : Array.prototype.map.call(document.querySelectorAll('.niv-perm:checked'), function (b) { return b.value; })
     };
 
     let atualizado = false;
@@ -196,6 +234,8 @@ window.salvarNivel = async function() {
     if (!atualizado) lista.push(dados);
 
     await apiSave('niveisAcesso', lista);
+    window.__niveisCache = lista;
+    if (window.carregarPerfisDinamicos) window.carregarPerfisDinamicos();
     window.nivelEditando = null;
 
     // Se veio do "cadastrar nível inline", volta para o colaborador

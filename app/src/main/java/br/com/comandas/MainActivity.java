@@ -134,6 +134,7 @@ public class MainActivity extends Activity {
         web = new WebView(this);
         setContentView(web);
         configurarWebView();
+        web.loadUrl("file:///android_asset/splash.html");   // animação de abertura enquanto o servidor sobe
         tratarArquivoLicenca(getIntent());
 
         // Preparar arquivos e subir o servidor fora da thread de interface.
@@ -311,6 +312,65 @@ public class MainActivity extends Activity {
     // =====================================================================
     public class Ponte {
         @JavascriptInterface public String ipLocal() { return ipWifi(); }
+
+        // ---------- Hotspot (roteador Wi-Fi do próprio celular) ----------
+        // O Android não deixa um app ligar o "Roteador Wi-Fi" comum; o que ele permite é o "hotspot local" (sem internet),
+        // suficiente para os aparelhos clientes conectarem neste servidor. O nome e a senha são gerados pelo Android.
+        private android.net.wifi.WifiManager.LocalOnlyHotspotReservation hsRes;
+        private String hsSsid = "", hsSenha = "", hsMsg = "";
+
+        @JavascriptInterface public void hotspotLigar() {
+            runOnUiThread(() -> {
+                try {
+                    if (android.os.Build.VERSION.SDK_INT < 26) { hsMsg = "Use o Roteador Wi-Fi do Android (abra as configurações)."; return; }
+                    String perm = android.os.Build.VERSION.SDK_INT >= 33 ? "android.permission.NEARBY_WIFI_DEVICES" : android.Manifest.permission.ACCESS_FINE_LOCATION;
+                    if (checkSelfPermission(perm) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                        requestPermissions(new String[]{perm}, 77);
+                        hsMsg = "Permita o acesso e toque em ligar novamente.";
+                        return;
+                    }
+                    android.net.wifi.WifiManager wm = (android.net.wifi.WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+                    hsMsg = "ligando";
+                    wm.startLocalOnlyHotspot(new android.net.wifi.WifiManager.LocalOnlyHotspotCallback() {
+                        @Override public void onStarted(android.net.wifi.WifiManager.LocalOnlyHotspotReservation r) {
+                            hsRes = r;
+                            try {
+                                if (android.os.Build.VERSION.SDK_INT >= 30) {
+                                    android.net.wifi.SoftApConfiguration c = r.getSoftApConfiguration();
+                                    hsSsid = String.valueOf(c.getSsid()); hsSenha = String.valueOf(c.getPassphrase());
+                                } else {
+                                    android.net.wifi.WifiConfiguration c = r.getWifiConfiguration();
+                                    hsSsid = String.valueOf(c.SSID); hsSenha = String.valueOf(c.preSharedKey);
+                                }
+                            } catch (Exception e) { hsSsid = ""; hsSenha = ""; }
+                            hsMsg = "ligado";
+                        }
+                        @Override public void onStopped() { hsRes = null; hsMsg = "desligado"; }
+                        @Override public void onFailed(int reason) { hsRes = null; hsMsg = "falhou (código " + reason + "). Ligue o Roteador Wi-Fi pelas configurações."; }
+                    }, new android.os.Handler(android.os.Looper.getMainLooper()));
+                } catch (Exception e) { hsMsg = "erro: " + e.getMessage(); }
+            });
+        }
+        @JavascriptInterface public void hotspotDesligar() {
+            runOnUiThread(() -> { try { if (hsRes != null) hsRes.close(); } catch (Exception e) {} hsRes = null; hsMsg = "desligado"; });
+        }
+        @JavascriptInterface public String hotspotInfo() {
+            return "{\"ligado\":" + (hsRes != null) + ",\"ssid\":\"" + hsSsid.replace("\\", "").replace("\"", "") + "\",\"senha\":\"" + hsSenha.replace("\\", "").replace("\"", "")
+                + "\",\"msg\":\"" + hsMsg.replace("\\", "/").replace("\"", "'") + "\",\"ip\":\"" + ipWifi() + "\"}";
+        }
+        /** Abre a tela do sistema para ligar o Roteador Wi-Fi comum (com internet), quando o hotspot local não serve. */
+        @JavascriptInterface public void abrirConfigHotspot() {
+            runOnUiThread(() -> {
+                try {
+                    Intent i = new Intent();
+                    i.setClassName("com.android.settings", "com.android.settings.TetherSettings");
+                    i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(i);
+                } catch (Exception e) {
+                    try { startActivity(new Intent(android.provider.Settings.ACTION_WIRELESS_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)); } catch (Exception e2) {}
+                }
+            });
+        }
 
         @JavascriptInterface public String redeInfo() {
             return "{\"ip\":\"" + ipWifi() + "\",\"ssid\":\"" + ssidWifi().replace("\"", "") + "\",\"porta\":" + PORTA

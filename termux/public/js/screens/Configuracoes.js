@@ -41,6 +41,11 @@ if (!window.renderConfiguracoes) {
                 fonteImpressaoGrande: config.fonteImpressaoGrande || false,
                 nomeImpressao: config.nomeImpressao || 'Minha Empresa',
                 urlLogo: config.urlLogo || '',
+                urlIcone: config.urlIcone || '',   // (faltava: o ícone sumia ao reabrir a tela e era apagado no próximo salvamento)
+                imprimirNome: config.imprimirNome !== false,
+                imprimirLogo: config.imprimirLogo !== false,
+                pixQrComandaZap: (config.pixQrComandaZap !== undefined ? config.pixQrComandaZap : (config.pixQrComandaCompart !== undefined ? config.pixQrComandaCompart : config.pixQrWhatsapp)) === true,
+                pixQrReciboZap: (config.pixQrReciboZap !== undefined ? config.pixQrReciboZap : (config.pixQrReciboCompart !== undefined ? config.pixQrReciboCompart : config.pixQrWhatsapp)) === true,
                 habilitarImpressaoLocal: config.habilitarImpressaoLocal || false,
                 colaboradorPadrao: config.colaboradorPadrao || '',
                 garcomPercentual: config.garcomPercentual || 0,
@@ -52,6 +57,7 @@ if (!window.renderConfiguracoes) {
                 permitirFechamentoCego: config.permitirFechamentoCego || false,
                 formaPagamentoPadrao: config.formaPagamentoPadrao || 'Crédito',
                 bloquearEstoqueZerado: config.bloquearEstoqueZerado || false,
+                exigirLogin: config.exigirLogin !== false,
                 numeracaoAutomaticaComandas: config.numeracaoAutomaticaComandas !== false,
                 proximoNumeroComanda: config.proximoNumeroComanda || 1,
                 reiniciarNumeracaoNoCaixa: config.reiniciarNumeracaoNoCaixa === true,
@@ -114,25 +120,22 @@ if (!window.renderConfiguracoes) {
             html += '        <label class="toggle"><input type="checkbox" id="cfg-fonte-grande" ' + (c.fonteImpressaoGrande ? 'checked' : '') + '><span class="slider"></span></label>';
             html += '    </div>';
 
-            html += '    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;border-bottom:1px solid #e0c8e8;padding-bottom:16px;margin-bottom:16px;">';
-            html += '        <div><div style="font-weight:600;font-size:0.95rem;">QR Code PIX — impressão da COMANDA</div><div style="font-size:0.72rem;color:#666;">Papel e Bluetooth</div></div>';
-            html += '        <label class="toggle"><input type="checkbox" id="cfg-qr-cmd-imp" ' + (c.pixQrComandaImp ? 'checked' : '') + '><span class="slider"></span></label>';
-            html += '    </div>';
-
-            html += '    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;border-bottom:1px solid #e0c8e8;padding-bottom:16px;margin-bottom:16px;">';
-            html += '        <div><div style="font-weight:600;font-size:0.95rem;">QR Code PIX — impressão do RECIBO</div><div style="font-size:0.72rem;color:#666;">Papel e Bluetooth</div></div>';
-            html += '        <label class="toggle"><input type="checkbox" id="cfg-qr-rec-imp" ' + (c.pixQrReciboImp ? 'checked' : '') + '><span class="slider"></span></label>';
-            html += '    </div>';
-
-            html += '    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;border-bottom:1px solid #e0c8e8;padding-bottom:16px;margin-bottom:16px;">';
-            html += '        <div><div style="font-weight:600;font-size:0.95rem;">QR Code PIX — compartilhar COMANDA</div><div style="font-size:0.72rem;color:#666;">WhatsApp, e-mail e outros</div></div>';
-            html += '        <label class="toggle"><input type="checkbox" id="cfg-qr-cmd-wa" ' + (c.pixQrComandaCompart ? 'checked' : '') + '><span class="slider"></span></label>';
-            html += '    </div>';
-
-            html += '    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;border-bottom:1px solid #e0c8e8;padding-bottom:16px;margin-bottom:16px;">';
-            html += '        <div><div style="font-weight:600;font-size:0.95rem;">QR Code PIX — compartilhar RECIBO</div><div style="font-size:0.72rem;color:#666;">WhatsApp, e-mail e outros</div></div>';
-            html += '        <label class="toggle"><input type="checkbox" id="cfg-qr-rec-wa" ' + (c.pixQrReciboCompart ? 'checked' : '') + '><span class="slider"></span></label>';
-            html += '    </div>';
+            const linhaTog = function (titulo, sub, id, val) {
+                return '    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;border-bottom:1px solid #e0c8e8;padding-bottom:14px;margin-bottom:14px;">' +
+                    '        <div style="min-width:0;"><div style="font-weight:600;font-size:0.92rem;">' + titulo + '</div>' + (sub ? '<div style="font-size:0.72rem;color:#666;line-height:1.3;">' + sub + '</div>' : '') + '</div>' +
+                    '        <label class="toggle"><input type="checkbox" id="' + id + '" ' + (val ? 'checked' : '') + '><span class="slider"></span></label></div>';
+            };
+            html += '    <div style="font-size:0.8rem;color:#C2185B;font-weight:700;margin:4px 0 10px;">QR Code PIX nas COMANDAS</div>';
+            html += linhaTog('Visualização e Bluetooth', 'Tela de pré-visualização, impressão e impressora Bluetooth', 'cfg-qr-cmd-imp', c.pixQrComandaImp);
+            html += linhaTog('WhatsApp direto', 'Envio ao WhatsApp do cliente cadastrado', 'cfg-qr-cmd-zap', c.pixQrComandaZap);
+            html += linhaTog('Compartilhar com terceiros', 'WhatsApp (escolhendo o contato), e-mail, Bluetooth e outros', 'cfg-qr-cmd-wa', c.pixQrComandaCompart);
+            html += '    <div style="font-size:0.8rem;color:#C2185B;font-weight:700;margin:4px 0 10px;">QR Code PIX nos RECIBOS</div>';
+            html += linhaTog('Visualização e Bluetooth', 'Tela de pré-visualização, impressão e impressora Bluetooth', 'cfg-qr-rec-imp', c.pixQrReciboImp);
+            html += linhaTog('WhatsApp direto', 'Envio ao WhatsApp do cliente cadastrado', 'cfg-qr-rec-zap', c.pixQrReciboZap);
+            html += linhaTog('Compartilhar com terceiros', 'WhatsApp (escolhendo o contato), e-mail, Bluetooth e outros', 'cfg-qr-rec-wa', c.pixQrReciboCompart);
+            html += '    <div style="font-size:0.72rem;color:#666;margin:-6px 0 14px;">O QR só aparece quando há pagamento em PIX e leva apenas o valor pago em PIX.</div>';
+            html += linhaTog('Nome nas impressões', 'Mostra o nome do estabelecimento no topo da comanda e do recibo', 'cfg-imp-nome', c.imprimirNome);
+            html += linhaTog('Logo nas impressões', 'Mostra a logo no topo da comanda e do recibo', 'cfg-imp-logo', c.imprimirLogo);
 
             html += '    <div style="border:1px solid #333;border-radius:8px;padding:0 10px;position:relative;margin-bottom:16px;">';
             html += '        <label style="position:absolute;top:-8px;left:10px;background:#FCE4EC;padding:0 4px;font-size:0.7rem;color:#333;font-weight:600;">Nome nas impressões</label>';
@@ -349,6 +352,13 @@ if (!window.renderConfiguracoes) {
 
             // --- Bloquear estoque zerado ---
             html += cardToggle(
+                'Exigir login do usuário cadastrado?',
+                'No modo cliente, as funções (Caixa, Cozinha…) pedem e-mail e senha do colaborador. Desligado: entram direto. O Modo Treinamento sempre exige administrador.',
+                'cfg-exigir-login',
+                c.exigirLogin
+            );
+
+            html += cardToggle(
                 'Bloquear estoque zerado?',
                 'Produtos sem estoque não aparecem na busca.',
                 'cfg-bloq-estoque',
@@ -502,9 +512,13 @@ if (!window.renderConfiguracoes) {
             config.pixQrReciboImp = chk('cfg-qr-rec-imp');
             config.pixQrComandaCompart = chk('cfg-qr-cmd-wa');
             config.pixQrReciboCompart = chk('cfg-qr-rec-wa');
+            config.pixQrComandaZap = chk('cfg-qr-cmd-zap');
+            config.pixQrReciboZap = chk('cfg-qr-rec-zap');
+            config.imprimirNome = chk('cfg-imp-nome');
+            config.imprimirLogo = chk('cfg-imp-logo');
             config.pixQrImpressao = config.pixQrComandaImp || config.pixQrReciboImp;   // compatibilidade
             config.exibirPixRecibo = config.pixQrImpressao;
-            config.pixQrWhatsapp = config.pixQrComandaCompart || config.pixQrReciboCompart;
+            config.pixQrWhatsapp = config.pixQrComandaZap || config.pixQrReciboZap || config.pixQrComandaCompart || config.pixQrReciboCompart;
 
             config.numeracaoPedidos = chk('cfg-num-pedidos');
             config.proximoNumeroPedido = parseInt(val('cfg-prox-num-pedido')) || 1;
@@ -512,6 +526,9 @@ if (!window.renderConfiguracoes) {
             config.permitirFechamentoCego = chk('cfg-fech-cego');
             config.formaPagamentoPadrao = val('cfg-forma-padrao');
             config.bloquearEstoqueZerado = chk('cfg-bloq-estoque');
+            config.exigirLogin = chk('cfg-exigir-login');
+            window.__cfgLogin = Object.assign({}, window.__cfgLogin, { exigir: config.exigirLogin });
+            try { localStorage.setItem('cfgLogin', JSON.stringify(window.__cfgLogin)); } catch (e) {}
 
             config.numeracaoAutomaticaComandas = chk('cfg-num-automatica');
             config.proximoNumeroComanda = parseInt(val('cfg-prox-num-cmd')) || 1;
