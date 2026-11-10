@@ -249,3 +249,7 @@ Obs.: itens alterados depois de gerar o recibo em aberto não atualizam o valor 
 
 ## 34. v2.18.3 — Ícones próprios
 - **Restaurante-app:** ícone rosa com prato, garfo e faca. **Licenca-app:** ícone azul com escudo e visto. Para trocar, substitua os `ic_launcher.png` em `app/src/main/res/mipmap-*` (48, 72, 96, 144 e 192 px). Depois de instalar, o Android pode demorar a atualizar o ícone na tela inicial; reinicie o launcher se precisar.
+
+## 35. v2.18.4 — Forma de pagamento padrão no fechamento e layout das Configurações
+- **Configurações › "Forma de pagamento padrão no fechamento"** agora é aplicada de verdade (antes era salva e ignorada): ao abrir o fechamento, o pagamento já vem lançado nessa forma (ex.: **PIX**, com o valor total) e o campo "Nova forma de pagamento" também começa nela. **Continua possível trocar** a forma, editar o valor e dividir em várias formas. Se a forma escolhida estiver desligada em "Formas de pagamento", usa a primeira ativa. Com PIX lançado, o QR Code aparece (valor = só o PIX, conforme a seção 31).
+- **Layout:** campos "Próximo número" e demais campos das Configurações não passam mais da borda da tela (testado em tela de 360 px, nenhum elemento fora da área).

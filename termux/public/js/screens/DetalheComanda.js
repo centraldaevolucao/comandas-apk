@@ -1284,6 +1284,10 @@ if (!window.renderDetalheComanda) {
             else if (formasAtivas.credito) formaInicial = 'credito';
             else if (formasAtivas.pix) formaInicial = 'pix';
         }
+        // Forma de pagamento padrão (Configurações › Fechamento): vem pré-selecionada, mas pode ser trocada à vontade
+        const mapaPadrao = { 'dinheiro': 'dinheiro', 'débito': 'debito', 'debito': 'debito', 'crédito': 'credito', 'credito': 'credito', 'pix': 'pix' };
+        const padrao = mapaPadrao[String(config.formaPagamentoPadrao || '').trim().toLowerCase()];
+        if (padrao && formasAtivas[padrao]) formaInicial = padrao;
 
         // pagamentos parciais já recebidos (ex.: comanda de pendência reaberta) entram na conta
         window.pagamentosTemp = window.normalizarArray(window.comandaAtual.pagamentos).map(p => Object.assign({}, p, { anterior: true }));
@@ -1387,6 +1391,8 @@ if (!window.renderDetalheComanda) {
 
         const inputValor = document.getElementById('pg-valor');
         if (inputValor) inputValor.value = totais.total.toFixed(2);
+        const selForma = document.getElementById('pg-forma');
+        if (selForma && Array.prototype.some.call(selForma.options, function (o) { return o.value === formaInicial; })) selForma.value = formaInicial;
 
         // Fiado apenas para cliente cadastrado + pendências anteriores somadas ao total geral
         const pa = await window.pendenciasAnteriores(window.comandaAtual);
