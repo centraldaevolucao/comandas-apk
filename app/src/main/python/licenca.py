@@ -131,7 +131,7 @@ def ler_codigo(codigo, publica_hex=None):
     try:
         pub = bytes.fromhex(publica_hex or CHAVE_PUBLICA_HEX)
         if not verificar(pub, corpo, sig):
-            return None, "Assinatura não confere: esta licença foi gerada com outra chave (não a oficial do Comandas). No app Comandas Licenças, importe a chave original em Ajustes e gere a licença de novo."
+            return None, "Assinatura não confere: esta licença foi gerada com outra chave (não a oficial do Comandas). No app Licenca-app, importe a chave original em Ajustes e gere a licença de novo."
         dados = json.loads(corpo.decode("utf-8"))
         ini = date.fromisoformat(dados["ini"]); fim = date.fromisoformat(dados["fim"])
     except Exception:

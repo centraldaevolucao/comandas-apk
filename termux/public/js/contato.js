@@ -1,7 +1,7 @@
 // Dados da empresa (um só lugar): contato do suporte, pedidos de licença e rodapé.
 (function () {
     'use strict';
-    window.APP_VERSAO='2.18.1';                      // atualizar a cada versão (rodapé do Suporte e do menu)
+    window.APP_VERSAO='2.18.2';                      // atualizar a cada versão (rodapé do Suporte e do menu)
     window.CONTATO = {
         empresa: 'Central da Evolução',
         whatsapp: '5591981385331',                     // com 55 + DDD (wa.me)
@@ -17,7 +17,7 @@
     window.contatoWhatsAppUrl = function (texto) { return 'https://wa.me/' + window.CONTATO.whatsapp + (texto ? '?text=' + encodeURIComponent(texto) : ''); };
     window.contatoEmailUrl = function (assunto, corpo) { return 'mailto:' + window.CONTATO.email + '?subject=' + encodeURIComponent(assunto || 'Suporte Comandas') + '&body=' + encodeURIComponent(corpo || ''); };
     window.rodapeVersaoHtml = function (estilo) {
-        return '<div style="text-align:center;font-size:.72rem;color:#888;line-height:1.5;' + (estilo || '') + '">Comandas v' + window.APP_VERSAO +
+        return '<div style="text-align:center;font-size:.72rem;color:#888;line-height:1.5;' + (estilo || '') + '">Restaurante-app v' + window.APP_VERSAO +
             '<br>© ' + new Date().getFullYear() + ' ' + window.CONTATO.empresa + ' · Todos os direitos reservados</div>';
     };
 })();

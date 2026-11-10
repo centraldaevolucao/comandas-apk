@@ -24,4 +24,4 @@ jobs:
           chmod +x app/src/main/jniLibs/*/libcloudflared.so
       - run: gradle assembleDebug
       - uses: actions/upload-artifact@v4
-        with: { name: comandas-apk, path: app/build/outputs/apk/debug/app-debug.apk }
+        with: { name: Restaurante-app, path: app/build/outputs/apk/debug/app-debug.apk }

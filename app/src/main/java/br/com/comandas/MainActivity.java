@@ -849,7 +849,7 @@ public class MainActivity extends Activity {
     private void mostrarMenuSaida() {
         boolean rede = prefs.getBoolean("rede", false);
         String[] itens = { rede ? "Desativar acesso por outros aparelhos" : "Permitir outros aparelhos na rede (cozinha, QR Code)", "Sair do app" };
-        new AlertDialog.Builder(this).setTitle("Comandas").setItems(itens, (d, qual) -> {
+        new AlertDialog.Builder(this).setTitle("Restaurante-app").setItems(itens, (d, qual) -> {
             if (qual == 0) {
                 prefs.edit().putBoolean("rede", !rede).apply();
                 String wifi = temWifi() ? "" : "\n\n⚠ O aparelho não está conectado a uma rede Wi-Fi.";
