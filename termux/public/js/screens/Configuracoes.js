@@ -102,6 +102,7 @@ if (!window.renderConfiguracoes) {
             );
 
             // ============ IMPRESSORAS ============
+            html += '<style>#config-conteudo [id^="cfg-"],#config-conteudo select,#config-conteudo input{min-width:0;max-width:100%;box-sizing:border-box;}#config-conteudo .card{overflow:hidden;max-width:100%;box-sizing:border-box;}</style>';
             html += '<div class="card" style="background:#FCE4EC;border-radius:12px;padding:16px;margin-bottom:12px;">';
             html += '    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;border-bottom:1px solid #e0c8e8;padding-bottom:16px;margin-bottom:16px;">';
             html += '        <div style="font-weight:600;font-size:0.95rem;">Imprimir pedidos automático</div>';
@@ -136,7 +137,7 @@ if (!window.renderConfiguracoes) {
             html += '    <div style="border:1px solid #333;border-radius:8px;padding:0 10px;position:relative;margin-bottom:16px;">';
             html += '        <label style="position:absolute;top:-8px;left:10px;background:#FCE4EC;padding:0 4px;font-size:0.7rem;color:#333;font-weight:600;">Nome nas impressões</label>';
             html += '        <div style="display:flex;align-items:center;gap:10px;">';
-            html += '            <input type="text" id="cfg-nome-impressao" value="' + c.nomeImpressao + '" style="border:none;background:transparent;flex:1;padding:12px 0;font-size:1rem;outline:none;text-align:center;">';
+            html += '            <input type="text" id="cfg-nome-impressao" value="' + c.nomeImpressao + '" style="border:none;background:transparent;flex:1;padding:12px 0;font-size:1rem;outline:none;text-align:center;min-width:0;width:100%;box-sizing:border-box;">';
             html += '            <button class="btn-limpar" onclick="salvarConfiguracoes()"><i class="fas fa-save" style="color:#C2185B;font-size:1.2rem;"></i></button>';
             html += '        </div>';
             html += '    </div>';
@@ -270,7 +271,7 @@ if (!window.renderConfiguracoes) {
             html += '    <div style="border:1px solid #333;border-radius:8px;padding:0 10px;position:relative;">';
             html += '        <label style="position:absolute;top:-8px;left:10px;background:#FCE4EC;padding:0 4px;font-size:0.7rem;color:#333;font-weight:600;">Minutos alertar comanda</label>';
             html += '        <div style="display:flex;align-items:center;gap:10px;">';
-            html += '            <input type="number" id="cfg-minutos-alerta" value="' + c.minutosAlerta + '" style="border:none;background:transparent;flex:1;padding:12px 0;font-size:1.1rem;outline:none;text-align:center;">';
+            html += '            <input type="number" id="cfg-minutos-alerta" value="' + c.minutosAlerta + '" style="border:none;background:transparent;flex:1;padding:12px 0;font-size:1.1rem;outline:none;text-align:center;min-width:0;width:100%;box-sizing:border-box;">';
             html += '            <button class="btn-limpar" onclick="salvarConfiguracoes()"><i class="fas fa-save" style="color:#C2185B;font-size:1.2rem;"></i></button>';
             html += '        </div>';
             html += '    </div>';
@@ -298,7 +299,7 @@ if (!window.renderConfiguracoes) {
             html += '    <div style="border:1px solid #333;border-radius:8px;padding:0 10px;position:relative;">';
             html += '        <label style="position:absolute;top:-8px;left:10px;background:#FCE4EC;padding:0 4px;font-size:0.7rem;color:#333;font-weight:600;">Tempo (min) pedido em alerta</label>';
             html += '        <div style="display:flex;align-items:center;gap:10px;">';
-            html += '            <input type="number" id="cfg-tempo-pedido" value="' + c.tempoAlertaPedido + '" style="border:none;background:transparent;flex:1;padding:12px 0;font-size:1.1rem;outline:none;text-align:center;">';
+            html += '            <input type="number" id="cfg-tempo-pedido" value="' + c.tempoAlertaPedido + '" style="border:none;background:transparent;flex:1;padding:12px 0;font-size:1.1rem;outline:none;text-align:center;min-width:0;width:100%;box-sizing:border-box;">';
             html += '            <button class="btn-limpar" onclick="salvarConfiguracoes()"><i class="fas fa-save" style="color:#C2185B;font-size:1.2rem;"></i></button>';
             html += '        </div>';
             html += '    </div>';
@@ -315,10 +316,10 @@ if (!window.renderConfiguracoes) {
             html += '    </div>';
             html += '    <div style="display:flex;align-items:center;gap:10px;">';
             html += '        <button class="btn-outline" style="padding:6px 10px;font-size:0.75rem;color:#C2185B;border-color:transparent;" onclick="resetarNumeracaoPedidos()">Resetar<br>numeração</button>';
-            html += '        <div style="border:1px solid #333;border-radius:8px;padding:0 10px;position:relative;flex:1;">';
+            html += '        <div style="border:1px solid #333;border-radius:8px;padding:0 10px;position:relative;flex:1;min-width:0;">';
             html += '            <label style="position:absolute;top:-8px;left:10px;background:#FCE4EC;padding:0 4px;font-size:0.7rem;color:#333;font-weight:600;">Próximo número</label>';
             html += '            <div style="display:flex;align-items:center;gap:10px;">';
-            html += '                <input type="number" id="cfg-prox-num-pedido" value="' + c.proximoNumeroPedido + '" style="border:none;background:transparent;flex:1;padding:12px 0;font-size:1.1rem;outline:none;text-align:center;">';
+            html += '                <input type="number" id="cfg-prox-num-pedido" value="' + c.proximoNumeroPedido + '" style="border:none;background:transparent;flex:1;padding:12px 0;font-size:1.1rem;outline:none;text-align:center;min-width:0;width:100%;box-sizing:border-box;">';
             html += '                <button class="btn-limpar" onclick="salvarConfiguracoes()"><i class="fas fa-save" style="color:#C2185B;font-size:1.2rem;"></i></button>';
             html += '            </div>';
             html += '        </div>';
@@ -372,10 +373,10 @@ if (!window.renderConfiguracoes) {
             html += '    </div>';
             html += '    <div style="display:flex;align-items:center;gap:10px;">';
             html += '        <button class="btn-outline" style="padding:6px 10px;font-size:0.75rem;color:#C2185B;border-color:transparent;" onclick="resetarNumeracaoComandas()">Resetar<br>numeração</button>';
-            html += '        <div style="border:1px solid #333;border-radius:8px;padding:0 10px;position:relative;flex:1;">';
+            html += '        <div style="border:1px solid #333;border-radius:8px;padding:0 10px;position:relative;flex:1;min-width:0;">';
             html += '            <label style="position:absolute;top:-8px;left:10px;background:#FCE4EC;padding:0 4px;font-size:0.7rem;color:#333;font-weight:600;">Próximo número</label>';
             html += '            <div style="display:flex;align-items:center;gap:10px;">';
-            html += '                <input type="number" id="cfg-prox-num-cmd" value="' + c.proximoNumeroComanda + '" style="border:none;background:transparent;flex:1;padding:12px 0;font-size:1.1rem;outline:none;text-align:center;">';
+            html += '                <input type="number" id="cfg-prox-num-cmd" value="' + c.proximoNumeroComanda + '" style="border:none;background:transparent;flex:1;padding:12px 0;font-size:1.1rem;outline:none;text-align:center;min-width:0;width:100%;box-sizing:border-box;">';
             html += '                <button class="btn-limpar" onclick="salvarConfiguracoes()"><i class="fas fa-save" style="color:#C2185B;font-size:1.2rem;"></i></button>';
             html += '            </div>';
             html += '        </div>';
