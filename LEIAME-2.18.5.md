@@ -253,3 +253,7 @@ Obs.: itens alterados depois de gerar o recibo em aberto não atualizam o valor 
 ## 35. v2.18.4 — Forma de pagamento padrão no fechamento e layout das Configurações
 - **Configurações › "Forma de pagamento padrão no fechamento"** agora é aplicada de verdade (antes era salva e ignorada): ao abrir o fechamento, o pagamento já vem lançado nessa forma (ex.: **PIX**, com o valor total) e o campo "Nova forma de pagamento" também começa nela. **Continua possível trocar** a forma, editar o valor e dividir em várias formas. Se a forma escolhida estiver desligada em "Formas de pagamento", usa a primeira ativa. Com PIX lançado, o QR Code aparece (valor = só o PIX, conforme a seção 31).
 - **Layout:** campos "Próximo número" e demais campos das Configurações não passam mais da borda da tela (testado em tela de 360 px, nenhum elemento fora da área).
+
+## 36. v2.18.5 — Salvamento automático nas Configurações
+- Ao ligar/desligar qualquer **chave (toggle)** ou trocar a **forma de pagamento padrão** em Configurações, a alteração é **salva na hora** (aparece "Configurações salvas"), sem redesenhar a tela: a posição da rolagem é mantida. Os campos numéricos e de texto continuam com o botão de salvar (disquete). Salvamentos em sequência rápida são enfileirados para não se sobrepor.
+- Testado no navegador: 3 toggles alterados = 3 gravações, valores mantidos após recarregar.

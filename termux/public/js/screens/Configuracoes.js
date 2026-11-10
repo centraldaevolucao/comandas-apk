@@ -400,6 +400,10 @@ if (!window.renderConfiguracoes) {
             html += '</div>';
 
             container.innerHTML = html;
+            // Toggle/seleção de forma padrão: cada mudança é salva na hora
+            container.querySelectorAll('input[type="checkbox"], #cfg-forma-padrao').forEach(function (e) {
+                e.addEventListener('change', function () { window.salvarConfiguracoes(true); });
+            });
         } catch (e) {
             console.error('❌ Erro ao carregar configurações:', e);
             container.innerHTML = '<p class="empty-state" style="color:#c62828;">Erro: ' + e.message + '</p>';
@@ -451,7 +455,12 @@ if (!window.renderConfiguracoes) {
     // ============================================================
     // SALVAR CONFIGURAÇÕES
     // ============================================================
-    window.salvarConfiguracoes = async function () {
+    let _filaSalvar = Promise.resolve();
+    window.salvarConfiguracoes = function (silencioso) {
+        _filaSalvar = _filaSalvar.then(function () { return salvarConfiguracoesAgora(silencioso === true); }, function () { return salvarConfiguracoesAgora(silencioso === true); });
+        return _filaSalvar;
+    };
+    async function salvarConfiguracoesAgora(silencioso) {
         try {
             let config = {};
             try {
@@ -515,16 +524,16 @@ if (!window.renderConfiguracoes) {
 
             if (typeof window.mostrarToast === 'function') {
                 window.mostrarToast('✅ Configurações salvas');
-            } else {
+            } else if (!silencioso) {
                 alert('✅ Configurações salvas');
             }
 
-            carregarConfiguracoes();
+            if (!silencioso) carregarConfiguracoes();   // salvamento automático não redesenha (mantém a posição da tela)
         } catch (e) {
             console.error('Erro ao salvar:', e);
             alert('Erro ao salvar: ' + e.message);
         }
-    };
+    }
 
     window.resetarNumeracaoPedidos = async function () {
         if (!await window.confirmar('Deseja resetar a numeração dos pedidos para 1?')) return;
