@@ -246,3 +246,6 @@ Obs.: itens alterados depois de gerar o recibo em aberto não atualizam o valor 
 - **O que NÃO mudou:** o id do pacote (`br.com.comandas` / `br.com.comandas.licencas`). Assim a atualização **instala por cima** sem perder dados, a licença, o ID do equipamento e a chave. Os nomes das pastas e dos repositórios também ficam iguais.
 - O arquivo do APK no GitHub (Actions › Artifacts) agora se chama `Restaurante-app` e `Licenca-app`.
 - Algumas respostas do FAQ ainda usam "o sistema Comandas" no sentido geral; se quiser trocar tudo, é só pedir.
+
+## 34. v2.18.3 — Ícones próprios
+- **Restaurante-app:** ícone rosa com prato, garfo e faca. **Licenca-app:** ícone azul com escudo e visto. Para trocar, substitua os `ic_launcher.png` em `app/src/main/res/mipmap-*` (48, 72, 96, 144 e 192 px). Depois de instalar, o Android pode demorar a atualizar o ícone na tela inicial; reinicie o launcher se precisar.
