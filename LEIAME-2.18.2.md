@@ -240,3 +240,9 @@ Obs.: itens alterados depois de gerar o recibo em aberto não atualizam o valor 
 
 ## 32. v2.18.1 — Valor da assinatura R$ 25,90
 - O valor padrão mostrado no pedido de licença passou de R$ 13,99 para **R$ 25,90** (`VALOR_PADRAO` em `js/licenca.js`; pode ser sobrescrito por `valorAssinatura` nas configurações). As menções a 13.99 nas seções antigas (exemplos de linha de comando) são históricas.
+
+## 33. v2.18.2 — Novo nome do app: Restaurante-app (e o app do dono: Licenca-app)
+- O ícone/nome do app no Android passa a ser **Restaurante-app** (antes "Comandas"); o rodapé, o diálogo do app e o assunto do e-mail de suporte também. O app do dono passa a se chamar **Licenca-app** (antes "Comandas Licenças"); onde o texto dizia "Comandas Licenças", agora diz "Licenca-app".
+- **O que NÃO mudou:** o id do pacote (`br.com.comandas` / `br.com.comandas.licencas`). Assim a atualização **instala por cima** sem perder dados, a licença, o ID do equipamento e a chave. Os nomes das pastas e dos repositórios também ficam iguais.
+- O arquivo do APK no GitHub (Actions › Artifacts) agora se chama `Restaurante-app` e `Licenca-app`.
+- Algumas respostas do FAQ ainda usam "o sistema Comandas" no sentido geral; se quiser trocar tudo, é só pedir.

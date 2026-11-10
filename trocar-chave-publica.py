@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""Troca a chave PÚBLICA embutida no Comandas (e, se quiser, no Comandas Licenças).
-Não precisa da chave privada: use a "Chave pública" (64 caracteres) mostrada em Comandas Licenças › Configurações.
+"""Troca a chave PÚBLICA embutida no Comandas (e, se quiser, no Licenca-app).
+Não precisa da chave privada: use a "Chave pública" (64 caracteres) mostrada em Licenca-app › Configurações.
 
     python3 trocar-chave-publica.py <chave_publica_64_hex> [--licencas ../comandas-licencas]
 

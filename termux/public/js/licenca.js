@@ -203,7 +203,7 @@
         window.licencaAplicarTexto(cod);
     };
 
-    // Pedido de licença: arquivo .pedido (equipamento + estabelecimento) que o dono importa no app "Comandas Licenças"
+    // Pedido de licença: arquivo .pedido (equipamento + estabelecimento) que o dono importa no app "Licenca-app"
     window.licencaSolicitar = async function () {
         const s = window.LICENCA.status || {};
         let cfg = {}; try { cfg = window.normalizarArray(await window.apiGet('configuracoes'))[0] || {}; } catch (e) {}

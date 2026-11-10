@@ -157,6 +157,6 @@
         window.abrirLinkExterno(window.contatoWhatsAppUrl('Olá, Central da Evolução! Preciso de ajuda com o Comandas (v' + window.APP_VERSAO + ').' + (assunto ? '\nAssunto: ' + assunto : '')));
     };
     window.suporteAbrirEmail = function (assunto) {
-        window.abrirLinkExterno(window.contatoEmailUrl('Suporte Comandas v' + window.APP_VERSAO, 'Olá, preciso de ajuda com o Comandas.' + (assunto ? '\nAssunto: ' + assunto : '') + '\n\nDescreva o problema:\n'));
+        window.abrirLinkExterno(window.contatoEmailUrl('Suporte Restaurante-app v' + window.APP_VERSAO, 'Olá, preciso de ajuda com o Comandas.' + (assunto ? '\nAssunto: ' + assunto : '') + '\n\nDescreva o problema:\n'));
     };
 })();
