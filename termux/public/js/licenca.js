@@ -5,7 +5,7 @@
     'use strict';
     const COR = '#C2185B';
     // Número do WhatsApp que recebe o comprovante (com 55 + DDD). Troque pelo SEU número.
-    const VALOR_PADRAO = 13.99;
+    const VALOR_PADRAO = 25.90;
 
     const GRUPOS = {
         caixa: { nome: 'Caixa (fechamento, resumo e histórico)', rotas: ['caixa', 'resumo-caixa', 'historico-caixa'] },

@@ -237,3 +237,6 @@ Obs.: itens alterados depois de gerar o recibo em aberto não atualizam o valor 
 - **QR Code do PIX na comanda e no recibo:** só aparece se houver **pagamento em PIX** na comanda e leva **apenas o valor pago em PIX** (os demais pagamentos continuam normais na lista). As chaves de exibição em Configurações continuam valendo. Vale para tela, impressão, Bluetooth e imagem compartilhada.
 - Servidor: `maq_config(id)` e as rotas do Mercado Pago aceitam o id da maquininha (`maqId`/`?maq=`), cada uma com seu token.
 - **Testado (navegador):** escolha da máquina (PIX/débito/crédito, cancelar), filtro por garçom, tela de lista/edição, QR com e sem PIX e valor, vínculo no colaborador. **Não testado:** maquininha real (Mercado Pago/Cielo/Stone/SumUp).
+
+## 32. v2.18.1 — Valor da assinatura R$ 25,90
+- O valor padrão mostrado no pedido de licença passou de R$ 13,99 para **R$ 25,90** (`VALOR_PADRAO` em `js/licenca.js`; pode ser sobrescrito por `valorAssinatura` nas configurações). As menções a 13.99 nas seções antigas (exemplos de linha de comando) são históricas.
