@@ -128,8 +128,12 @@ console.log('✔ bluetooth.js carregado');
         const L = [];
         for (const l of doc.lines) {
             if (l.k === 'sep') L.push({ t: LIN });
-            else if (l.k === 't') L.push({ t: l.t, b: l.b, g: l.g, c: l.al === 'c' || (l.bg && !l.al), r: l.al === 'd' });
-            else if (l.k === 'duas') L.push({ t: duas(l.l, l.r, l.g ? Math.floor(COLS / 2) : COLS), b: l.b, g: l.g });
+            else if (l.k === 't' || l.k === 'duas') {
+                const g = l.g || (l.fs >= 150) ? 1 : 0, z = (!g && l.fs >= 120) ? 1 : 0, f = (l.fs && l.fs <= 85) || l.ft === 'condensada' ? 1 : 0, mt = !!l.fs || !!l.ft;
+                const o = l.k === 't' ? { t: l.t, b: l.b, g: g, c: l.al === 'c' || (l.bg && !l.al), r: l.al === 'd' } : { t: duas(l.l, l.r, g ? Math.floor(COLS / 2) : COLS), b: l.b, g: g };
+                if (z) o.z = 1; if (f) o.f = 1; if (mt) o.fixo = 1;
+                L.push(o);
+            }
             else if (l.k === 'logo') { if (l.src) { const r = await logoRaster(l.src, l.pct, COLS); if (r) L.push({ raster: r }); } }
             else if (l.k === 'qr') {
                 if (l.imp && window.qrUrl) {
@@ -139,7 +143,7 @@ console.log('✔ bluetooth.js carregado');
             }
         }
         const F = window.impFonte ? window.impFonte(config) : null;
-        if (F && (F.escAlto || F.escFonteB)) L.forEach(function (l) { if (l.t !== undefined) { if (F.escAlto) l.z = 1; if (F.escFonteB) l.f = 1; } });
+        if (F && (F.escAlto || F.escFonteB)) L.forEach(function (l) { if (l.t !== undefined && !l.fixo) { if (F.escAlto) l.z = 1; if (F.escFonteB) l.f = 1; } });
         return L;
     };
 

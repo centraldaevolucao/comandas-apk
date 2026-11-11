@@ -84,14 +84,15 @@
         return new Promise(function (resolve) {
             const cred = p.forma === 'credito';
             const ov = overlay(topo('Registrar cartão') +
-                '<div style="padding:14px 16px;overflow-y:auto;"><div style="color:#333;">Valor: <b>' + dinheiro(p.valor) + '</b> — ' + (cred ? 'Crédito' : 'Débito') + '</div>' +
-                '<div style="font-size:.8rem;color:#888;margin-top:4px;">Passe o cartão na maquininha e copie os dados do comprovante.</div>' +
-                campo('mq-band', 'Bandeira', '', 'text', 'Visa, Master, Elo…') + campo('mq-nsu', 'NSU / Nº do comprovante', '', 'text') +
-                campo('mq-aut', 'Código de autorização', '', 'text') + campo('mq-4', 'Últimos 4 dígitos', '', 'text', '1234') +
+                '<div style="padding:14px 16px;overflow-y:auto;"><div style="color:#333;">Valor: <b>' + dinheiro(p.valor) + '</b> — ' + (cred ? 'Crédito' : (p.forma === 'pix' ? 'PIX' : 'Débito')) + '</div>' +
+                '<div style="font-size:.8rem;color:#888;margin-top:4px;">Passe o cartão na maquininha. Preencher é <b>opcional</b>: informe só o que quiser guardar do comprovante.</div>' +
+                campo('mq-band', 'Bandeira (opcional)', '', 'text', 'Visa, Master, Elo…') + campo('mq-nsu', 'NSU / Nº do comprovante (opcional)', '', 'text') +
+                campo('mq-aut', 'Código de autorização (opcional)', '', 'text') + campo('mq-4', 'Últimos 4 dígitos (opcional)', '', 'text', '1234') +
                 (cred ? campo('mq-parc', 'Parcelas', 1, 'number') : '') + '</div>' +
-                '<div style="display:flex;gap:10px;padding:0 16px 16px;"><button data-can class="btn-outline" style="flex:1;">Cancelar</button><button data-ok class="btn-primary" style="flex:1;">Registrar</button></div>');
+                '<div style="display:flex;gap:10px;padding:0 16px 16px;"><button data-can class="btn-outline" style="flex:1;">Cancelar</button><button data-ok class="btn-primary" style="flex:1;">Registrar</button></div>' + '<div style="padding:0 16px 14px;text-align:center;"><a href="#" data-pular style="color:' + COR + ';font-size:.85rem;">Continuar sem preencher</a></div>');
             const v = function (id) { const e = ov.querySelector('#' + id); return e ? e.value.trim() : ''; };
             ov.querySelector('[data-can]').onclick = function () { ov.remove(); resolve(null); };
+            ov.querySelector('[data-pular]').onclick = function (e) { e.preventDefault(); ov.remove(); resolve({ ok: true, provider: 'manual', parcelas: 1 }); };
             ov.querySelector('[data-ok]').onclick = function () {
                 ov.remove();
                 resolve({ ok: true, provider: 'manual', bandeira: v('mq-band'), nsu: v('mq-nsu'), autorizacao: v('mq-aut'), ultimos4: v('mq-4').slice(-4), parcelas: cred ? Math.max(1, parseInt(v('mq-parc')) || 1) : 1 });
@@ -224,7 +225,13 @@
         maqAtual = String(m.id || '');
         const prov = m.provider || 'nenhuma';
         if (prov === 'nenhuma') return { ok: true, provider: 'nenhuma' };
-        if (prov === 'manual') { const parc = null; return formManual(p, parc); }
+        if (prov === 'manual') {
+            let cfgD = {}; try { cfgD = window.normalizarArray(await apiGet('configuracoes'))[0] || {}; } catch (e) {}
+            const chave = p.forma === 'pix' ? 'maqDadosPix' : (p.forma === 'credito' ? 'maqDadosCredito' : 'maqDadosDebito');
+            if (cfgD[chave] === false && !p.maquina) return { ok: true, provider: 'manual', parcelas: 1 };
+            if (cfgD[chave] === false) return { ok: true, provider: 'manual', parcelas: 1 };
+            return formManual(p);
+        }
         const parcelas = await perguntarParcelas(p);
         if (parcelas === null) return null;
         if (prov === 'simulado') {

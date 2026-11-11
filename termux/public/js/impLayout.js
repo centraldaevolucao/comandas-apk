@@ -72,8 +72,22 @@
         const L = [];
         const sep = function () { L.push({ k: 'sep' }); };
         const tipoPix = tipo === 'recibo' ? 'recibo' : 'comanda';
+        let prev = null;
+        const aplica = function () {
+            if (!prev) return; const b = prev.b;
+            for (let j = prev.ini; j < L.length; j++) {
+                const l = L[j];
+                if (l.k !== 't' && l.k !== 'duas') continue;
+                if (b.al && l.k === 't') l.al = b.al;
+                if (b.neg === 0 || b.neg === 1) l.b = b.neg;
+                if (b.fs) l.fs = b.fs;
+                if (b.ft) l.ft = b.ft;
+                if (b.cor && !l.bg) l.cor = b.cor;
+            }
+        };
         for (const b of D.blocos) {
             if (!b.on) continue;
+            aplica(); prev = { ini: L.length, b: b };
             const id = /^t\d+$/.test(b.id) ? 'texto' : b.id;
             if (id === 'logo') {
                 if (config.imprimirLogo === false) continue;
@@ -161,6 +175,7 @@
                 String(b.texto).split('\n').forEach(function (x) { L.push({ k: 't', t: x, al: b.al || 'c', b: b.b ? 1 : 0 }); });
             }
         }
+        aplica();
         // limpa separadores repetidos ou nas pontas
         const out = [];
         L.forEach(function (l) { if (l.k === 'sep' && (!out.length || out[out.length - 1].k === 'sep')) return; out.push(l); });
@@ -170,6 +185,13 @@
 
     // ---------- HTML ----------
     function borda(sep) { return sep === 'solida' ? '1px solid #000' : (sep === 'pontos' ? '2px dotted #000' : '1px dashed #000'); }
+    function estiloExtra(l, base) {
+        let r = '';
+        if (l.fs || l.g || l.small) r += 'font-size:' + (base * (l.fs || 100) / 100).toFixed(1) + 'px;';
+        if (l.ft && window.IMP_FONTES && window.IMP_FONTES[l.ft]) r += 'font-family:' + window.IMP_FONTES[l.ft].css + ';';
+        if (l.cor) r += 'color:' + l.cor + ';';
+        return r;
+    }
     window.impHtml = function (doc, config) {
         const F = window.impFonte ? window.impFonte(config || {}) : { family: 'monospace', tam: 100 };
         const k = F.tam / 100, W = PAPEL_PX[doc.papel] || 280, pad = MARGEM_PX[doc.margem] || 10;
@@ -179,9 +201,9 @@
             if (l.k === 'sep') h += '<div style="border-top:' + borda(doc.sep) + ';margin:6px 0;"></div>';
             else if (l.k === 't') {
                 const al2 = l.al ? al : 'left';
-                h += '<div style="text-align:' + al2 + ';' + (l.b ? 'font-weight:700;' : '') + (l.g ? 'font-size:16px;' : '') + (l.small ? 'font-size:10px;color:#444;' : '') + (l.mt ? 'margin-top:8px;' : '') +
+                h += '<div style="text-align:' + al2 + ';' + (l.b ? 'font-weight:700;' : 'font-weight:400;') + estiloExtra(l, l.g ? 16 : (l.small ? 10 : 12)) + (l.small && !l.cor ? 'color:#444;' : '') + (l.mt ? 'margin-top:8px;' : '') +
                     (l.bg ? 'background:' + l.bg + ';color:' + (l.fg || '#000') + ';padding:3px 6px;border-radius:4px;margin:3px 0;-webkit-print-color-adjust:exact;print-color-adjust:exact;' : '') + 'word-break:break-word;">' + esc(l.t) + '</div>';
-            } else if (l.k === 'duas') h += '<div style="display:flex;justify-content:space-between;gap:8px;' + (l.b ? 'font-weight:700;' : '') + (l.g ? 'font-size:15px;' : '') + '"><span style="min-width:0;word-break:break-word;">' + esc(l.l) + '</span><span style="white-space:nowrap;">' + esc(l.r) + '</span></div>';
+            } else if (l.k === 'duas') h += '<div style="display:flex;justify-content:space-between;gap:8px;' + (l.b ? 'font-weight:700;' : '') + estiloExtra(l, l.g ? 15 : 12) + '"><span style="min-width:0;word-break:break-word;">' + esc(l.l) + '</span><span style="white-space:nowrap;">' + esc(l.r) + '</span></div>';
             else if (l.k === 'logo') {
                 if (l.amostra) h += '<div style="width:' + l.pct + '%;aspect-ratio:1;max-width:80px;border-radius:50%;background:' + COR + ';color:#fff;display:flex;align-items:center;justify-content:center;margin:0 auto 4px;font-weight:800;font-size:12px;">LOGO</div>';
                 else h += '<img src="' + esc(l.src) + '" style="display:block;margin:0 auto 5px;width:' + l.pct + '%;max-height:90px;object-fit:contain;">';
@@ -200,7 +222,7 @@
     window.impSepChar = function (sep) { return sep === 'solida' ? '=' : (sep === 'pontos' ? '.' : '-'); };
 
     // ---------- tela de edição ----------
-    let LAY = null, DOC = 'comanda', VISAO = 'editar', CFG = {}, timer = null;
+    let LAY = null, DOC = 'comanda', VISAO = 'editar', CFG = {}, timer = null; const EST = {};
     const AMOSTRA = { numero: 12, mesa: '4', dataAbertura: '11/11/2026 12:40', dataFechamento: '11/11/2026 13:20', cliente: 'Maria', garcom: 'João',
         itens: [{ nome: 'Pastel de carne', quantidade: 2, preco: 6 }, { nome: 'Suco de laranja', quantidade: 1, preco: 8 }, { nome: 'Pastel de queijo', quantidade: 1, preco: 6, observacao: 'sem cebola' }],
         pagamentos: [{ forma: 'pix', valor: 26 }], troco: 0, desconto: 0 };
@@ -233,11 +255,22 @@
             let corpo = '';
             if (b.id === 'titulo' || b.id === 'final') corpo = '<input data-tx="' + i + '" value="' + esc(b.texto === undefined ? TEXTO_PADRAO[DOC][b.id] : b.texto) + '" style="width:100%;box-sizing:border-box;padding:7px;border:2px solid #ddd;border-radius:8px;font-size:.85rem;margin-top:6px;">';
             if (livre) corpo = '<textarea data-tx="' + i + '" rows="2" placeholder="Ex.: Instagram @seunegocio · Wi-Fi: senha123" style="width:100%;box-sizing:border-box;padding:7px;border:2px solid #ddd;border-radius:8px;font-size:.85rem;margin-top:6px;font-family:inherit;">' + esc(b.texto || '') + '</textarea><div style="margin-top:4px;display:flex;gap:8px;align-items:center;">' + seg([['e', 'E'], ['c', 'C'], ['d', 'D']], b.al, 'al:' + i) + '<label style="font-size:.78rem;"><input type="checkbox" data-bd="' + i + '"' + (b.b ? ' checked' : '') + '> negrito</label></div>';
+            const estilavel = ['qr', 'cor'].indexOf(b.id) < 0 && b.id !== 'logo';
+            let painelEst = '';
+            if (estilavel && EST[DOC + b.id]) {
+                painelEst = '<div style="margin:8px 0 2px 24px;padding:10px;background:#fff;border-radius:10px;font-size:.8rem;">' +
+                    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">Alinhamento ' + seg([['e', 'E'], ['c', 'C'], ['d', 'D']], b.al, 'al:' + i) + '</div>' +
+                    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">Peso ' + seg([['', 'Padrão'], ['0', 'Normal'], ['1', 'Negrito']], b.neg === undefined ? '' : String(b.neg), 'neg:' + i) + '</div>' +
+                    '<div style="margin-bottom:8px;">Tamanho da fonte: <b id="fsv' + i + '">' + (b.fs ? b.fs + '%' : 'padrão') + '</b> <a href="#" data-fsr="' + i + '" style="color:' + COR + ';margin-left:6px;">padrão</a><input type="range" data-fs="' + i + '" min="70" max="200" step="5" value="' + (b.fs || 100) + '" style="width:100%;"></div>' +
+                    '<div style="margin-bottom:8px;">Fonte <select data-ft="' + i + '" style="padding:6px;border:2px solid #ddd;border-radius:8px;font-size:.85rem;max-width:62%;float:right;"><option value="">Padrão (da impressão)</option>' + Object.keys(window.IMP_FONTES).map(function (k) { return '<option value="' + k + '"' + (b.ft === k ? ' selected' : '') + '>' + window.IMP_FONTES[k].nome + '</option>'; }).join('') + '</select><div style="clear:both"></div></div>' +
+                    '<div>Cor do texto <input type="color" data-cor="' + i + '" value="' + (b.cor || '#000000') + '" style="vertical-align:middle;margin-left:6px;"> <a href="#" data-corr="' + i + '" style="color:' + COR + ';margin-left:6px;">padrão (preto)</a></div>' +
+                    '<div style="font-size:.7rem;color:#777;margin-top:6px;line-height:1.3;">Na térmica Bluetooth a cor não existe (sai preto). Tamanho a partir de 120% = letra de altura dupla; 150% ou mais = dupla em altura e largura; até 85% ou fonte Condensada = fonte menor da impressora.</div></div>';
+            }
             lista += '<div style="padding:8px 0;border-bottom:1px solid #e0c8e8;"><div style="display:flex;align-items:center;gap:6px;">' +
                 '<div style="display:flex;flex-direction:column;"><button data-up="' + i + '" style="border:0;background:none;color:#999;font-size:.8rem;padding:0 4px;">▲</button><button data-dn="' + i + '" style="border:0;background:none;color:#999;font-size:.8rem;padding:0 4px;">▼</button></div>' +
-                '<div style="flex:1;font-weight:600;font-size:.9rem;min-width:0;">' + esc(livre ? 'Texto livre' : nomes[b.id]) + '</div>' + extra.join('') +
+                '<div style="flex:1;font-weight:600;font-size:.9rem;min-width:0;">' + esc(livre ? 'Texto livre' : nomes[b.id]) + '</div>' + extra.join('') + (estilavel ? '<button data-est="' + b.id + '" title="Estilo do texto" style="border:0;background:none;color:' + COR + ';font-size:1rem;padding:0 4px;"><i class="fas fa-sliders"></i></button>' : '') +
                 '<label class="toggle"><input type="checkbox" data-on="' + i + '"' + (b.on ? ' checked' : '') + '><span class="slider"></span></label>' +
-                (livre ? '<button data-rm="' + i + '" style="border:0;background:none;color:#c62828;font-size:1rem;">🗑</button>' : '') + '</div>' + corpo + '</div>';
+                (livre ? '<button data-rm="' + i + '" style="border:0;background:none;color:#c62828;font-size:1rem;">🗑</button>' : '') + '</div>' + corpo + painelEst + '</div>';
         });
         const painel = '<div style="padding:12px;overflow-y:auto;' + (larg ? 'width:420px;flex:0 0 420px;' : '') + '">' +
             '<div style="background:#FCE4EC;border-radius:12px;padding:12px;margin-bottom:10px;"><b style="font-size:.85rem;">Documento</b><div style="display:flex;gap:6px;margin:8px 0;">' +
@@ -271,10 +304,17 @@
                 else if (p[0] === 'sep') LAY.sep = v;
                 else if (p[0] === 'margem') LAY.margem = v;
                 else if (p[0] === 'al') D.blocos[+p[1]].al = v;
+                else if (p[0] === 'neg') { if (v === '') delete D.blocos[+p[1]].neg; else D.blocos[+p[1]].neg = +v; }
                 else if (p[0] === 'pct') D.blocos[+p[1]].pct = +v;
                 re();
             };
         });
+        $$('[data-est]', function (e) { e.onclick = function () { const k = DOC + e.dataset.est; EST[k] = !EST[k]; desenhar(ov); }; });
+        $$('[data-fs]', function (e) { e.oninput = function () { const b = D.blocos[+e.dataset.fs]; b.fs = +e.value; const sp = ov.querySelector('#fsv' + e.dataset.fs); if (sp) sp.textContent = e.value + '%'; salvar(); atualizaPrev(ov); }; });
+        $$('[data-fsr]', function (e) { e.onclick = function (ev) { ev.preventDefault(); delete D.blocos[+e.dataset.fsr].fs; re(); }; });
+        $$('[data-ft]', function (e) { e.onchange = function () { const b = D.blocos[+e.dataset.ft]; if (e.value) b.ft = e.value; else delete b.ft; re(); }; });
+        $$('[data-cor]', function (e) { e.oninput = function () { D.blocos[+e.dataset.cor].cor = e.value; salvar(); atualizaPrev(ov); }; });
+        $$('[data-corr]', function (e) { e.onclick = function (ev) { ev.preventDefault(); delete D.blocos[+e.dataset.corr].cor; re(); }; });
         $$('[data-on]', function (e) { e.onchange = function () { D.blocos[+e.dataset.on].on = e.checked; re(); }; });
         $$('[data-bd]', function (e) { e.onchange = function () { D.blocos[+e.dataset.bd].b = e.checked; re(); }; });
         $$('[data-tx]', function (e) { e.oninput = function () { D.blocos[+e.dataset.tx].texto = e.value; salvar(); atualizaPrev(ov); }; });

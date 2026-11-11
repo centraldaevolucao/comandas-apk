@@ -552,7 +552,7 @@ body.permite-collapse #btn-fechar-menu { display: none !important; }
 }
 
 /* FAB */
-.fab {
+button.fab {
     position: fixed;
     bottom: 88px;
     left: 50%;
@@ -574,8 +574,8 @@ body.permite-collapse #btn-fechar-menu { display: none !important; }
     line-height: 1;
     transition: transform 0.2s;
 }
-.fab:active { transform: translateX(-50%) scale(0.92); }
-.fab i { font-size: 1.4rem; }
+button.fab:active { transform: translateX(-50%) scale(0.92); }
+button.fab i { font-size: 1.4rem; }
 
 /* LISTA GENÉRICA */
 .lista-item {
@@ -994,7 +994,7 @@ body.modo-garcom #btn-home-mobile {
     margin: 0 auto;
 }
 
-body.cliente-qrcode .fab { display: none !important; }
+body.cliente-qrcode button.fab { display: none !important; }
 
 /* ========================================= */
 /* LAYOUT E RESPONSIVIDADE DO MENU LATERAL   */

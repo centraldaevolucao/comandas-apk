@@ -292,3 +292,11 @@ Obs.: itens alterados depois de gerar o recibo em aberto não atualizam o valor 
 - O mesmo layout vale para **tela, impressão comum, imagem do WhatsApp e Bluetooth**. Na Bluetooth o logo sai como imagem (se o endereço do logo bloquear a leitura, ele é omitido) e o QR é nativo. A **via da cozinha** é impressa por um botão no preview da comanda.
 - Os modelos antigos (cabeçalho colorido) foram substituídos por este estilo de cupom. Padrão: 58 mm, como a Bluetooth já era.
 - Testado no navegador (editor, ordem, ligar/desligar, texto livre, salvar, preview, linhas Bluetooth 58/80 e cozinha). **Não testado:** impressora real, logo na térmica, A4 em papel.
+
+## 41. v2.20.1 — Fiado com comprovante, recibo aberto, maquininha opcional, layout totalmente editável e botões redondos
+- **Botões redondos de Bluetooth/WhatsApp removidos:** o estilo do botão flutuante "+" (`.fab`) também pegava os ícones de marca do FontAwesome (`fab fa-whatsapp`, `fab fa-bluetooth-b`) e os transformava em bolhas. O estilo agora vale só para `button.fab`.
+- **Recibo antes de fechar (aguardando pagamento):** novo botão **Imprimir** (tela/Bluetooth), ao lado de WhatsApp e Compartilhar. Sai como "RECIBO EM ABERTO".
+- **Deixar fiado:** o aviso "Enviar para pendências?" agora tem **Visualizar, Imprimir, WhatsApp e Compartilhar** (comprovante da pendência, "PENDENTE (FIADO)") antes de enviar. Cancelar desfaz tudo.
+- **Maquininha — dados opcionais:** em Configurações (aparece quando há maquininha selecionada) há três toggles: **Pedir dados no PIX / crédito / débito**. Ligado, abre o registro (bandeira, NSU, autorização, final) com todos os campos **opcionais** e o link "Continuar sem preencher". Desligado, só escolhe a maquininha e segue direto. Vale para maquininha em modo Manual (as integradas trazem os dados sozinhas).
+- **Layout de impressão — estilo por bloco** (botão de ajustes em cada bloco): alinhamento, peso (padrão/normal/negrito), **tamanho da fonte** (70–200%), **fonte** e **cor do texto**. Na térmica Bluetooth a cor não existe; tamanho ≥120% = altura dupla, ≥150% = dupla altura e largura, ≤85% ou "Condensada" = fonte menor.
+- Testado no navegador (fiado, impressão do recibo aberto, toggles e registro opcional, estilos do layout e linhas Bluetooth). Não testado em impressora real.

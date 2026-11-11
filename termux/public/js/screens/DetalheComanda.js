@@ -1615,6 +1615,35 @@ if (!window.renderDetalheComanda) {
     };
 
     // Etapa 1: confirma os pagamentos informados e gera o RECIBO EM ABERTO (consumo + QR/PIX).
+    // Aviso "Deixar fiado" com Visualizar / Imprimir / WhatsApp / Compartilhar antes de enviar para pendências
+    function dialogoFiado(msg) {
+        return new Promise(function (resolve) {
+            const ov = document.createElement('div');
+            ov.style.cssText = 'display:flex;align-items:center;justify-content:center;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:250000;padding:16px;';
+            const bt = function (id, ic, t) { return '<button data-a="' + id + '" class="btn-outline" style="flex:1 1 45%;padding:10px 6px;font-size:.85rem;"><i class="' + ic + '"></i> ' + t + '</button>'; };
+            ov.innerHTML = '<div style="background:#fff;border-radius:16px;max-width:380px;width:100%;overflow:hidden;box-shadow:0 8px 30px rgba(0,0,0,.35);">' +
+                '<div style="background:#C2185B;color:#fff;padding:14px 16px;font-weight:700;"><i class="fas fa-circle-question"></i> Deixar fiado</div>' +
+                '<div style="padding:16px;color:#333;white-space:pre-line;line-height:1.4;">' + msg.replace(/</g, '&lt;') + '</div>' +
+                '<div style="padding:0 16px;font-size:.78rem;color:#777;margin-bottom:6px;">Antes de enviar, se quiser, gere o comprovante da pendência:</div>' +
+                '<div style="display:flex;flex-wrap:wrap;gap:8px;padding:0 16px 12px;">' + bt('ver', 'fas fa-eye', 'Visualizar') + bt('imp', 'fas fa-print', 'Imprimir') +
+                '<button data-a="zap" class="btn-primary" style="flex:1 1 45%;background:#25d366;padding:10px 6px;font-size:.85rem;"><i class="fab fa-whatsapp"></i> WhatsApp</button>' + bt('comp', 'fas fa-share-nodes', 'Compartilhar') + '</div>' +
+                '<div style="display:flex;gap:10px;padding:0 16px 16px;"><button data-a="nao" class="btn-outline" style="flex:1;">Cancelar</button><button data-a="sim" class="btn-primary" style="flex:1;">Enviar para pendências</button></div></div>';
+            document.body.appendChild(ov);
+            const acima = function () { const m = document.getElementById('modal-preview-impressao'); if (m) m.style.zIndex = 300000; };
+            ov.querySelectorAll('[data-a]').forEach(function (b) {
+                b.onclick = async function () {
+                    const a = b.dataset.a;
+                    if (a === 'sim') { ov.remove(); resolve(true); }
+                    else if (a === 'nao') { ov.remove(); resolve(false); }
+                    else if (a === 'ver') { window.__irAposRecibo = false; await window.abrirPreviewImpressao('recibo'); acima(); }
+                    else if (a === 'imp') { await window.imprimirReciboAtual(); }
+                    else if (a === 'zap') { await window.enviarWhatsApp('recibo'); acima(); }
+                    else if (a === 'comp') { await window.enviarWhatsApp('recibo', 'outros'); acima(); }
+                };
+            });
+        });
+    }
+
     window.confirmarFechamentoCompleto = async function () {
         if (!window.comandaAtual) return;
 
@@ -1640,7 +1669,11 @@ if (!window.renderDetalheComanda) {
         if (isFiado) {
             const cli = window.__pendAnt.cliente;
             const pend = falta > 0 ? falta : totais.total;
-            if (!await window.confirmar('Enviar ' + formatMoney(pend) + ' de ' + cli.nome + ' para PENDÊNCIAS?\n\nA venda não será fechada e nenhum recibo será gerado.', { titulo: 'Deixar fiado', ok: 'Enviar para pendências' })) return;
+            const c0 = window.comandaAtual, campos = ['pagamentos', 'troco', 'pagamentoPendente', 'valorPendente', 'cliente', 'clienteId'], snap = {};
+            campos.forEach(function (k) { snap[k] = c0[k]; });
+            Object.assign(c0, { pagamentos: window.pagamentosTemp, troco: 0, pagamentoPendente: true, valorPendente: pend, cliente: cli.nome, clienteId: cli.id });   // só para visualizar/imprimir; volta se cancelar
+            const okFiado = await dialogoFiado('Enviar ' + formatMoney(pend) + ' de ' + cli.nome + ' para PENDÊNCIAS?\n\nA venda não será fechada e nenhum recibo será gerado.');
+            if (!okFiado) { campos.forEach(function (k) { if (snap[k] === undefined) delete c0[k]; else c0[k] = snap[k]; }); return; }
             const c = window.comandaAtual;
             c.status = 'pendente';
             c.clienteId = cli.id; c.cliente = cli.nome;
@@ -1816,8 +1849,8 @@ if (!window.renderDetalheComanda) {
 
         const rodapeAberto =
             '    <div style="padding:15px; background:#fff; border-top:1px solid #ddd; border-radius:0 0 12px 12px;">' +
-            '        <div style="font-size:.8rem;color:#666;text-align:center;margin-bottom:8px;">Receba o pagamento e depois feche a comanda. A impressão do recibo só é liberada após o fechamento.</div>' +
-            '        <div style="display:flex;gap:8px;margin-bottom:8px;"><button class="btn-primary" style="background:#25d366;flex:1;padding:10px;" onclick="enviarWhatsApp(\'recibo\')"><i class="fab fa-whatsapp"></i> WhatsApp</button><button class="btn-outline" style="flex:1;padding:10px;" onclick="enviarWhatsApp(\'recibo\', \'outros\')"><i class="fas fa-share-nodes"></i> Compartilhar</button></div>' +
+            '        <div style="font-size:.8rem;color:#666;text-align:center;margin-bottom:8px;">Receba o pagamento e depois feche a comanda. Você já pode imprimir este recibo (aguardando pagamento).</div>' +
+            '        <div style="display:flex;gap:8px;margin-bottom:8px;"><button class="btn-primary" style="background:#1976d2;flex:1;padding:10px;" onclick="imprimirReciboAberto()"><i class="fas fa-print"></i> Imprimir</button><button class="btn-primary" style="background:#25d366;flex:1;padding:10px;" onclick="enviarWhatsApp(\'recibo\')"><i class="fab fa-whatsapp"></i> WhatsApp</button><button class="btn-outline" style="flex:1;padding:10px;" onclick="enviarWhatsApp(\'recibo\', \'outros\')"><i class="fas fa-share-nodes"></i> Compartilhar</button></div>' +
             '        <button class="btn-primary" style="width:100%;background:#2e7d32;padding:14px;" onclick="finalizarRecebimento()"><i class="fas fa-check-circle"></i> Fechar comanda (recebido)</button>' +
             '        <button class="btn-outline" style="width:100%;margin-top:8px;border-color:#c62828;color:#c62828;" onclick="cancelarRecebimento()"><i class="fas fa-times-circle"></i> Cancelar recebimento</button>' +
             '    </div>';
@@ -1949,13 +1982,16 @@ if (!window.renderDetalheComanda) {
         if (!(c && c.aguardandoRecebimento)) fecharPreviewImpressao();   // recibo em aberto continua na tela
     };
 
-    async function imprimirDocumento(tipo, titulo) {
+    async function imprimirDocumento(tipo, titulo, extra) {
         if (!window.comandaAtual) return;
-        if (window.btTentarImprimir && await window.btTentarImprimir(tipo)) { fecharPreviewImpressao(); return; }
+        extra = extra || {};
+        const cDoc = extra.aberto ? Object.assign({}, window.comandaAtual, { pagamentos: window.pagamentosTemp, troco: (window.recebimentoAtual || {}).troco || 0 }) : window.comandaAtual;
+        const optsDoc = extra.aberto ? { aberto: true, atualPend: ((window.recebimentoAtual || {}).fiado ? Number((window.recebimentoAtual || {}).falta || 0) : 0) } : {};
+        if (window.btTentarImprimir && await window.btTentarImprimir(tipo, Object.assign({ c: cDoc }, optsDoc))) { if (!extra.aberto) fecharPreviewImpressao(); return; }
         let config = {};
         try { const arr = window.normalizarArray(await apiGet('configuracoes')); config = arr[0] || {}; } catch (e) {}
-        const c = window.comandaAtual;
-        const doc = await window.impDocumento(tipo, c, config, { modoPix: 'impressao' });
+        const c = cDoc;
+        const doc = await window.impDocumento(tipo, c, config, Object.assign({ modoPix: extra.aberto ? 'forcar' : 'impressao' }, optsDoc));
         const html = window.impPagina(window.impHtml(doc, config), titulo + ' ' + c.numero);
         const janela = window.open('', '', 'width=420,height=700');
         janela.document.write(html);
@@ -1963,5 +1999,6 @@ if (!window.renderDetalheComanda) {
     }
     window.imprimirComandaAtual = function () { return imprimirDocumento('comanda', 'Comanda'); };
     window.imprimirReciboAtual = function () { return imprimirDocumento('recibo', 'Recibo'); };
+    window.imprimirReciboAberto = function () { return imprimirDocumento('recibo', 'Recibo (aguardando pagamento)', { aberto: true }); };
     window.imprimirCozinhaAtual = function () { return imprimirDocumento('cozinha', 'Cozinha'); };
 }

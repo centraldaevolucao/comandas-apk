@@ -65,6 +65,8 @@ if (!window.renderConfiguracoes) {
                 exibirPixRecibo: config.exibirPixRecibo === true,
                 pixQrImpressao: (config.pixQrImpressao !== undefined ? config.pixQrImpressao : config.exibirPixRecibo) === true,
                 pixQrWhatsapp: config.pixQrWhatsapp === true,
+                maqDadosPix: config.maqDadosPix !== false, maqDadosCredito: config.maqDadosCredito !== false, maqDadosDebito: config.maqDadosDebito !== false,
+                temMaquininha: (Array.isArray(config.maquininhas) && config.maquininhas.some(function (m) { return m && m.ativa !== false && m.provider && m.provider !== 'nenhuma'; })) || !!(config.maquininha && config.maquininha.provider && config.maquininha.provider !== 'nenhuma'),
                 pixQrComandaImp: (config.pixQrComandaImp !== undefined ? config.pixQrComandaImp : (config.pixQrImpressao !== undefined ? config.pixQrImpressao : config.exibirPixRecibo)) === true,
                 pixQrReciboImp: (config.pixQrReciboImp !== undefined ? config.pixQrReciboImp : (config.pixQrImpressao !== undefined ? config.pixQrImpressao : config.exibirPixRecibo)) === true,
                 pixQrComandaCompart: (config.pixQrComandaCompart !== undefined ? config.pixQrComandaCompart : config.pixQrWhatsapp) === true,
@@ -205,6 +207,16 @@ if (!window.renderConfiguracoes) {
             html += '        <i class="fas fa-credit-card" style="color:#C2185B;font-size:1.3rem;"></i>';
             html += '    </div>';
             html += '</div>';
+
+            if (c.temMaquininha) {
+                html += '<div class="card" style="background:#FCE4EC;border-radius:12px;padding:16px;margin-bottom:12px;">';
+                html += '    <div style="font-weight:700;font-size:1rem;margin-bottom:4px;">Dados do comprovante da maquininha</div>';
+                html += '    <div style="font-size:0.75rem;color:#666;margin-bottom:10px;">Ligado: ao receber, abre o registro (bandeira, NSU, autorização, final do cartão) com todos os campos opcionais. Desligado: só pergunta a maquininha e segue direto.</div>';
+                html += linhaTog('Pedir dados no PIX', 'Registro do comprovante ao receber em PIX', 'cfg-maq-pix', c.maqDadosPix);
+                html += linhaTog('Pedir dados no crédito', 'Registro do comprovante ao receber em crédito', 'cfg-maq-cre', c.maqDadosCredito);
+                html += linhaTog('Pedir dados no débito', 'Registro do comprovante ao receber em débito', 'cfg-maq-deb', c.maqDadosDebito);
+                html += '</div>';
+            }
 
             // ============ COLABORADOR PADRÃO ============
             html += '<div class="card" style="background:#FCE4EC;border-radius:12px;padding:16px;margin-bottom:12px;">';
@@ -526,6 +538,9 @@ if (!window.renderConfiguracoes) {
             config.minutosAlerta = parseInt(val('cfg-minutos-alerta')) || 45;
             config.tempoAlertaPedido = parseInt(val('cfg-tempo-pedido')) || 30;
 
+            config.maqDadosPix = document.getElementById('cfg-maq-pix') ? chk('cfg-maq-pix') : config.maqDadosPix !== false;
+            config.maqDadosCredito = document.getElementById('cfg-maq-cre') ? chk('cfg-maq-cre') : config.maqDadosCredito !== false;
+            config.maqDadosDebito = document.getElementById('cfg-maq-deb') ? chk('cfg-maq-deb') : config.maqDadosDebito !== false;
             config.pixQrComandaImp = chk('cfg-qr-cmd-imp');
             config.pixQrReciboImp = chk('cfg-qr-rec-imp');
             config.pixQrComandaCompart = chk('cfg-qr-cmd-wa');
