@@ -38,7 +38,7 @@ if (!window.renderConfiguracoes) {
                 comandasOrdemAlfabetica: config.comandasOrdemAlfabetica || false,
                 filtrarProdutosPorGrupo: config.filtrarProdutosPorGrupo || false,
                 imprimirPedidosAutomatico: config.imprimirPedidosAutomatico || false,
-                fonteImpressaoGrande: config.fonteImpressaoGrande || false,
+                fonteImpressaoGrande: config.fonteImpressaoGrande || false, impFonteTipo: config.impFonteTipo || '', impFonteTam: config.impFonteTam || 0,
                 nomeImpressao: config.nomeImpressao || 'Minha Empresa',
                 urlLogo: config.urlLogo || '',
                 urlIcone: config.urlIcone || '',   // (faltava: o ícone sumia ao reabrir a tela e era apagado no próximo salvamento)
@@ -115,10 +115,18 @@ if (!window.renderConfiguracoes) {
             html += '        <label class="toggle"><input type="checkbox" id="cfg-imp-auto" ' + (c.imprimirPedidosAutomatico ? 'checked' : '') + '><span class="slider"></span></label>';
             html += '    </div>';
 
-            html += '    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;border-bottom:1px solid #e0c8e8;padding-bottom:16px;margin-bottom:16px;">';
-            html += '        <div style="font-weight:600;font-size:0.95rem;">Fonte da impressão grande?</div>';
-            html += '        <label class="toggle"><input type="checkbox" id="cfg-fonte-grande" ' + (c.fonteImpressaoGrande ? 'checked' : '') + '><span class="slider"></span></label>';
-            html += '    </div>';
+            {
+                const F = window.impFonte(c);
+                html += '    <div style="border-bottom:1px solid #e0c8e8;padding-bottom:16px;margin-bottom:16px;">';
+                html += '        <div style="font-weight:600;font-size:0.95rem;margin-bottom:8px;">Fonte da impressão</div>';
+                html += '        <label style="display:block;font-size:0.75rem;color:#666;">Tipo de fonte</label>';
+                html += '        <select id="cfg-fonte-tipo" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:10px;font-size:1rem;background:#fff;">' + Object.keys(window.IMP_FONTES).map(function (k) { return '<option value="' + k + '"' + (F.tipo === k ? ' selected' : '') + '>' + window.IMP_FONTES[k].nome + '</option>'; }).join('') + '</select>';
+                html += '        <label style="display:block;font-size:0.75rem;color:#666;margin-top:10px;">Tamanho: <b id="cfg-fonte-tam-v">' + F.tam + '%</b></label>';
+                html += '        <input type="range" id="cfg-fonte-tam" min="80" max="160" step="5" value="' + F.tam + '" style="width:100%;">';
+                html += '        <div id="cfg-fonte-amostra" style="margin-top:8px;padding:8px;background:#fff;border-radius:8px;text-align:center;font-family:' + F.family + ';font-size:' + Math.round(14 * F.tam / 100) + 'px;">2x Pastel de carne ........ R$ 12,00</div>';
+                html += '        <div style="font-size:0.72rem;color:#777;margin-top:6px;line-height:1.3;">Vale para a tela, a impressão comum (A4/PDF) e a Bluetooth. Na impressora térmica a fonte é a da própria impressora: "Condensada" usa a fonte B (menor) e tamanho a partir de 120% usa letra de altura dupla.</div>';
+                html += '    </div>';
+            }
 
             const linhaTog = function (titulo, sub, id, val) {
                 return '    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;border-bottom:1px solid #e0c8e8;padding-bottom:14px;margin-bottom:14px;">' +
@@ -411,7 +419,10 @@ if (!window.renderConfiguracoes) {
 
             container.innerHTML = html;
             // Toggle/seleção de forma padrão: cada mudança é salva na hora
-            container.querySelectorAll('input[type="checkbox"], #cfg-forma-padrao').forEach(function (e) {
+            const atualizaAmostra = function () { const t = document.getElementById('cfg-fonte-tipo'), z = document.getElementById('cfg-fonte-tam'), a = document.getElementById('cfg-fonte-amostra'); if (!t || !z || !a) return; a.style.fontFamily = window.IMP_FONTES[t.value].css; a.style.fontSize = Math.round(14 * z.value / 100) + 'px'; document.getElementById('cfg-fonte-tam-v').textContent = z.value + '%'; };
+            const ft = document.getElementById('cfg-fonte-tipo'), fz = document.getElementById('cfg-fonte-tam');
+            if (ft) ft.addEventListener('input', atualizaAmostra); if (fz) fz.addEventListener('input', atualizaAmostra);
+            container.querySelectorAll('input[type="checkbox"], #cfg-forma-padrao, #cfg-fonte-tipo, #cfg-fonte-tam').forEach(function (e) {
                 e.addEventListener('change', function () { window.salvarConfiguracoes(true); });
             });
         } catch (e) {
@@ -485,7 +496,9 @@ if (!window.renderConfiguracoes) {
             config.comandasOrdemAlfabetica = chk('cfg-cmd-alfabetica');
             config.filtrarProdutosPorGrupo = chk('cfg-filtro-grupo');
             config.imprimirPedidosAutomatico = chk('cfg-imp-auto');
-            config.fonteImpressaoGrande = chk('cfg-fonte-grande');
+            config.impFonteTipo = val('cfg-fonte-tipo') || 'padrao';
+            config.impFonteTam = parseInt(val('cfg-fonte-tam'), 10) || 100;
+            config.fonteImpressaoGrande = false;
             config.nomeImpressao = (val('cfg-nome-impressao') || '').trim();
             const lerImg = function (chave, idCampo) {
                 const t = (val(idCampo) || '').trim();

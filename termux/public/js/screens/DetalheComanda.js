@@ -1802,7 +1802,7 @@ if (!window.renderDetalheComanda) {
             });
 
             htmlPreview = `
-                <div style="font-family:monospace; font-size:12px; padding:10px; max-width:300px; margin:0 auto; background:#fff; border:1px solid #ddd; border-radius:8px;">
+                <div style="font-family:${window.impFonte ? window.impFonte(config).family : 'monospace'}; font-size:${window.impFonte ? Math.round(12 * window.impFonte(config).tam / 100) : 12}px; padding:10px; max-width:300px; margin:0 auto; background:#fff; border:1px solid #ddd; border-radius:8px;">
                     ${logoHTML}
                     ${config.imprimirNome === false ? '' : '<div style="text-align:center; font-size:16px; font-weight:bold; margin-bottom:5px;">' + nomeEmpresa + '</div>'}
                     <div style="text-align:center; font-size:10px; margin-bottom:10px;">COMPROVANTE DE CONSUMO</div>
@@ -1856,7 +1856,7 @@ if (!window.renderDetalheComanda) {
         const blocoPixHTML = aberto ? window.blocoPixQR(config, window.pixValorPago(c), 'forcar', 'recibo') : window.blocoPixQR(config, window.pixValorPago(c), 'preview', 'recibo');
 
             htmlPreview = `
-                <div style="font-family:monospace; font-size:12px; padding:10px; max-width:300px; margin:0 auto; background:#fff; border:1px solid #ddd; border-radius:8px;">
+                <div style="font-family:${window.impFonte ? window.impFonte(config).family : 'monospace'}; font-size:${window.impFonte ? Math.round(12 * window.impFonte(config).tam / 100) : 12}px; padding:10px; max-width:300px; margin:0 auto; background:#fff; border:1px solid #ddd; border-radius:8px;">
                     ${logoHTML}
                     ${config.imprimirNome === false ? '' : '<div style="text-align:center; font-size:16px; font-weight:bold; margin-bottom:5px;">' + nomeEmpresa + '</div>'}
                     <div style="text-align:center; font-size:10px; margin-bottom:10px;">${aberto ? 'RECIBO EM ABERTO' : 'RECIBO DE PAGAMENTO'}</div>
@@ -2072,7 +2072,7 @@ if (!window.renderDetalheComanda) {
                 .total-box div { display: flex; justify-content: space-between; padding: 3px 0; font-size: 12px; color: #555; }
                 .total-box .total-final { font-size: 16px; font-weight: 800; color: #C2185B; margin-top: 8px; }
                 .footer { text-align: center; font-size: 11px; color: #888; margin-top: 20px; }
-            </style></head><body>
+            </style>${(window.impFonte ? '<style>' + window.impFonte(config).css + '</style>' : '')}</head><body>
                 <div class="header">
                     ${logoHTML}
                     ${config.imprimirNome === false ? '' : '<h2>' + nomeEmpresa + '</h2>'}
@@ -2161,7 +2161,7 @@ if (!window.renderDetalheComanda) {
                 .total-box div { display: flex; justify-content: space-between; padding: 3px 0; font-size: 12px; color: #555; }
                 .total-box .total-final { font-size: 16px; font-weight: 800; color: #C2185B; margin-top: 8px; }
                 .footer { text-align: center; font-size: 11px; color: #888; margin-top: 20px; }
-            </style></head><body>
+            </style>${(window.impFonte ? '<style>' + window.impFonte(config).css + '</style>' : '')}</head><body>
                 <div class="header">
                     ${logoHTML}
                     ${config.imprimirNome === false ? '' : '<h2>' + nomeEmpresa + '</h2>'}

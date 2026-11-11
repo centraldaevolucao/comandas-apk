@@ -749,3 +749,23 @@ window.telefoneWhatsApp = async function (c, perguntar) {
     if (tel && !tel.startsWith('55') && tel.length <= 11) tel = '55' + tel;
     return tel.length >= 12 ? tel : '';
 };
+
+
+// Fonte das impressões (tela, impressão comum e térmica Bluetooth)
+window.IMP_FONTES = {
+    padrao: { nome: 'Padrão (sem serifa)', css: "'Segoe UI',Tahoma,Geneva,Verdana,sans-serif" },
+    mono: { nome: 'Cupom (monoespaçada)', css: "'Courier New',Courier,monospace" },
+    serif: { nome: 'Serifada', css: "Georgia,'Times New Roman',serif" },
+    condensada: { nome: 'Condensada', css: "'Arial Narrow','Roboto Condensed',Arial,sans-serif" }
+};
+window.impFonte = function (config) {
+    config = config || {};
+    const tipo = window.IMP_FONTES[config.impFonteTipo] ? config.impFonteTipo : 'padrao';
+    let tam = parseInt(config.impFonteTam, 10);
+    if (!(tam >= 70 && tam <= 200)) tam = config.fonteImpressaoGrande ? 125 : 100;   // compatível com o antigo "fonte grande"
+    const k = tam / 100;
+    return { tipo: tipo, tam: tam, family: window.IMP_FONTES[tipo].css,
+        // CSS para o <body> de uma página de impressão de 300px: aumenta o texto e mantém a largura do papel
+        css: 'body{font-family:' + window.IMP_FONTES[tipo].css + ' !important;zoom:' + k + ';max-width:' + Math.round(300 / k) + 'px !important;}',
+        escAlto: tam >= 120, escFonteB: tipo === 'condensada' };
+};

@@ -52,7 +52,7 @@ console.log('✔ bluetooth.js carregado');
                 o = o.concat([0x0A]);
                 return;
             }
-            o = o.concat([0x1B, 0x61, l.c ? 1 : 0, 0x1B, 0x45, l.b ? 1 : 0, 0x1D, 0x21, l.g ? 0x11 : 0x00]);
+            o = o.concat([0x1B, 0x61, l.c ? 1 : 0, 0x1B, 0x45, l.b ? 1 : 0, 0x1B, 0x4D, l.f ? 1 : 0, 0x1D, 0x21, l.g ? 0x11 : (l.z ? 0x01 : 0x00)]);
             o = o.concat(paraBytes(l.t, acentos)).concat([0x0A]);
         });
         o = o.concat([0x1B, 0x61, 0, 0x1B, 0x45, 0, 0x1D, 0x21, 0, 0x0A, 0x0A, 0x0A, 0x1D, 0x56, 0x41, 0x10]);   // avanço + corte
@@ -148,6 +148,8 @@ console.log('✔ bluetooth.js carregado');
             if (config.pixChave && !qrImp && pixVal > 0.004) L.push({ t: 'PIX: ' + (window.pixFormatarChave ? window.pixFormatarChave(config.pixTipo, config.pixChave) : config.pixChave), c: 1 });
             L.push({ t: 'Obrigado pela preferencia!', c: 1 });
         }
+        const F = window.impFonte ? window.impFonte(config) : null;
+        if (F && (F.escAlto || F.escFonteB)) L.forEach(function (l) { if (l.t !== undefined) { if (F.escAlto) l.z = 1; if (F.escFonteB) l.f = 1; } });
         return L;
     };
 

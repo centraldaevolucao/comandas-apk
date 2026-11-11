@@ -278,3 +278,9 @@ Obs.: itens alterados depois de gerar o recibo em aberto não atualizam o valor 
 - **Cielo LIO:** passo a passo + botão **"Verificar"** (Client ID, Access Token e se está no aplicativo Android da LIO).
 - Ambas têm **"Testar cobrança de R$ 1,00"** (cobra de verdade, com confirmação; estorne depois).
 - **Testado:** Mercado Pago contra uma API simulada (token inválido, válido, modo STANDALONE → PDV). **Não testado:** contas e maquininhas reais Mercado Pago/Cielo; o retorno da Cielo LIO só se confirma na própria LIO.
+
+## 39. v2.19.2 — Fonte das impressões
+- **Configurações › Fonte da impressão** (substitui o toggle "Fonte grande"): **tipo** (Padrão, Cupom/monoespaçada, Serifada, Condensada) e **tamanho** de 80% a 160%, com amostra ao vivo; salva na hora. Vale para a tela, a impressão comum e a Bluetooth. Quem usava "fonte grande" passa a ter 125%.
+- **Térmica Bluetooth:** usa as fontes da própria impressora — "Condensada" usa a fonte B (menor) e tamanho a partir de 120% usa letra de altura dupla (a largura de 32 colunas é mantida). O título continua grande.
+- Testado no navegador (salvar, amostra, conversão do "fonte grande", linhas da térmica). Impressão real não testada.
+- A área de **layout de impressão** foi apenas desenhada (proposta); não implementada.
