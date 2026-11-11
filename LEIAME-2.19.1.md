@@ -272,3 +272,9 @@ Obs.: itens alterados depois de gerar o recibo em aberto não atualizam o valor 
 - **Abertura animada:** barras crescendo com seta de crescimento, nome "Restaurante-app" e o slogan **"Aqui seu empreendimento cresce"** (escrevi "seu"; se o texto certo for outro, é `js/../index.html` e `assets/splash.html`). No Android a animação aparece já enquanto o servidor inicia. Dentro da mesma sessão ela não repete.
 - **Antes (2.18.5):** toggles das Configurações salvam na hora; forma de pagamento padrão aplicada (2.18.4).
 - **Testado (navegador):** lista/filtros de colaboradores, salvar função e nível, perfis e telas por nível, diálogo de função (com e sem treinamento), exigir login, toggles de QR/nome/logo, splash. **Não testado:** Java/Android (hotspot, splash nativa), login de administrador no cliente em rede real.
+
+## 38. v2.19.1 — Maquininhas Mercado Pago e Cielo LIO: passo a passo e testes
+- **Mercado Pago Point:** o cadastro agora mostra o passo a passo (criar aplicação no Mercado Pago Developers, token de PRODUÇÃO, buscar maquininhas, escolher o ID). Botão **"Testar conexão (não cobra)"** confere: token válido (mostra a conta), maquininhas da conta, se o ID existe nela e se está em **modo PDV**. Se não estiver, o link **"Ativar modo PDV"** pede a troca pela API (reinicie a Point depois). O teste usa o token digitado, sem precisar salvar antes.
+- **Cielo LIO:** passo a passo + botão **"Verificar"** (Client ID, Access Token e se está no aplicativo Android da LIO).
+- Ambas têm **"Testar cobrança de R$ 1,00"** (cobra de verdade, com confirmação; estorne depois).
+- **Testado:** Mercado Pago contra uma API simulada (token inválido, válido, modo STANDALONE → PDV). **Não testado:** contas e maquininhas reais Mercado Pago/Cielo; o retorno da Cielo LIO só se confirma na própria LIO.

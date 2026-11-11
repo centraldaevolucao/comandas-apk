@@ -14,7 +14,7 @@ DB_PATH = DATA_DIR / "database.sqlite"
 HOST, PORT = os.getenv("HOST", "0.0.0.0"), int(os.getenv("PORT", "3000"))
 MAX_BODY = 10 * 1024 * 1024
 DB_LOCK = threading.RLock()
-VERSAO_SERVIDOR = "2.19.0"
+VERSAO_SERVIDOR = "2.19.1"
 INICIO = time.time()
 # Tempo real: cada gravação aumenta REV e acorda quem está ouvindo /api/eventos (SSE)
 REV = {"n": 0, "ultimo": ""}
@@ -165,10 +165,10 @@ def maq_config(maq_id=None):
         return lista[0] if isinstance(lista[0], dict) else {}
     return cfg.get("maquininha") or {}
 
-def mp_chamar(metodo, caminho, corpo=None, maq_id=None):
+def mp_chamar(metodo, caminho, corpo=None, maq_id=None, token=None):
     import ssl, urllib.request, urllib.error
     m = maq_config(maq_id)
-    token = (m.get("mpToken") or "").strip()
+    token = (token or m.get("mpToken") or "").strip()
     if not token:
         return 400, {"error": "Informe o Access Token do Mercado Pago em Configurações › Maquininha."}
     dados = json.dumps(corpo).encode("utf-8") if corpo is not None else None
@@ -353,6 +353,41 @@ class Handler(BaseHTTPRequestHandler):
                 from urllib.parse import unquote
                 maq_id = unquote(kv[4:])
         dev = (corpo.get("deviceId") or maq_config(maq_id).get("mpDeviceId") or "").strip()
+        if sub == "testar" and self.command == "POST":      # diagnóstico sem cobrar nada
+            tk = str(corpo.get("token") or "").strip()
+            if not tk:
+                return self.send_json(200, {"ok": False, "passos": [{"ok": False, "t": "Access Token", "d": "Cole o Access Token de produção."}]})
+            passos = []
+            st, u = mp_chamar("GET", "/users/me", token=tk)
+            if st != 200:
+                passos.append({"ok": False, "t": "Access Token", "d": "Token recusado pelo Mercado Pago (HTTP %s). Use o token de PRODUÇÃO da sua aplicação, copiado inteiro, sem espaços." % st if st in (401, 403) else (u.get("error") or u.get("message") or "Erro HTTP %s" % st)})
+                return self.send_json(200, {"ok": False, "passos": passos})
+            passos.append({"ok": True, "t": "Access Token", "d": "Válido. Conta: %s %s" % (u.get("nickname") or u.get("first_name") or "", ("(" + str(u.get("email")) + ")") if u.get("email") else "")})
+            st, dv = mp_chamar("GET", "/point/integration-api/devices?offset=0&limit=50", token=tk)
+            if st != 200:
+                passos.append({"ok": False, "t": "Maquininhas da conta", "d": "Não consegui listar (HTTP %s). A conta precisa ter uma maquininha Point e a aplicação precisa estar com o produto Point habilitado." % st})
+                return self.send_json(200, {"ok": False, "passos": passos})
+            lista = [{"id": d.get("id"), "modo": d.get("operating_mode")} for d in (dv.get("devices") or []) if isinstance(d, dict)]
+            passos.append({"ok": bool(lista), "t": "Maquininhas da conta", "d": ("%d encontrada(s): " % len(lista) + ", ".join("%s (%s)" % (d["id"], d["modo"]) for d in lista)) if lista else "Nenhuma maquininha Point vinculada a esta conta."})
+            alvo = str(corpo.get("deviceId") or "").strip()
+            ok = bool(lista) and bool(alvo)
+            if not alvo:
+                passos.append({"ok": False, "t": "ID da maquininha", "d": "Informe o ID (toque em \"Buscar maquininhas da conta\")."})
+            else:
+                d = next((x for x in lista if x["id"] == alvo), None)
+                if not d:
+                    ok = False; passos.append({"ok": False, "t": "ID da maquininha", "d": "Este ID não está nesta conta."})
+                elif d["modo"] != "PDV":
+                    ok = False; passos.append({"ok": False, "t": "Modo PDV", "d": "A maquininha está em modo %s. Toque em \"Ativar modo PDV\" (e reinicie a Point)." % d["modo"], "pdv": True})
+                else:
+                    passos.append({"ok": True, "t": "Modo PDV", "d": "Pronta para receber cobranças do app."})
+            return self.send_json(200, {"ok": ok, "passos": passos})
+        if sub == "pdv" and self.command == "POST":
+            tk = str(corpo.get("token") or "").strip(); alvo = str(corpo.get("deviceId") or "").strip()
+            if not tk or not alvo or not all(ch.isalnum() or ch in "-_" for ch in alvo):
+                return self.send_json(400, {"error": "Informe o token e o ID da maquininha."})
+            st, r = mp_chamar("PATCH", "/point/integration-api/devices/" + alvo, {"operating_mode": "PDV"}, token=tk)
+            return self.send_json(st, r)
         if sub == "devices" and self.command == "GET":
             st, r = mp_chamar("GET", "/point/integration-api/devices?offset=0&limit=50", maq_id=maq_id)
             return self.send_json(st, r)

@@ -261,8 +261,8 @@
     const AJ = {
         nenhuma: 'Só identifica em qual maquininha o valor foi recebido (sem cobrança automática).',
         manual: 'Funciona com qualquer maquininha (PagBank, Rede, GetNet…): ao receber, informa NSU, autorização e bandeira do comprovante.',
-        mercadopago: 'Requer maquininha Point em modo PDV, com o Access Token da sua conta. Precisa de internet. O token fica gravado neste aparelho.',
-        cielolio: 'Somente no Android da própria Cielo LIO, com credenciais do Cielo Developers.',
+        mercadopago: 'Passo a passo:\n1) No site Mercado Pago Developers, crie uma aplicação (produto Point / pagamentos presenciais) e copie o Access Token de PRODUÇÃO.\n2) Cole o token abaixo e toque em "Buscar maquininhas da conta"; toque no ID da sua Point.\n3) Toque em "Testar conexão" (não cobra nada). Se aparecer que não está em modo PDV, toque em "Ativar modo PDV" e reinicie a Point.\nPrecisa de internet no aparelho servidor. O token fica gravado só neste aparelho.',
+        cielolio: 'Passo a passo:\n1) No Cielo Developers, cadastre-se como desenvolvedor e obtenha o Client ID e o Access Token (LIO).\n2) Instale e abra o Comandas na própria Cielo LIO.\n3) Cole os dados abaixo, toque em "Verificar" e depois em "Testar cobrança de R$ 1,00" (cobra de verdade: faça com um cartão seu e cancele/estorne depois).\nEste modo só funciona no Android da LIO.',
         stone: 'Somente no Android com o aplicativo Stone instalado. Formato do link a confirmar com o suporte Stone.',
         sumup: 'Somente no Android com o app SumUp instalado e Affiliate Key.',
         simulado: 'Aprova automaticamente após 2 segundos. Apenas para testar o fluxo; não cobra nada.'
@@ -275,10 +275,14 @@
             const ov = overlay(topo(m0 && m0.id ? 'Editar maquininha' : 'Nova maquininha') +
                 '<div style="padding:14px 16px;overflow-y:auto;">' + campo('mq-nome', 'Nome da maquininha', m.nome, 'text', 'Ex.: Caixa 1, Balcão, Mercado Pago') +
                 '<label style="display:block;font-size:.8rem;color:#666;margin-top:10px;">Provedor</label><select id="mq-prov" style="width:100%;padding:11px;border:2px solid #ddd;border-radius:10px;font-size:1rem;">' + ops + '</select>' +
-                '<div id="mq-ajuda" style="font-size:.8rem;color:#777;margin-top:8px;line-height:1.35;"></div>' +
+                '<div id="mq-ajuda" style="font-size:.8rem;color:#777;margin-top:8px;line-height:1.35;white-space:pre-line;"></div>' +
                 '<div id="mq-mp" style="display:none;">' + campo('mq-mptoken', 'Access Token (Mercado Pago)', m.mpToken, 'password') + campo('mq-mpdev', 'ID da maquininha (Point)', m.mpDeviceId, 'text') +
-                '<button id="mq-buscar" class="btn-outline" style="width:100%;margin-top:8px;">Buscar maquininhas da conta</button><div id="mq-devs" style="font-size:.85rem;margin-top:6px;"></div></div>' +
-                '<div id="mq-lio" style="display:none;">' + campo('mq-lioclient', 'Client ID (Cielo LIO)', m.lioClient) + campo('mq-liotoken', 'Access Token (Cielo LIO)', m.lioToken, 'password') + '</div>' +
+                '<button id="mq-buscar" class="btn-outline" style="width:100%;margin-top:8px;">Buscar maquininhas da conta</button><div id="mq-devs" style="font-size:.85rem;margin-top:6px;"></div>' +
+                '<button id="mq-testar" class="btn-primary" style="width:100%;margin-top:8px;">Testar conexão (não cobra)</button><div id="mq-diag" style="font-size:.85rem;margin-top:6px;line-height:1.4;"></div>' +
+                '<button id="mq-cobt-mp" class="btn-outline" style="width:100%;margin-top:8px;">Testar cobrança de R$ 1,00 (cobra de verdade)</button></div>' +
+                '<div id="mq-lio" style="display:none;">' + campo('mq-lioclient', 'Client ID (Cielo LIO)', m.lioClient) + campo('mq-liotoken', 'Access Token (Cielo LIO)', m.lioToken, 'password') +
+                '<button id="mq-lio-ver" class="btn-primary" style="width:100%;margin-top:8px;">Verificar</button><div id="mq-lio-diag" style="font-size:.85rem;margin-top:6px;line-height:1.4;"></div>' +
+                '<button id="mq-cobt-lio" class="btn-outline" style="width:100%;margin-top:8px;">Testar cobrança de R$ 1,00 (cobra de verdade)</button></div>' +
                 '<div id="mq-sum" style="display:none;">' + campo('mq-sumkey', 'Affiliate Key (SumUp)', m.sumupKey, 'password') + '</div>' +
                 '</div><div style="display:flex;gap:10px;padding:0 16px 16px;"><button data-can class="btn-outline" style="flex:1;">Cancelar</button><button data-ok class="btn-primary" style="flex:1;">Salvar</button></div>');
             const sel = ov.querySelector('#mq-prov');
@@ -300,6 +304,27 @@
                     box.querySelectorAll('a').forEach(function (a) { a.onclick = function (e) { e.preventDefault(); ov.querySelector('#mq-mpdev').value = a.dataset.id; }; });
                 } catch (e) { box.textContent = 'Erro: ' + e.message; }
             };
+            const pintar = function (box, passos) { box.innerHTML = passos.map(function (x) { return '<div style="color:' + (x.ok ? '#2e7d32' : '#c62828') + ';">' + (x.ok ? '✔ ' : '✖ ') + '<b>' + esc(x.t) + ':</b> ' + esc(x.d) + (x.pdv ? ' <a href="#" data-pdv style="color:' + COR + ';">Ativar modo PDV</a>' : '') + '</div>'; }).join(''); const a = box.querySelector('[data-pdv]'); if (a) a.onclick = async function (e) { e.preventDefault(); try { await mp('POST', 'pdv', { token: val('mq-mptoken'), deviceId: val('mq-mpdev') }); box.insertAdjacentHTML('beforeend', '<div>Modo PDV solicitado. Reinicie a Point e teste de novo.</div>'); } catch (er) { box.insertAdjacentHTML('beforeend', '<div style="color:#c62828;">' + esc(er.message) + '</div>'); } }; };
+            ov.querySelector('#mq-testar').onclick = async function () {
+                const box = ov.querySelector('#mq-diag'); box.textContent = 'Testando…';
+                try { const j = await mp('POST', 'testar', { token: val('mq-mptoken'), deviceId: val('mq-mpdev') }); pintar(box, j.passos || []); if (j.ok) box.insertAdjacentHTML('beforeend', '<div style="color:#2e7d32;margin-top:4px;"><b>Tudo certo. Salve a maquininha.</b></div>'); } catch (e) { box.textContent = 'Erro: ' + e.message; }
+            };
+            ov.querySelector('#mq-lio-ver').onclick = function () {
+                const p = [], cid = val('mq-lioclient'), tk = val('mq-liotoken'), ok = !!(window.AndroidApp && window.AndroidApp.abrirDeeplinkPagamento);
+                p.push({ ok: !!cid, t: 'Client ID', d: cid ? 'Preenchido.' : 'Falta preencher.' }); p.push({ ok: !!tk, t: 'Access Token', d: tk ? 'Preenchido.' : 'Falta preencher.' });
+                p.push({ ok: ok, t: 'Aparelho', d: ok ? 'Aplicativo Android: pode abrir a tela de pagamento da LIO.' : 'Aqui não é o aplicativo Android. Faça isto no app instalado na LIO.' });
+                pintar(ov.querySelector('#mq-lio-diag'), p);
+            };
+            const testarCobranca = async function () {
+                if (!await window.confirmar('Isto fará uma cobrança REAL de R$ 1,00 (débito). Use um cartão seu e depois estorne/cancele na operadora. Continuar?', { perigo: true, ok: 'Cobrar R$ 1,00' })) return;
+                const nova = montar(); m.id = nova.id;
+                const lista = await window.maquininhasLista(); const k = lista.findIndex(function (x) { return x.id === nova.id; });
+                if (k >= 0) lista[k] = nova; else lista.push(nova);
+                await salvarLista(lista);
+                const r = await window.maquininhaCobrar({ valor: 1, forma: 'debito', descricao: 'Teste de conexão', ref: 'TESTE', maquina: nova });
+                await window.avisar(r && r.ok ? 'Aprovado. NSU ' + (r.nsu || '-') + ' · ' + (r.bandeira || '') + '. Lembre de estornar o R$ 1,00.' : 'Não concluído.');
+            };
+            ov.querySelector('#mq-cobt-mp').onclick = testarCobranca; ov.querySelector('#mq-cobt-lio').onclick = testarCobranca;
             ov.querySelector('[data-ok]').onclick = function () { const r = montar(); ov.remove(); resolve(r); };
             ov.querySelector('[data-can]').onclick = function () { ov.remove(); resolve(null); };
         });
