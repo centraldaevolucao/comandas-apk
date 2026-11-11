@@ -284,3 +284,11 @@ Obs.: itens alterados depois de gerar o recibo em aberto não atualizam o valor 
 - **Térmica Bluetooth:** usa as fontes da própria impressora — "Condensada" usa a fonte B (menor) e tamanho a partir de 120% usa letra de altura dupla (a largura de 32 colunas é mantida). O título continua grande.
 - Testado no navegador (salvar, amostra, conversão do "fonte grande", linhas da térmica). Impressão real não testada.
 - A área de **layout de impressão** foi apenas desenhada (proposta); não implementada.
+
+## 40. v2.20.0 — Layout de impressão configurável
+- **Configurações › Layout de impressão**: edita **Comanda**, **Recibo** e **Cozinha** (nova via da cozinha, sem preços, com observação dos itens). Papel: **Térmica 58 mm** (32 colunas), **80 mm** (48) ou **A4**.
+- **Blocos** que podem ser ligados/desligados e reordenados (▲ ▼): logo (com tamanho), nome (alinhar E/C/D), título (texto editável), faixa de cor do caixa, Comanda/Mesa/Data, cliente e garçom, itens, totais (e pagamentos no recibo), pendências, QR Code PIX, assinatura, mensagem final (texto editável) e **linhas de texto livre** (Instagram, Wi-Fi, horário…). Também: tipo de linha separadora (tracejada, sólida, pontos) e margem lateral (vale para tela/impressão comum).
+- A **pré-visualização** muda a cada ajuste (exemplo fictício). Tudo salva sozinho; "Restaurar layout padrão" volta ao original.
+- O mesmo layout vale para **tela, impressão comum, imagem do WhatsApp e Bluetooth**. Na Bluetooth o logo sai como imagem (se o endereço do logo bloquear a leitura, ele é omitido) e o QR é nativo. A **via da cozinha** é impressa por um botão no preview da comanda.
+- Os modelos antigos (cabeçalho colorido) foram substituídos por este estilo de cupom. Padrão: 58 mm, como a Bluetooth já era.
+- Testado no navegador (editor, ordem, ligar/desligar, texto livre, salvar, preview, linhas Bluetooth 58/80 e cozinha). **Não testado:** impressora real, logo na térmica, A4 em papel.

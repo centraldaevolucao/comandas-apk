@@ -1794,95 +1794,10 @@ if (!window.renderDetalheComanda) {
 
         let tituloModal = tipo === 'comanda' ? 'Comanda' : 'Recibo';
         let htmlPreview = '';
-
-        if (tipo === 'comanda') {
-            let itensHTML = '';
-            window.normalizarArray(c.itens).forEach(i => {
-                itensHTML += '<div style="display:flex; justify-content:space-between; padding:3px 0; font-size:12px;"><span>' + i.quantidade + 'x ' + i.nome + '</span><span>' + formatMoney(i.preco * i.quantidade) + '</span></div>';
-            });
-
-            htmlPreview = `
-                <div style="font-family:${window.impFonte ? window.impFonte(config).family : 'monospace'}; font-size:${window.impFonte ? Math.round(12 * window.impFonte(config).tam / 100) : 12}px; padding:10px; max-width:300px; margin:0 auto; background:#fff; border:1px solid #ddd; border-radius:8px;">
-                    ${logoHTML}
-                    ${config.imprimirNome === false ? '' : '<div style="text-align:center; font-size:16px; font-weight:bold; margin-bottom:5px;">' + nomeEmpresa + '</div>'}
-                    <div style="text-align:center; font-size:10px; margin-bottom:10px;">COMPROVANTE DE CONSUMO</div>
-                    ${faixaCorPreview}
-                    <hr style="border:none; border-top:1px dashed #000; margin:10px 0;">
-                    <div style="display:flex; justify-content:space-between; padding:3px 0;"><span>Comanda: ${c.numero}</span><span>Mesa: ${formatarMesa(c.mesa)}</span></div>
-                    <div style="display:flex; justify-content:space-between; padding:3px 0;"><span>Data: ${c.dataAbertura}</span></div>
-                    <div style="display:flex; justify-content:space-between; padding:3px 0;"><span>Cliente: ${c.cliente || '—'}</span></div>
-                    <hr style="border:none; border-top:1px dashed #000; margin:10px 0;">
-                    ${itensHTML}
-                    <hr style="border:none; border-top:1px dashed #000; margin:10px 0;">
-                    <div style="display:flex; justify-content:space-between; padding:3px 0;"><span>Subtotal:</span><span>${formatMoney(totais.subtotal)}</span></div>
-                    ${totais.desconto > 0 ? `<div style="display:flex; justify-content:space-between; padding:3px 0;"><span>Desconto:</span><span>-${formatMoney(totais.desconto)}</span></div>` : ''}
-                    <div style="display:flex; justify-content:space-between; font-size:14px; font-weight:bold; margin-top:10px;"><span>TOTAL:</span><span>${formatMoney(totais.total)}</span></div>
-                    ${window.blocoPixQR(config, window.pixValorPago(c), 'preview', 'comanda')}
-                    <hr style="border:none; border-top:1px dashed #000; margin:10px 0;">
-                    <div style="text-align:center; font-size:10px;">Obrigado pela preferência!</div>
-                </div>
-            `;
-        } else {
-            let pagamentosHTML = '';
-            window.normalizarArray(c.pagamentos).forEach(p => {
-                pagamentosHTML += '<div style="display:flex; justify-content:space-between; padding:3px 0; font-size:12px;"><span>' + nomeFormaPagamento(p.forma) + '</span><span>' + formatMoney(p.valor) + '</span></div>' + (window.maquininhaTexto && p.maquininha && window.maquininhaTexto(p.maquininha) ? '<div style="font-size:10px;color:#555;">' + window.maquininhaTexto(p.maquininha) + '</div>' : '');
-            });
-
-            let itensHTML = '';
-            let totalItensCount = 0;
-            window.normalizarArray(c.itens).forEach(i => {
-                const qtd = Number(i.quantidade);
-                const sub = Number(i.preco) * qtd;
-                totalItensCount += qtd;
-                itensHTML += `
-                    <div style="margin-bottom: 4px;">
-                        <div style="display:flex; justify-content:space-between; font-weight:bold; font-size:12px;">
-                            <span>${qtd}x ${i.nome}</span>
-                            <span>${formatMoney(sub)}</span>
-                        </div>
-                        <div style="font-size: 9px; color: #555; padding-left: 10px;">- Unit: ${formatMoney(i.preco)}</div>
-                    </div>
-                `;
-            });
-
-            const pa2 = await window.pendenciasAnteriores(window.comandaAtual);
-        const atualPend = aberto ? ((window.recebimentoAtual || {}).fiado ? Number((window.recebimentoAtual || {}).falta || 0) : 0) : Number(c.pagamentoPendente ? (c.valorPendente || 0) : 0);
-        const blocoPendHTML = (pa2.valor > 0 || atualPend > 0)
-            ? '<hr style="border:none; border-top:1px dashed #000; margin:10px 0;">' +
-              '<div style="display:flex; justify-content:space-between; padding:2px 0;"><span>Pendências anteriores:</span><span>' + formatMoney(pa2.valor) + '</span></div>' +
-              '<div style="display:flex; justify-content:space-between; padding:2px 0;"><span>Pendente desta comanda:</span><span>' + formatMoney(atualPend) + '</span></div>' +
-              '<div style="display:flex; justify-content:space-between; font-weight:bold; padding:2px 0;"><span>TOTAL GERAL PENDENTE:</span><span>' + formatMoney(pa2.valor + atualPend) + '</span></div>'
-            : '';
-        const blocoPixHTML = aberto ? window.blocoPixQR(config, window.pixValorPago(c), 'forcar', 'recibo') : window.blocoPixQR(config, window.pixValorPago(c), 'preview', 'recibo');
-
-            htmlPreview = `
-                <div style="font-family:${window.impFonte ? window.impFonte(config).family : 'monospace'}; font-size:${window.impFonte ? Math.round(12 * window.impFonte(config).tam / 100) : 12}px; padding:10px; max-width:300px; margin:0 auto; background:#fff; border:1px solid #ddd; border-radius:8px;">
-                    ${logoHTML}
-                    ${config.imprimirNome === false ? '' : '<div style="text-align:center; font-size:16px; font-weight:bold; margin-bottom:5px;">' + nomeEmpresa + '</div>'}
-                    <div style="text-align:center; font-size:10px; margin-bottom:10px;">${aberto ? 'RECIBO EM ABERTO' : 'RECIBO DE PAGAMENTO'}</div>
-                    <div style="text-align:center;font-weight:bold;font-size:12px;margin:0 0 6px;padding:4px;border-radius:4px;${aberto ? 'background:#fff3e0;color:#e65100;' : (c.pagamentoPendente ? 'background:#fff3e0;color:#e65100;' : 'background:#e8f5e9;color:#2e7d32;')}">${aberto ? '⏳ AGUARDANDO PAGAMENTO' : (c.pagamentoPendente ? '⚠ PENDENTE (FIADO): ' + formatMoney(c.valorPendente || 0) : '✔ PAGO')}</div>
-                    ${faixaCorPreview}
-                    <hr style="border:none; border-top:1px dashed #000; margin:10px 0;">
-                    <div style="display:flex; justify-content:space-between; padding:3px 0;"><span>Comanda: ${c.numero}</span><span>Mesa: ${formatarMesa(c.mesa)}</span></div>
-                    <div style="display:flex; justify-content:space-between; padding:3px 0;"><span>Data: ${c.dataFechamento || new Date().toLocaleString('pt-BR')}</span></div>
-                    <div style="display:flex; justify-content:space-between; padding:3px 0;"><span>Cliente: ${c.cliente || '—'}</span></div>
-                    <hr style="border:none; border-top:1px dashed #000; margin:10px 0;">
-                    <div style="font-weight:bold; text-transform:uppercase; font-size:11px; margin-bottom:5px;">ITENS CONSUMIDOS (${totalItensCount}):</div>
-                    ${itensHTML}
-                    <hr style="border:none; border-top:1px dashed #000; margin:10px 0;">
-                    <div style="display:flex; justify-content:space-between; padding:3px 0;"><span>Subtotal:</span><span>${formatMoney(totais.subtotal)}</span></div>
-                    ${totais.desconto > 0 ? `<div style="display:flex; justify-content:space-between; padding:3px 0;"><span>Desconto:</span><span>-${formatMoney(totais.desconto)}</span></div>` : ''}
-                    <div style="display:flex; justify-content:space-between; font-size:14px; font-weight:bold; margin-top:10px;"><span>TOTAL:</span><span>${formatMoney(totais.total)}</span></div>
-                    <hr style="border:none; border-top:1px dashed #000; margin:10px 0;">
-                    <div style="font-weight:bold; text-transform:uppercase; font-size:11px; margin-bottom:5px;">FORMA DE PAGAMENTO:</div>
-                    ${pagamentosHTML || '<div style="text-align:center;">Nenhum pagamento registrado.</div>'}
-                    ${c.troco > 0 ? `<div style="display:flex; justify-content:space-between; padding:3px 0;"><span>Troco:</span><span>${formatMoney(c.troco)}</span></div>` : ''}
-                    ${blocoPendHTML}
-                    ${blocoPixHTML}
-                    <hr style="border:none; border-top:1px dashed #000; margin:10px 0;">
-                    <div style="text-align:center; font-size:10px;">Assinatura: ________________________</div>
-                </div>
-            `;
+        {
+            const atualPendPrev = aberto ? ((window.recebimentoAtual || {}).fiado ? Number((window.recebimentoAtual || {}).falta || 0) : 0) : undefined;
+            const doc = await window.impDocumento(tipo === 'recibo' ? 'recibo' : 'comanda', c, config, { aberto: aberto, modoPix: aberto ? 'forcar' : 'preview', atualPend: atualPendPrev });
+            htmlPreview = window.impHtml(doc, config);
         }
 
         const anterior = document.getElementById('modal-preview-impressao');
@@ -1915,6 +1830,7 @@ if (!window.renderDetalheComanda) {
             '    </div>' +
             '    <div class="modal-body" style="padding:20px; overflow-y:auto; max-height:70vh;">' +
                      '<div id="preview-captura" style="background:#fff;">' + htmlPreview + '</div>' +
+                     (tipo === 'comanda' && !aberto ? '<button class="btn-outline" style="width:100%;margin-top:10px;" onclick="fecharPreviewImpressao();imprimirCozinhaAtual()"><i class="fas fa-utensils"></i> Imprimir via da cozinha</button>' : '') +
             '    </div>' +
             '    <div style="padding:15px; background:#fff; border-top:1px solid #ddd; display:flex; gap:8px; border-radius:0 0 12px 12px;">' +
             '        <button class="btn-primary" style="flex:1; background:#1976d2; font-size:0.9rem; padding:12px;" onclick="executarImpressao(\'' + tipo + '\')"><i class="fas fa-print"></i> Imprimir</button>' +
@@ -2033,170 +1949,19 @@ if (!window.renderDetalheComanda) {
         if (!(c && c.aguardandoRecebimento)) fecharPreviewImpressao();   // recibo em aberto continua na tela
     };
 
-    window.imprimirComandaAtual = async function () {
+    async function imprimirDocumento(tipo, titulo) {
         if (!window.comandaAtual) return;
-        if (window.btTentarImprimir && await window.btTentarImprimir('comanda')) { fecharPreviewImpressao(); return; }
+        if (window.btTentarImprimir && await window.btTentarImprimir(tipo)) { fecharPreviewImpressao(); return; }
         let config = {};
         try { const arr = window.normalizarArray(await apiGet('configuracoes')); config = arr[0] || {}; } catch (e) {}
-
-        const nomeEmpresa = config.nomeImpressao || 'App Restaurante';
-        const urlLogo = config.imprimirLogo === false ? '' : (config.urlLogo || '');
         const c = window.comandaAtual;
-        const totais = calcularTotais(c);
-        const corCaixa = await window.obterCorCaixaDaComanda(c);
-        const faixaCorHTML = montarFaixaCorCaixa(corCaixa);
-
-        const logoHTML = urlLogo 
-            ? `<img src="${urlLogo}" style="max-height: 50px; max-width: 100%; display: block; margin: 0 auto 5px auto;">` 
-            : '';
-
-        let itensHTML = '';
-        window.normalizarArray(c.itens).forEach(i => {
-            itensHTML += '<div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom: 1px dashed #eee; font-size: 12px;"><span style="font-weight:600;">' + i.quantidade + 'x ' + i.nome + '</span><span>' + formatMoney(i.preco * i.quantidade) + '</span></div>';
-        });
-
-        const html = `
-            <html><head><title>Comanda ${c.numero}</title>
-            <style>
-                @page { margin: 0; }
-                body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-size: 12px; padding: 0; max-width: 300px; margin: 0 auto; color: #333; background: #fff; }
-                .header { background: #C2185B; color: #fff; padding: 15px; text-align: center; border-radius: 0 0 10px 10px; margin-bottom: 8px; }
-                .header h2 { margin: 0; font-size: 18px; font-weight: 800; text-transform: uppercase; }
-                .header p { margin: 4px 0 0 0; font-size: 10px; opacity: 0.9; }
-                .faixa-cor-caixa { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-                .info-box { background: #f9f9f9; border-radius: 8px; padding: 10px; margin-bottom: 15px; border: 1px solid #eee; font-size: 11px; }
-                .info-box div { display: flex; justify-content: space-between; margin-bottom: 4px; }
-                .info-box div:last-child { margin-bottom: 0; }
-                .section-title { font-weight: 700; font-size: 12px; color: #C2185B; margin-bottom: 5px; text-transform: uppercase; }
-                .total-box { margin-top: 15px; border-top: 2px solid #eee; padding-top: 10px; }
-                .total-box div { display: flex; justify-content: space-between; padding: 3px 0; font-size: 12px; color: #555; }
-                .total-box .total-final { font-size: 16px; font-weight: 800; color: #C2185B; margin-top: 8px; }
-                .footer { text-align: center; font-size: 11px; color: #888; margin-top: 20px; }
-            </style>${(window.impFonte ? '<style>' + window.impFonte(config).css + '</style>' : '')}</head><body>
-                <div class="header">
-                    ${logoHTML}
-                    ${config.imprimirNome === false ? '' : '<h2>' + nomeEmpresa + '</h2>'}
-                    <p>COMPROVANTE DE CONSUMO</p>
-                </div>
-                ${faixaCorHTML}
-                <div class="info-box">
-                    <div><span><b>Comanda:</b> ${c.numero}</span><span><b>Mesa:</b> ${formatarMesa(c.mesa)}</span></div>
-                    <div><span><b>Data:</b> ${c.dataAbertura}</span></div>
-                    <div><span><b>Cliente:</b> ${c.cliente || '—'}</span></div>
-                </div>
-                <div class="section-title">Itens Consumidos</div>
-                ${itensHTML}
-                <div class="total-box">
-                    <div><span>Subtotal:</span><span>${formatMoney(totais.subtotal)}</span></div>
-                    ${totais.desconto > 0 ? `<div><span>Desconto:</span><span>-${formatMoney(totais.desconto)}</span></div>` : ''}
-                    <div class="total-final"><span>TOTAL:</span><span>${formatMoney(totais.total)}</span></div>
-                </div>
-                ${window.blocoPixQR(config, window.pixValorPago(c), 'impressao', 'comanda')}
-                <div class="footer">Obrigado pela preferência!</div>
-                <br><br><br>
-                <script>window.onload=function(){setTimeout(function(){window.print(); window.close();},300);}<\/script>
-            </body></html>
-        `;
-        const janela = window.open('', '', 'width=400,height=600');
+        const doc = await window.impDocumento(tipo, c, config, { modoPix: 'impressao' });
+        const html = window.impPagina(window.impHtml(doc, config), titulo + ' ' + c.numero);
+        const janela = window.open('', '', 'width=420,height=700');
         janela.document.write(html);
         janela.document.close();
-    };
-
-    window.imprimirReciboAtual = async function () {
-        if (!window.comandaAtual) return;
-        if (window.btTentarImprimir && await window.btTentarImprimir('recibo')) { fecharPreviewImpressao(); return; }
-        let config = {};
-        try { const arr = window.normalizarArray(await apiGet('configuracoes')); config = arr[0] || {}; } catch (e) {}
-
-        const nomeEmpresa = config.nomeImpressao || 'App Restaurante';
-        const urlLogo = config.imprimirLogo === false ? '' : (config.urlLogo || '');
-        const c = window.comandaAtual;
-        const totais = calcularTotais(c);
-        const corCaixa = await window.obterCorCaixaDaComanda(c);
-        const faixaCorHTML = montarFaixaCorCaixa(corCaixa);
-
-        const logoHTML = urlLogo 
-            ? `<img src="${urlLogo}" style="max-height: 50px; max-width: 100%; display: block; margin: 0 auto 5px auto;">` 
-            : '';
-
-        let pagamentosHTML = '';
-        window.normalizarArray(c.pagamentos).forEach(p => {
-            pagamentosHTML += '<div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom: 1px dashed #eee; font-size: 12px;"><span style="font-weight:600;">' + nomeFormaPagamento(p.forma) + '</span><span>' + formatMoney(p.valor) + '</span></div>' + (window.maquininhaTexto && p.maquininha && window.maquininhaTexto(p.maquininha) ? '<div style="font-size:10px;color:#555;">' + window.maquininhaTexto(p.maquininha) + '</div>' : '');
-        });
-
-        let itensHTML = '';
-        let totalItensCount = 0;
-        window.normalizarArray(c.itens).forEach(i => {
-            const qtd = Number(i.quantidade);
-            const sub = Number(i.preco) * qtd;
-            totalItensCount += qtd;
-
-            itensHTML += `
-                <div style="padding: 6px 0; border-bottom: 1px dashed #eee;">
-                    <div style="display:flex; justify-content:space-between; font-weight:600; font-size:12px;">
-                        <span>${qtd}x ${i.nome}</span>
-                        <span>${formatMoney(sub)}</span>
-                    </div>
-                    <div style="font-size: 10px; color: #888;">Unit: ${formatMoney(i.preco)}</div>
-                </div>
-            `;
-        });
-
-        const blocoPixHTML = window.blocoPixQR(config, window.pixValorPago(c), 'impressao', 'recibo');
-
-        const html = `
-            <html><head><title>Recibo ${c.numero}</title>
-            <style>
-                @page { margin: 0; }
-                body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-size: 12px; padding: 0; max-width: 300px; margin: 0 auto; color: #333; background: #fff; }
-                .header { background: #C2185B; color: #fff; padding: 15px; text-align: center; border-radius: 0 0 10px 10px; margin-bottom: 8px; }
-                .header h2 { margin: 0; font-size: 18px; font-weight: 800; text-transform: uppercase; }
-                .header p { margin: 4px 0 0 0; font-size: 10px; opacity: 0.9; }
-                .faixa-cor-caixa { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-                .info-box { background: #f9f9f9; border-radius: 8px; padding: 10px; margin-bottom: 15px; border: 1px solid #eee; font-size: 11px; }
-                .info-box div { display: flex; justify-content: space-between; margin-bottom: 4px; }
-                .info-box div:last-child { margin-bottom: 0; }
-                .section-title { font-weight: 700; font-size: 12px; color: #C2185B; margin-bottom: 5px; text-transform: uppercase; margin-top: 15px; }
-                .total-box { margin-top: 15px; border-top: 2px solid #eee; padding-top: 10px; }
-                .total-box div { display: flex; justify-content: space-between; padding: 3px 0; font-size: 12px; color: #555; }
-                .total-box .total-final { font-size: 16px; font-weight: 800; color: #C2185B; margin-top: 8px; }
-                .footer { text-align: center; font-size: 11px; color: #888; margin-top: 20px; }
-            </style>${(window.impFonte ? '<style>' + window.impFonte(config).css + '</style>' : '')}</head><body>
-                <div class="header">
-                    ${logoHTML}
-                    ${config.imprimirNome === false ? '' : '<h2>' + nomeEmpresa + '</h2>'}
-                    <p>RECIBO DE PAGAMENTO</p>
-                    <p><b>${c.pagamentoPendente ? 'PENDENTE (FIADO)' : 'PAGO'}</b></p>
-                </div>
-                ${faixaCorHTML}
-                <div class="info-box">
-                    <div><span><b>Comanda:</b> ${c.numero}</span><span><b>Mesa:</b> ${formatarMesa(c.mesa)}</span></div>
-                    <div><span><b>Data:</b> ${c.dataFechamento || new Date().toLocaleString('pt-BR')}</span></div>
-                    <div><span><b>Cliente:</b> ${c.cliente || '—'}</span></div>
-                </div>
-
-                <div class="section-title">Itens Consumidos (${totalItensCount})</div>
-                ${itensHTML}
-
-                <div class="total-box">
-                    <div><span>Subtotal:</span><span>${formatMoney(totais.subtotal)}</span></div>
-                    ${totais.desconto > 0 ? `<div><span>Desconto:</span><span>-${formatMoney(totais.desconto)}</span></div>` : ''}
-                    <div class="total-final"><span>TOTAL:</span><span>${formatMoney(totais.total)}</span></div>
-                </div>
-
-                <div class="section-title">Forma de Pagamento</div>
-                ${pagamentosHTML || '<div style="text-align:center; font-size:12px; color:#888;">Nenhum pagamento registrado.</div>'}
-                ${c.troco > 0 ? `<div style="display:flex; justify-content:space-between; padding:6px 0; font-size:12px; color:#2e7d32; font-weight:bold;"><span>Troco:</span><span>${formatMoney(c.troco)}</span></div>` : ''}
-
-                ${blocoPixHTML}
-
-                <div class="footer">Assinatura: ________________________</div>
-                <br><br><br>
-                <script>window.onload=function(){setTimeout(function(){window.print(); window.close();},500);}<\/script>
-            </body></html>
-        `;
-        const janela = window.open('', '', 'width=400,height=700');
-        janela.document.write(html);
-        janela.document.close();
-    };
+    }
+    window.imprimirComandaAtual = function () { return imprimirDocumento('comanda', 'Comanda'); };
+    window.imprimirReciboAtual = function () { return imprimirDocumento('recibo', 'Recibo'); };
+    window.imprimirCozinhaAtual = function () { return imprimirDocumento('cozinha', 'Cozinha'); };
 }

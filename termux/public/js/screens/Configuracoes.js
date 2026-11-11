@@ -128,6 +128,11 @@ if (!window.renderConfiguracoes) {
                 html += '    </div>';
             }
 
+            html += '    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;border-bottom:1px solid #e0c8e8;padding-bottom:16px;margin-bottom:16px;cursor:pointer;" onclick="abrirLayoutImpressao()">';
+            html += '        <div style="min-width:0;"><div style="font-weight:600;font-size:0.95rem;">Layout de impressão</div><div style="font-size:0.75rem;color:#666;">Escolha e ordene os blocos da comanda, do recibo e da via da cozinha, com pré-visualização.</div></div>';
+            html += '        <i class="fas fa-chevron-right" style="color:#C2185B;"></i>';
+            html += '    </div>';
+
             const linhaTog = function (titulo, sub, id, val) {
                 return '    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;border-bottom:1px solid #e0c8e8;padding-bottom:14px;margin-bottom:14px;">' +
                     '        <div style="min-width:0;"><div style="font-weight:600;font-size:0.92rem;">' + titulo + '</div>' + (sub ? '<div style="font-size:0.72rem;color:#666;line-height:1.3;">' + sub + '</div>' : '') + '</div>' +

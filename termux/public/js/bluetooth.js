@@ -6,7 +6,7 @@
 console.log('✔ bluetooth.js carregado');
 (function () {
     'use strict';
-    const COLS = 32;
+    let COLS = 32;
     const A = function () { return window.AndroidApp && typeof window.AndroidApp.btListar === 'function' ? window.AndroidApp : null; };
     window.btDisponivel = function () { return !!A(); };
 
@@ -52,7 +52,7 @@ console.log('✔ bluetooth.js carregado');
                 o = o.concat([0x0A]);
                 return;
             }
-            o = o.concat([0x1B, 0x61, l.c ? 1 : 0, 0x1B, 0x45, l.b ? 1 : 0, 0x1B, 0x4D, l.f ? 1 : 0, 0x1D, 0x21, l.g ? 0x11 : (l.z ? 0x01 : 0x00)]);
+            o = o.concat([0x1B, 0x61, l.c ? 1 : (l.r ? 2 : 0), 0x1B, 0x45, l.b ? 1 : 0, 0x1B, 0x4D, l.f ? 1 : 0, 0x1D, 0x21, l.g ? 0x11 : (l.z ? 0x01 : 0x00)]);
             o = o.concat(paraBytes(l.t, acentos)).concat([0x0A]);
         });
         o = o.concat([0x1B, 0x61, 0, 0x1B, 0x45, 0, 0x1D, 0x21, 0, 0x0A, 0x0A, 0x0A, 0x1D, 0x56, 0x41, 0x10]);   // avanço + corte
@@ -97,56 +97,46 @@ console.log('✔ bluetooth.js carregado');
 
     // ---------- textos ----------
     function fmt(v) { return 'R$ ' + Number(v || 0).toFixed(2).replace('.', ','); }
-    function duas(esq, dir) { esq = String(esq); dir = String(dir); const esp = COLS - dir.length - 1; if (esq.length > esp) esq = esq.slice(0, Math.max(1, esp)); return esq + ' '.repeat(Math.max(1, COLS - esq.length - dir.length)) + dir; }
+    function duas(esq, dir, cols) { cols = cols || COLS; esq = String(esq); dir = String(dir); const esp = cols - dir.length - 1; if (esq.length > esp) esq = esq.slice(0, Math.max(1, esp)); return esq + ' '.repeat(Math.max(1, cols - esq.length - dir.length)) + dir; }
     const LINHA = '-'.repeat(COLS);
 
-    window.btMontarLinhas = async function (tipo, c, config) {
-        const calc = window.calcularTotais ? window.calcularTotais(c) : { subtotal: c.subtotal || 0, desconto: 0, total: c.total || 0 };
-        const cor = window.obterCorCaixaDaComanda ? await window.obterCorCaixaDaComanda(c) : null;
-        const L = [];
-        if (config.imprimirNome !== false) L.push({ t: String(config.nomeImpressao || 'Comandas').toUpperCase(), b: 1, c: 1, g: 1 });
-        L.push({ t: tipo === 'recibo' ? 'RECIBO DE PAGAMENTO' : 'COMANDA', c: 1, b: 1 });
-        if (tipo === 'recibo') L.push({ t: c.pagamentoPendente ? 'PENDENTE (FIADO)' : 'PAGO', c: 1, b: 1 });
-        if (cor) L.push({ t: String(cor.label || cor.id).toUpperCase(), c: 1, b: 1 });
-        L.push({ t: LINHA });
-        L.push({ t: 'Comanda: ' + c.numero + '   Mesa: ' + (window.formatarMesa ? window.formatarMesa(c.mesa) : (c.mesa || '-')), b: 1 });
-        L.push({ t: 'Data: ' + (c.dataFechamento || c.dataAbertura || new Date().toLocaleString('pt-BR')) });
-        if (c.cliente) L.push({ t: 'Cliente: ' + c.cliente });
-        L.push({ t: LINHA });
-        (window.normalizarArray(c.itens) || []).forEach(function (i) {
-            L.push({ t: duas(i.quantidade + 'x ' + i.nome, fmt(Number(i.preco) * Number(i.quantidade))) });
+    function logoRaster(src, pct, cols) {
+        return new Promise(function (resolve) {
+            try {
+                const img = new Image(); img.crossOrigin = 'anonymous';
+                img.onload = function () {
+                    try {
+                        const maxW = Math.floor((cols === 48 ? 576 : 384) * Math.min(100, pct || 40) / 100 / 8) * 8 || 8;
+                        const w = Math.max(8, Math.min(maxW, Math.floor(img.width / 8) * 8 || maxW)), h = Math.max(1, Math.round(img.height * w / img.width));
+                        const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+                        const g = cv.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, w, h); g.drawImage(img, 0, 0, w, h);
+                        const px = g.getImageData(0, 0, w, h).data, wb = w / 8, data = new Uint8Array(wb * h);
+                        for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { const i = (y * w + x) * 4; if ((px[i] + px[i + 1] + px[i + 2]) / 3 < 140 && px[i + 3] > 40) data[y * wb + (x >> 3)] |= (0x80 >> (x & 7)); }
+                        resolve({ w: w, h: Math.min(h, 400), data: data.slice(0, wb * Math.min(h, 400)) });
+                    } catch (e) { resolve(null); }   // imagem de outro site pode bloquear a leitura
+                };
+                img.onerror = function () { resolve(null); };
+                img.src = src;
+            } catch (e) { resolve(null); }
         });
-        L.push({ t: LINHA });
-        if (calc.desconto > 0) { L.push({ t: duas('Subtotal', fmt(calc.subtotal)) }); L.push({ t: duas('Desconto', '-' + fmt(calc.desconto)) }); }
-        L.push({ t: duas('TOTAL', fmt(calc.total)), b: 1, g: 1 });
-        const pixVal = window.pixValorPago ? window.pixValorPago(c) : 0;
-        const qrImp = pixVal > 0.004 && window.pixQrAtivo && window.pixQrAtivo(config, 'impressao', tipo === 'recibo' ? 'recibo' : 'comanda');
-        if (qrImp) {
-            L.push({ t: LINHA });
-            L.push({ t: 'PAGUE COM PIX', b: 1, c: 1 });
-            L.push({ qr: window.gerarPixComValor(config.pixRestaurante, pixVal) });
-            L.push({ t: 'Valor PIX: ' + fmt(pixVal), c: 1 });
-            if (config.pixChave) L.push({ t: 'PIX: ' + window.pixFormatarChave(config.pixTipo, config.pixChave), c: 1 });
-        }
-        if (tipo === 'recibo') {
-            const nomes = { dinheiro: 'Dinheiro', debito: 'Debito', credito: 'Credito', pix: 'PIX' };
-            (window.normalizarArray(c.pagamentos) || []).forEach(function (p) { L.push({ t: duas(nomes[p.forma] || p.forma, fmt(p.valor)) }); if (p.maquininha && window.maquininhaTexto) L.push({ t: window.maquininhaTexto(p.maquininha) }); });
-            if (Number(c.troco) > 0) L.push({ t: duas('Troco', fmt(c.troco)) });
-            if (window.pendenciasAnteriores) {
-                const pa = await window.pendenciasAnteriores(c), atual = c.pagamentoPendente ? Number(c.valorPendente || 0) : 0;
-                if (pa.valor > 0 || atual > 0) {
-                    L.push({ t: LINHA });
-                    L.push({ t: duas('Pendencias anteriores', fmt(pa.valor)) });
-                    L.push({ t: duas('Pendente desta comanda', fmt(atual)) });
-                    L.push({ t: duas('TOTAL GERAL PENDENTE', fmt(pa.valor + atual)), b: 1 });
-                }
+    }
+    /** Converte o modelo neutro do layout (impLayout.js) em linhas ESC/POS. */
+    window.btMontarLinhas = async function (tipo, c, config, opts) {
+        const doc = await window.impDocumento(tipo, c, config, Object.assign({ modoPix: 'impressao' }, opts || {}));
+        COLS = window.impPapelCols(doc.papel);
+        const LIN = window.impSepChar(doc.sep).repeat(COLS);
+        const L = [];
+        for (const l of doc.lines) {
+            if (l.k === 'sep') L.push({ t: LIN });
+            else if (l.k === 't') L.push({ t: l.t, b: l.b, g: l.g, c: l.al === 'c' || (l.bg && !l.al), r: l.al === 'd' });
+            else if (l.k === 'duas') L.push({ t: duas(l.l, l.r, l.g ? Math.floor(COLS / 2) : COLS), b: l.b, g: l.g });
+            else if (l.k === 'logo') { if (l.src) { const r = await logoRaster(l.src, l.pct, COLS); if (r) L.push({ raster: r }); } }
+            else if (l.k === 'qr') {
+                if (l.imp && window.qrUrl) {
+                    L.push({ t: LIN }); L.push({ t: 'PAGUE COM PIX', b: 1, c: 1 }); L.push({ qr: l.payload }); L.push({ t: 'Valor PIX: ' + fmt(l.valor), c: 1 });
+                    if (l.chave) L.push({ t: 'PIX: ' + l.chave, c: 1 });
+                } else if (l.chave && !l.imp) L.push({ t: 'PIX: ' + l.chave, c: 1 });
             }
-            if (pixVal > 0.004 && config.exibirPixRecibo && config.pixRestaurante && window.gerarPixComValor && window.qrUrl) {
-                const rr = await qrRaster(window.gerarPixComValor(config.pixRestaurante, pixVal), 192);
-                if (rr) { L.push({ t: 'PAGAMENTO VIA PIX', c: 1, b: 1 }); L.push({ raster: rr }); L.push({ t: 'Valor PIX: ' + fmt(pixVal), c: 1 }); }
-            }
-            if (config.pixChave && !qrImp && pixVal > 0.004) L.push({ t: 'PIX: ' + (window.pixFormatarChave ? window.pixFormatarChave(config.pixTipo, config.pixChave) : config.pixChave), c: 1 });
-            L.push({ t: 'Obrigado pela preferencia!', c: 1 });
         }
         const F = window.impFonte ? window.impFonte(config) : null;
         if (F && (F.escAlto || F.escFonteB)) L.forEach(function (l) { if (l.t !== undefined) { if (F.escAlto) l.z = 1; if (F.escFonteB) l.f = 1; } });
@@ -154,13 +144,13 @@ console.log('✔ bluetooth.js carregado');
     };
 
     /** Chamada pelos botões Imprimir: devolve true se imprimiu (ou tentou) pela Bluetooth. */
-    window.btTentarImprimir = async function (tipo) {
+    window.btTentarImprimir = async function (tipo, opts) {
         if (!A() || !window.comandaAtual) return false;
         let config = {};
         try { config = window.normalizarArray(await apiGet('configuracoes'))[0] || {}; } catch (e) {}
         if (!config.btImpressora || !config.btImpressora.mac || config.btUsar === false) return false;
         window.btAguarde('Imprimindo na ' + config.btImpressora.nome + '...');
-        const linhas = await window.btMontarLinhas(tipo, window.comandaAtual, config);
+        const linhas = await window.btMontarLinhas(tipo, (opts && opts.c) || window.comandaAtual, config, opts);
         const r = await window.btEnviar(config.btImpressora.mac, linhas, !config.btSemAcentos);
         window.btAguardeFechar();
         if (!r.ok) {
