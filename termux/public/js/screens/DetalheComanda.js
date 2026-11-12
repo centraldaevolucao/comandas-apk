@@ -1273,8 +1273,9 @@ if (!window.renderDetalheComanda) {
             pix: config.pagPix !== false
         };
 
-        const totais = calcularTotais(window.comandaAtual);
+        let totais = calcularTotais(window.comandaAtual);
         const itens = window.comandaAtual.itens || [];
+        window.__descSnap = JSON.stringify(window.comandaAtual.desconto || null);   // desfaz o desconto se cancelar
 
         window.pagamentosTemp = [];
 
@@ -1314,7 +1315,8 @@ if (!window.renderDetalheComanda) {
 
             return '<div style="margin-bottom:15px;">' + (listaHTML || '<p style="text-align:center;color:#999;font-size:0.9rem;">Nenhum pagamento adicionado.</p>') + '</div>' +
                    '<div style="padding:12px; background:#f5f5f5; border-radius:8px;">' +
-                   '<div style="display:flex;justify-content:space-between;font-size:0.9rem;color:#666;margin-bottom:4px;"><span>Total da Comanda:</span><span>' + formatMoney(totais.total) + '</span></div>' +
+                   (totais.desconto > 0 ? '<div style="display:flex;justify-content:space-between;font-size:0.9rem;color:#666;margin-bottom:4px;"><span>Subtotal:</span><span>' + formatMoney(totais.subtotal) + '</span></div><div style="display:flex;justify-content:space-between;font-size:0.9rem;color:#2e7d32;margin-bottom:4px;"><span>Desconto' + (window.comandaAtual.desconto && window.comandaAtual.desconto.tipo === 'porcentagem' ? ' (' + window.comandaAtual.desconto.valor + '%)' : '') + ':</span><span>- ' + formatMoney(totais.desconto) + '</span></div>' : '') +
+                   '<div style="display:flex;justify-content:space-between;font-size:0.9rem;color:#666;margin-bottom:4px;' + (totais.desconto > 0 ? 'font-weight:700;' : '') + '"><span>Total da Comanda:</span><span>' + formatMoney(totais.total) + '</span></div>' +
                    '<div style="display:flex;justify-content:space-between;font-size:0.9rem;color:#666;margin-bottom:4px;"><span>Total Pago:</span><span>' + formatMoney(totalPago) + '</span></div>' +
                    (falta > 0 ? '<div style="display:flex;justify-content:space-between;font-weight:bold;color:#c62828;margin-top:8px;font-size:1rem;"><span>Falta:</span><span>' + formatMoney(falta) + '</span></div>' : '') +
                    (troco > 0 ? '<div style="display:flex;justify-content:space-between;font-weight:bold;color:#2e7d32;margin-top:8px;font-size:1rem;"><span>Troco:</span><span>' + formatMoney(troco) + '</span></div>' : '') +
@@ -1346,7 +1348,7 @@ if (!window.renderDetalheComanda) {
             '<div class="modal-content" style="max-width:450px;">' +
             '    <div class="modal-header" style="background:#2e7d32;color:#fff;">' +
             '        <strong>Fechamento de Comanda</strong>' +
-            '        <button class="btn-limpar" onclick="fecharModalFechamento()" style="color:#fff;"><i class="fas fa-xmark"></i></button>' +
+            '        <button class="btn-limpar" onclick="cancelarFechamentoModal()" style="color:#fff;"><i class="fas fa-xmark"></i></button>' +
             '    </div>' +
             '    <div class="modal-body">' +
             '        <div style="margin-bottom:15px;">' +
@@ -1371,6 +1373,19 @@ if (!window.renderDetalheComanda) {
             '            <button class="btn-outline" style="width:100%; border-color:#1976d2; color:#1976d2;" onclick="adicionarPagamentoTemp()"><i class="fas fa-plus"></i> Adicionar Pagamento</button>' +
             '        </div>' +
 
+            '        <div style="margin-top:14px;border:1px solid #c8e6c9;background:#f1f8e9;border-radius:10px;padding:10px 12px;">' +
+            '            <label style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;"><b style="color:#2e7d32;"><i class="fas fa-percent"></i> Desconto</b>' +
+            '                <input type="checkbox" id="dsc-toggle" onchange="descontoToggle(this.checked)" style="width:20px;height:20px;accent-color:#2e7d32;"></label>' +
+            '            <div id="dsc-area" style="display:none;margin-top:10px;">' +
+            '                <div style="display:flex;align-items:center;gap:8px;">' +
+            '                    <div style="display:inline-flex;border:2px solid #2e7d32;border-radius:10px;overflow:hidden;flex:none;"><span id="dsc-t-valor" onclick="descontoTipo(\'valor\')" style="padding:8px 14px;font-weight:700;cursor:pointer;">R$</span><span id="dsc-t-pct" onclick="descontoTipo(\'porcentagem\')" style="padding:8px 14px;font-weight:700;cursor:pointer;">%</span></div>' +
+            '                    <input type="number" step="0.01" min="0" id="dsc-valor" oninput="descontoAtualiza()" placeholder="0" style="flex:1;min-width:0;padding:10px;border:2px solid #ccc;border-radius:8px;font-size:1.1rem;">' +
+            '                </div>' +
+            '                <div id="dsc-resumo" style="margin-top:10px;background:#fff;border:1px dashed #81c784;border-radius:8px;padding:8px 10px;font-size:.85rem;"></div>' +
+            '                <input type="text" id="dsc-motivo" oninput="descontoAtualiza()" maxlength="80" placeholder="Motivo (opcional)" style="width:100%;box-sizing:border-box;margin-top:8px;padding:9px;border:1px solid #ccc;border-radius:8px;">' +
+            '            </div>' +
+            '        </div>' +
+
             '        <div style="margin-top:20px;">' +
             '            <label style="display:flex; justify-content:space-between; align-items:center; background:#fff3e0; padding:12px; border-radius:8px; cursor:pointer; border:1px solid #ffe0b2;">' +
             '                <div style="display:flex; align-items:center; gap:8px; color:#e65100;">' +
@@ -1384,11 +1399,62 @@ if (!window.renderDetalheComanda) {
             '        <button class="btn-primary" style="background:#2e7d32; margin-top:20px; padding:14px;" onclick="confirmarFechamentoCompleto()">' +
             '            <i class="fas fa-receipt"></i> Confirmar e gerar recibo' +
             '        </button>' +
-            '        <button class="btn-outline" style="width:100%; margin-top:10px;" onclick="fecharModalFechamento()">Cancelar</button>' +
+            '        <button class="btn-outline" style="width:100%; margin-top:10px;" onclick="cancelarFechamentoModal()">Cancelar</button>' +
             '    </div>' +
             '</div>';
 
         document.body.appendChild(modal);
+
+        // ---- desconto (valor ou %) ----
+        const tipoAtual = function () { const d = window.comandaAtual.desconto; return d && d.tipo ? d.tipo : (window.__dscTipo || 'valor'); };
+        const pintarTipo = function () { const t = tipoAtual(); [['valor', 'dsc-t-valor'], ['porcentagem', 'dsc-t-pct']].forEach(function (x) { const e = document.getElementById(x[1]); if (!e) return; e.style.background = t === x[0] ? '#2e7d32' : '#fff'; e.style.color = t === x[0] ? '#fff' : '#2e7d32'; }); };
+        const reajustar = function () {   // mantém a sugestão de pagamento = restante, se ainda for o pagamento pré-preenchido
+            totais = calcularTotais(window.comandaAtual);
+            const ant = window.pagamentosTemp.filter(function (p) { return p.anterior; }).reduce(function (a, p) { return a + Number(p.valor || 0); }, 0);
+            const novos = window.pagamentosTemp.filter(function (p) { return !p.anterior; });
+            if (novos.length === 1 && !novos[0].maquininha) {
+                const v = Math.round((totais.total - ant) * 100) / 100;
+                if (v > 0.009) novos[0].valor = v; else window.pagamentosTemp = window.pagamentosTemp.filter(function (p) { return p.anterior; });
+            } else if (!novos.length && ant < totais.total - 0.009) window.pagamentosTemp.push({ forma: formaInicial, valor: Math.round((totais.total - ant) * 100) / 100 });
+            const iv = document.getElementById('pg-valor'); if (iv) iv.value = Math.max(0, totais.total - window.pagamentosTemp.reduce(function (a, p) { return a + Number(p.valor || 0); }, 0)).toFixed(2);
+            atualizarDOM();
+        };
+        window.descontoToggle = function (on) {
+            const area = document.getElementById('dsc-area'); if (area) area.style.display = on ? 'block' : 'none';
+            if (!on) { delete window.comandaAtual.desconto; const iv = document.getElementById('dsc-valor'); if (iv) iv.value = ''; reajustar(); descontoResumo(); }
+            else { pintarTipo(); descontoResumo(); }
+        };
+        window.descontoTipo = function (t) {
+            window.__dscTipo = t; const d = window.comandaAtual.desconto; if (d) d.tipo = t;
+            const iv = document.getElementById('dsc-valor'); if (iv) { iv.value = ''; iv.step = t === 'porcentagem' ? '1' : '0.01'; iv.placeholder = t === 'porcentagem' ? '0 a 100' : '0,00'; }
+            delete window.comandaAtual.desconto; pintarTipo(); reajustar(); descontoResumo();
+        };
+        function descontoResumo() {
+            const r = document.getElementById('dsc-resumo'); if (!r) return;
+            const t = calcularTotais(window.comandaAtual), d = window.comandaAtual.desconto;
+            r.innerHTML = '<div style="display:flex;justify-content:space-between;"><span>Subtotal</span><span>' + formatMoney(t.subtotal) + '</span></div>' +
+                '<div style="display:flex;justify-content:space-between;color:#2e7d32;"><span>Desconto' + (d && d.tipo === 'porcentagem' ? ' (' + d.valor + '%)' : '') + '</span><span>- ' + formatMoney(t.desconto) + '</span></div>' +
+                '<div style="display:flex;justify-content:space-between;font-weight:700;"><span>Total a pagar</span><span>' + formatMoney(t.total) + '</span></div>';
+        }
+        window.descontoAtualiza = function () {
+            const tipo = tipoAtual(), sub = calcularTotais(Object.assign({}, window.comandaAtual, { desconto: null })).subtotal;
+            const iv = document.getElementById('dsc-valor'); let v = parseFloat(iv.value) || 0;
+            if (v < 0) v = 0;
+            if (tipo === 'porcentagem' && v > 100) { v = 100; iv.value = '100'; }
+            if (tipo === 'valor' && v > sub) { v = sub; iv.value = sub.toFixed(2); }
+            const motivo = (document.getElementById('dsc-motivo') || {}).value || '';
+            if (v > 0) window.comandaAtual.desconto = { tipo: tipo, valor: v, motivo: motivo.trim() }; else delete window.comandaAtual.desconto;
+            reajustar(); descontoResumo();
+        };
+        window.cancelarFechamentoModal = function () {
+            try { const d = JSON.parse(window.__descSnap || 'null'); if (d) window.comandaAtual.desconto = d; else delete window.comandaAtual.desconto; } catch (e) {}
+            fecharModalFechamento();
+        };
+        pintarTipo();
+        if (window.comandaAtual.desconto && window.comandaAtual.desconto.valor > 0) {   // já havia desconto: abre a área preenchida
+            const d = window.comandaAtual.desconto, tg = document.getElementById('dsc-toggle'); tg.checked = true; descontoToggle(true);
+            document.getElementById('dsc-valor').value = d.valor; document.getElementById('dsc-motivo').value = d.motivo || '';
+        }
 
         const inputValor = document.getElementById('pg-valor');
         if (inputValor) inputValor.value = totais.total.toFixed(2);
@@ -1950,7 +2016,7 @@ if (!window.renderDetalheComanda) {
                 texto += `${i.quantidade}x ${i.nome} - ${formatMoney(i.preco * i.quantidade)}\n`;
             });
             texto += `\nSubtotal: ${formatMoney(totais.subtotal)}\n`;
-            if (totais.desconto > 0) texto += `Desconto: -${formatMoney(totais.desconto)}\n`;
+            if (totais.desconto > 0) texto += `Desconto${c.desconto && c.desconto.tipo === 'porcentagem' ? ' (' + c.desconto.valor + '%)' : ''}: -${formatMoney(totais.desconto)}\n` + (c.desconto && c.desconto.motivo ? `Motivo: ${c.desconto.motivo}\n` : '');
             texto += `*TOTAL: ${formatMoney(totais.total)}*\n\n`;
             texto += `Obrigado pela preferência!`;
         } else {

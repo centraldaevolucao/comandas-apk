@@ -133,7 +133,7 @@
             } else if (id === 'totais') {
                 if (tipo === 'cozinha') continue;
                 sep();
-                if (calc.desconto > 0) { L.push({ k: 'duas', l: 'Subtotal', r: money(calc.subtotal) }); L.push({ k: 'duas', l: 'Desconto', r: '-' + money(calc.desconto) }); }
+                if (calc.desconto > 0) { L.push({ k: 'duas', l: 'Subtotal', r: money(calc.subtotal) }); L.push({ k: 'duas', l: 'Desconto' + (c.desconto && c.desconto.tipo === 'porcentagem' ? ' (' + c.desconto.valor + '%)' : ''), r: '-' + money(calc.desconto) }); if (c.desconto && c.desconto.motivo) L.push({ k: 't', t: 'Motivo: ' + c.desconto.motivo, small: 1 }); }
                 L.push({ k: 'duas', l: 'TOTAL', r: money(calc.total), b: 1, g: 1 });
                 if (tipo === 'recibo') {
                     const pg = window.normalizarArray(c.pagamentos) || [];

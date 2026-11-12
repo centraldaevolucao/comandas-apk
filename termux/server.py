@@ -14,7 +14,7 @@ DB_PATH = DATA_DIR / "database.sqlite"
 HOST, PORT = os.getenv("HOST", "0.0.0.0"), int(os.getenv("PORT", "3000"))
 MAX_BODY = 10 * 1024 * 1024
 DB_LOCK = threading.RLock()
-VERSAO_SERVIDOR = "2.20.2"
+VERSAO_SERVIDOR = "2.21.0"
 INICIO = time.time()
 # Tempo real: cada gravação aumenta REV e acorda quem está ouvindo /api/eventos (SSE)
 REV = {"n": 0, "ultimo": ""}

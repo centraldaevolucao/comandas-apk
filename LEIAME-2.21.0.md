@@ -305,3 +305,10 @@ Obs.: itens alterados depois de gerar o recibo em aberto não atualizam o valor 
 - No fechamento da comanda, qualquer forma (**dinheiro, débito, crédito ou PIX**) pode receber **valor parcial**. A tela avisa disso. Dica: a tela já vem com o total sugerido; edite o valor (lápis) ou exclua e adicione o valor parcial.
 - Ao confirmar com pagamento menor que o total, o app pergunta **"Deixar o restante em pendência (fiado)?"** (antes só mostrava um alerta pedindo para marcar Fiado). Confirmando, pede o cliente cadastrado (se ainda não houver) e abre o aviso "Enviar para pendências" com **Visualizar, Imprimir, WhatsApp e Compartilhar**, mostrando "Recebido agora" e o valor que fica pendente. A comanda vai para Pendências com o valor recebido registrado.
 - Testado no navegador (parcial em dinheiro → pendência de R$ 30,00 de R$ 50,00). Cartão/PIX parcial usam o mesmo caminho, com a maquininha cobrando só o valor parcial.
+
+## 43. v2.21.0 — Desconto no fechamento da comanda
+- No fechamento, entre **"+ Adicionar Pagamento"** e **"Deixar Fiado (Pendente)"**, há o toggle **Desconto**. Ligado, abre a área: seletor **R$ | %**, campo do valor, mini-resumo (Subtotal, Desconto, Total a pagar) e **Motivo (opcional)**. O toggle abre sempre desligado (aberto já ligado se a comanda tiver desconto).
+- Limites: % até 100 e R$ até o subtotal. O quadro de totais mostra Subtotal / Desconto / Total; o pagamento sugerido acompanha o total descontado. Desligar o toggle remove o desconto.
+- Cancelar o fechamento **desfaz** o desconto. O desconto aparece no **recibo (tela, impressão, Bluetooth), no WhatsApp** (com % e motivo) e funciona junto com pagamento parcial e fiado (o pendente é sobre o total já descontado).
+- Qualquer usuário que fecha a comanda pode dar desconto (sem permissão específica). Os atalhos 5/10/15/20% do primeiro desenho foram removidos a pedido.
+- Testado no navegador (%, R$, limites, motivo, recibo aberto). Não testado: fluxo completo com maquininha real.
