@@ -312,3 +312,11 @@ Obs.: itens alterados depois de gerar o recibo em aberto não atualizam o valor 
 - Cancelar o fechamento **desfaz** o desconto. O desconto aparece no **recibo (tela, impressão, Bluetooth), no WhatsApp** (com % e motivo) e funciona junto com pagamento parcial e fiado (o pendente é sobre o total já descontado).
 - Qualquer usuário que fecha a comanda pode dar desconto (sem permissão específica). Os atalhos 5/10/15/20% do primeiro desenho foram removidos a pedido.
 - Testado no navegador (%, R$, limites, motivo, recibo aberto). Não testado: fluxo completo com maquininha real.
+
+## 44. v2.22.0 — Planos de assinatura, adicionar pagamento em janela e layout Pendência
+- **Assinatura com planos:** a tela mostra 4 cartões — **Mensal R$ 25,99**, **Trimestral R$ 69,90** (⭐ Mais popular, -10%), **Semestral R$ 129,90** (-17%) e **Anual R$ 239,90** (🏆 Melhor valor, -23%, R$ 19,99/mês) —, com equivalente por mês, economia, frase de apoio, tabela comparativa e botões **Assinar mensal/trimestral/semestral/anual**.
+- **Fluxo do pedido (mesmas regras):** o botão abre "Plano X — R$ …" com **1. Pagar com Pix** (valor do plano) e **2. enviar pedido** por WhatsApp, e-mail ou arquivo .pedido. O pedido agora leva **plano, meses e valor** além do ID do equipamento; depois o cliente aplica o **.rlic** como antes. Pagamento é por Pix, sem cobrança automática.
+- O preço **mensal** continua vindo de `valorAssinatura` (padrão agora R$ 25,99); os demais preços estão em `planosCat()` em `js/licenca.js`. Se a chave Pix da assinatura (`pixAssinatura`) não estiver configurada, o botão Pix avisa para enviar o pedido.
+- **Fechamento:** "Adicionar pagamento" agora abre uma **janela** (forma + valor, com o restante já sugerido) em vez dos campos soltos na tela.
+- **Pendência:** o texto "(FIADO)" saiu do recibo/comanda pendente; o comprovante virou **COMPROVANTE DE PENDÊNCIA** e há um 4º layout editável, **Pendência**, em Layout de impressão (Comanda, Recibo, Cozinha, Pendência).
+- Testado no navegador. Não testado: impressora real e Pix real.

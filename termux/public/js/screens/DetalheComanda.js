@@ -206,7 +206,7 @@ if (!window.renderDetalheComanda) {
         resumoHTML += '<div style="display:flex;justify-content:space-between;padding:8px 0 0;border-top:1px solid #eee;margin-top:6px;"><strong>Total</strong><strong style="color:var(--primary-color);font-size:1.4rem;">' + formatMoney(totais.total) + '</strong></div></div>';
 
         if ((c.status === 'fechada' || c.status === 'pendente') && temFiado) {
-            resumoHTML += '<div class="card" style="margin-top:12px;background:#fff3e0;border-left:4px solid #ff9800;"><div class="card-title" style="color:#e65100;margin-bottom:6px;"><i class="fas fa-clock"></i> PAGAMENTO PENDENTE (FIADO)</div><div style="display:flex;justify-content:space-between;padding:3px 0;font-size:0.9rem;"><span>Cliente</span><span><b>' + (c.cliente || '—') + '</b></span></div><div style="display:flex;justify-content:space-between;padding:3px 0;font-size:0.9rem;color:#e65100;"><span>Valor pendente</span><span><b>' + formatMoney(c.valorPendente || 0) + '</b></span></div></div>';
+            resumoHTML += '<div class="card" style="margin-top:12px;background:#fff3e0;border-left:4px solid #ff9800;"><div class="card-title" style="color:#e65100;margin-bottom:6px;"><i class="fas fa-clock"></i> PAGAMENTO PENDENTE</div><div style="display:flex;justify-content:space-between;padding:3px 0;font-size:0.9rem;"><span>Cliente</span><span><b>' + (c.cliente || '—') + '</b></span></div><div style="display:flex;justify-content:space-between;padding:3px 0;font-size:0.9rem;color:#e65100;"><span>Valor pendente</span><span><b>' + formatMoney(c.valorPendente || 0) + '</b></span></div></div>';
         }
 
         if ((c.status === 'fechada' || c.status === 'pendente') && pagamentos.length > 0) {
@@ -1278,6 +1278,7 @@ if (!window.renderDetalheComanda) {
         window.__descSnap = JSON.stringify(window.comandaAtual.desconto || null);   // desfaz o desconto se cancelar
 
         window.pagamentosTemp = [];
+        window.__formasAtivas = formasAtivas;
 
         let formaInicial = 'dinheiro';
         if (!formasAtivas.dinheiro) {
@@ -1289,6 +1290,7 @@ if (!window.renderDetalheComanda) {
         const mapaPadrao = { 'dinheiro': 'dinheiro', 'débito': 'debito', 'debito': 'debito', 'crédito': 'credito', 'credito': 'credito', 'pix': 'pix' };
         const padrao = mapaPadrao[String(config.formaPagamentoPadrao || '').trim().toLowerCase()];
         if (padrao && formasAtivas[padrao]) formaInicial = padrao;
+        window.__formaInicial = formaInicial;
 
         // pagamentos parciais já recebidos (ex.: comanda de pendência reaberta) entram na conta
         window.pagamentosTemp = window.normalizarArray(window.comandaAtual.pagamentos).map(p => Object.assign({}, p, { anterior: true }));
@@ -1360,15 +1362,7 @@ if (!window.renderDetalheComanda) {
 
             '        <div id="pagamentos-lista-container">' + renderPagamentosHTML() + '</div>' +
 
-            '        <div style="margin-top:20px; padding-top:15px; border-top:1px dashed #ccc;">' +
-            '            <div class="field">' +
-            '                <label>Nova Forma de Pagamento</label>' +
-            '                <select id="pg-forma" style="width:100%; padding:10px; border:1px solid #ccc; border-radius:6px;">' + optsFormas + '</select>' +
-            '            </div>' +
-            '            <div class="field">' +
-            '                <label>Valor (R$)</label>' +
-            '                <input type="number" step="0.01" id="pg-valor" style="width:100%; padding:10px; border:1px solid #ccc; border-radius:6px; font-size:1.1rem;">' +
-            '            </div>' +
+            '        <div style="margin-top:16px; padding-top:12px; border-top:1px dashed #ccc;">' +
             '            <div style="font-size:.75rem;color:#666;margin-bottom:8px;">Pode receber um valor <b>parcial</b> em qualquer forma (dinheiro, débito, crédito ou PIX). O restante pode ficar em pendência.</div>' +
             '            <button class="btn-outline" style="width:100%; border-color:#1976d2; color:#1976d2;" onclick="adicionarPagamentoTemp()"><i class="fas fa-plus"></i> Adicionar Pagamento</button>' +
             '        </div>' +
@@ -1498,19 +1492,70 @@ if (!window.renderDetalheComanda) {
         return { maquininha: Object.assign({ provider: r.provider, nsu: r.nsu, autorizacao: r.autorizacao, bandeira: r.bandeira, ultimos4: r.ultimos4, parcelas: r.parcelas, idTransacao: r.idTransacao }, base) };
     };
 
-    window.adicionarPagamentoTemp = async function () {
-        const forma = document.getElementById('pg-forma').value;
-        const valor = parseFloat(document.getElementById('pg-valor').value) || 0;
-        if (!forma || valor <= 0) { alert('Informe um valor válido maior que zero.'); return; }
-
-        const extra = await window.cobrarCartaoSeNecessario(forma, valor);
-        if (extra === null) return;
-        window.pagamentosTemp.push(Object.assign({ forma: forma, valor: valor }, extra));
-        document.getElementById('pg-valor').value = '';
-
-        if (typeof window.atualizarListaPagamentos === 'function') {
-            window.atualizarListaPagamentos();
-        }
+    // Janela "Adicionar pagamento": forma (chips), valor (sugere o restante) e botão Restante
+    window.adicionarPagamentoTemp = function () {
+        const antigo = document.getElementById('modal-edit-pag'); if (antigo) antigo.remove();
+        const ativas = window.__formasAtivas || { dinheiro: true, debito: true, credito: true, pix: true };
+        const formas = [['dinheiro', 'Dinheiro', 'fa-money-bill-wave'], ['debito', 'Débito', 'fa-credit-card'], ['credito', 'Crédito', 'fa-credit-card'], ['pix', 'PIX', 'fa-qrcode']].filter(function (f) { return ativas[f[0]] !== false; });
+        if (!formas.length) { window.avisar('Nenhuma forma de pagamento ativa. Ative em Configurações.'); return; }
+        const totais = calcularTotais(window.comandaAtual);
+        const pago = window.pagamentosTemp.reduce(function (a, x) { return a + Number(x.valor); }, 0);
+        const restante = Math.max(0, Math.round((totais.total - pago) * 100) / 100);
+        let forma = formas.some(function (f) { return f[0] === window.__formaInicial; }) ? window.__formaInicial : formas[0][0];
+        const COR = 'var(--primary-color,#C2185B)';
+        const m = document.createElement('div');
+        m.id = 'modal-edit-pag'; m.className = 'modal-overlay';
+        m.style.cssText = 'display:flex;align-items:center;justify-content:center;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:300000;padding:16px;';
+        const chips = formas.map(function (f) {
+            return '<button type="button" class="ep-forma" data-forma="' + f[0] + '" style="flex:1 1 45%;display:flex;align-items:center;justify-content:center;gap:8px;padding:12px 8px;border-radius:12px;border:2px solid #e0e0e0;background:#fff;color:#555;font-weight:600;"><i class="fas ' + f[2] + '"></i>' + f[1] + '</button>';
+        }).join('');
+        m.innerHTML =
+            '<div style="background:#fff;border-radius:16px;max-width:380px;width:100%;overflow:hidden;box-shadow:0 8px 30px rgba(0,0,0,.35);">' +
+            '  <div style="background:' + COR + ';color:#fff;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;">' +
+            '     <strong><i class="fas fa-plus"></i> Adicionar pagamento</strong>' +
+            '     <button type="button" id="ep-x" style="background:none;border:none;color:#fff;font-size:1.2rem;"><i class="fas fa-xmark"></i></button></div>' +
+            '  <div style="padding:16px;">' +
+            '     <div style="font-size:.75rem;color:#666;font-weight:600;margin-bottom:6px;">FORMA DE PAGAMENTO</div>' +
+            '     <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;">' + chips + '</div>' +
+            '     <div style="font-size:.75rem;color:#666;font-weight:600;margin-bottom:6px;">VALOR (R$)</div>' +
+            '     <input type="number" inputmode="decimal" step="0.01" min="0.01" id="ep-valor" value="' + (restante > 0 ? restante.toFixed(2) : '') + '" style="width:100%;box-sizing:border-box;font-size:1.4rem;font-weight:700;padding:12px;border:2px solid #ccc;border-radius:12px;">' +
+            '     <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;font-size:.8rem;color:#666;">' +
+            '        <span>Total da comanda: <b>' + formatMoney(totais.total) + '</b></span>' +
+            '        <button type="button" id="ep-resto" style="border:1px solid ' + COR + ';background:#fff;color:' + COR + ';border-radius:16px;padding:4px 10px;font-weight:600;">Restante ' + formatMoney(restante) + '</button></div>' +
+            '     <div id="ep-erro" style="color:#c62828;font-size:.85rem;min-height:18px;margin-top:6px;"></div>' +
+            '     <div style="display:flex;gap:10px;margin-top:8px;">' +
+            '        <button type="button" id="ep-cancel" class="btn-outline" style="flex:1;">Cancelar</button>' +
+            '        <button type="button" id="ep-ok" class="btn-primary" style="flex:1;"><i class="fas fa-check"></i> Adicionar</button></div>' +
+            '  </div></div>';
+        document.body.appendChild(m);
+        const fechar = function () { m.remove(); };
+        const marcar = function () {
+            m.querySelectorAll('.ep-forma').forEach(function (x) {
+                const on = x.getAttribute('data-forma') === forma;
+                x.style.borderColor = on ? COR : '#e0e0e0'; x.style.background = on ? '#fce4ec' : '#fff'; x.style.color = on ? COR : '#555';
+            });
+        };
+        m.querySelectorAll('.ep-forma').forEach(function (b) { b.onclick = function () { forma = b.getAttribute('data-forma'); marcar(); }; });
+        marcar();
+        document.getElementById('ep-x').onclick = fechar;
+        document.getElementById('ep-cancel').onclick = fechar;
+        document.getElementById('ep-resto').onclick = function () { document.getElementById('ep-valor').value = restante.toFixed(2); };
+        let ocupado = false;
+        const salvar = async function () {
+            if (ocupado) return;
+            const v = parseFloat(String(document.getElementById('ep-valor').value).replace(',', '.'));
+            if (isNaN(v) || v <= 0) { document.getElementById('ep-erro').textContent = 'Informe um valor maior que zero.'; return; }
+            ocupado = true;
+            const valor = Math.round(v * 100) / 100;
+            fechar();   // a janela da maquininha/PIX (se houver) abre por cima da tela de fechamento
+            const extra = await window.cobrarCartaoSeNecessario(forma, valor);
+            if (extra === null) return;
+            window.pagamentosTemp.push(Object.assign({ forma: forma, valor: valor }, extra));
+            if (typeof window.atualizarListaPagamentos === 'function') window.atualizarListaPagamentos();
+        };
+        document.getElementById('ep-ok').onclick = salvar;
+        document.getElementById('ep-valor').onkeydown = function (e) { if (e.key === 'Enter') salvar(); };
+        setTimeout(function () { const i = document.getElementById('ep-valor'); if (i) { i.focus(); i.select(); } }, 50);
     };
 
     window.removerPagamentoTemp = function (idx) {
@@ -2021,7 +2066,7 @@ if (!window.renderDetalheComanda) {
             texto += `Obrigado pela preferência!`;
         } else {
             if (config.imprimirNome !== false) texto += `*${nomeEmpresa}*\n`;
-            texto += `RECIBO DE PAGAMENTO\n${c.pagamentoPendente ? 'PENDENTE (FIADO)' : 'PAGO'}\n`;
+            texto += `${c.pagamentoPendente ? 'COMPROVANTE DE PENDÊNCIA' : 'RECIBO DE PAGAMENTO'}\n${c.pagamentoPendente ? 'PENDENTE' : 'PAGO'}\n`;
             texto += linhaCor + `\n`;
             texto += `Comanda: ${c.numero} | Mesa: ${formatarMesa(c.mesa)}\n`;
             texto += `Data: ${c.dataFechamento || new Date().toLocaleString('pt-BR')}\n`;

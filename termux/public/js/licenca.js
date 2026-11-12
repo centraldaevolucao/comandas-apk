@@ -5,7 +5,7 @@
     'use strict';
     const COR = '#C2185B';
     // Número do WhatsApp que recebe o comprovante (com 55 + DDD). Troque pelo SEU número.
-    const VALOR_PADRAO = 25.90;
+    const VALOR_PADRAO = 25.99;
 
     const GRUPOS = {
         caixa: { nome: 'Caixa (fechamento, resumo e histórico)', rotas: ['caixa', 'resumo-caixa', 'historico-caixa'] },
@@ -99,6 +99,26 @@
         try { const c = window.normalizarArray(await window.apiGet('configuracoes'))[0] || {}; return Number(c.valorAssinatura) || VALOR_PADRAO; } catch (e) { return VALOR_PADRAO; }
     }
     const R = function (v) { return 'R$ ' + Number(v).toFixed(2).replace('.', ','); };
+    // Catálogo de planos (a tabela vista pelo cliente). O preço mensal pode ser ajustado em Configurações (valorAssinatura).
+    function planosCat(mensal) {
+        const m = Number(mensal) || VALOR_PADRAO;
+        const base = [
+            { id: 'mensal', nome: 'Mensal', meses: 1, preco: m, selo: '', txt: 'Flexibilidade total. Renove quando quiser.' },
+            { id: 'trimestral', nome: 'Trimestral', meses: 3, preco: 69.90, selo: '⭐ Mais popular', txt: 'O equilíbrio ideal entre economia e flexibilidade.' },
+            { id: 'semestral', nome: 'Semestral', meses: 6, preco: 129.90, selo: '', txt: 'Compromisso médio, economia real.' },
+            { id: 'anual', nome: 'Anual', meses: 12, preco: 239.90, selo: '🏆 Melhor valor', txt: 'O melhor custo-benefício. Menos de R$ 20/mês.' }
+        ];
+        return base.map(function (p) {
+            const cheio = m * p.meses;
+            p.mes = p.preco / p.meses; p.eco = Math.max(0, cheio - p.preco); p.desc = cheio > 0 ? Math.round(p.eco / cheio * 100) : 0;
+            return p;
+        });
+    }
+    window.licencaPlanos = planosCat;
+    async function planoPorId(id) {
+        const l = planosCat(await valorAssinatura());
+        return l.find(function (p) { return p.id === id; }) || l[0];
+    }
 
     window.renderAssinatura = function () {
         setTimeout(carregarTelaAssinatura, 30);
@@ -111,18 +131,39 @@
         const s = await window.licencaCarregar();
         if (!s) { box.innerHTML = '<p class="empty-state" style="color:#c62828;">Não foi possível ler a assinatura. Verifique a conexão com o servidor.</p>'; return; }
         const valor = await valorAssinatura();
+        const planos = planosCat(valor);
         let cartao;
         if (s.estado === 'ativa') cartao = ['#e8f5e9', '#2e7d32', s.teste ? 'fa-flask' : 'fa-check-circle', s.teste ? 'Licença de TESTE — acesso total' : 'Assinatura ativa', 'Válida até <b>' + dataBR(s.validade) + '</b>' + (s.cliente ? '<br>Cliente: ' + esc(s.cliente) : '') + '<div id="lic-contador" data-fim="' + esc(s.validade) + '" style="margin-top:10px;font-size:1.5rem;font-weight:700;font-family:monospace;color:#2e7d32;"></div><div style="font-size:.72rem;color:#777;">tempo restante (dias · hh:mm:ss)</div>'];
         else if (s.estado === 'carencia') cartao = ['#fff3e0', '#e65100', 'fa-triangle-exclamation', 'Assinatura vencida', 'Venceu em <b>' + dataBR(s.validade) + '</b>. Tudo segue liberado por poucos dias — renove para não perder o acesso.<div id="lic-contador" data-fim="' + esc(s.validade) + '" data-carencia="' + (s.carenciaDias || 0) + '" style="margin-top:10px;font-size:1.3rem;font-weight:700;font-family:monospace;color:#e65100;"></div><div style="font-size:.72rem;color:#777;">tempo até o bloqueio</div>'];
         else if (s.estado === 'vencida') cartao = ['#ffebee', '#c62828', 'fa-lock', 'Assinatura vencida', 'Venceu em <b>' + dataBR(s.validade) + '</b>. Você está no plano gratuito.'];
         else cartao = ['#f3f3f3', '#555', 'fa-gift', 'Plano gratuito', 'Comandas hoje: <b>' + s.comandasDia + ' de ' + s.limiteComandas + '</b>'];
         let h = '<div style="padding:22px 16px;background:linear-gradient(135deg,' + COR + ',#880E4F);color:#fff;border-radius:12px;margin-bottom:14px;text-align:center;"><i class="fas fa-crown" style="font-size:2.4rem;color:#ffd54f;"></i>' +
-            '<div style="font-size:1.25rem;font-weight:700;margin-top:8px;">Comandas Premium</div><div style="font-size:.85rem;opacity:.95;margin-top:6px;">Comandas ilimitadas, Caixa, Relatórios e Cardápio digital por <b>' + R(valor) + '/mês</b></div></div>';
+            '<div style="font-size:1.25rem;font-weight:700;margin-top:8px;">Comandas Premium</div><div style="font-size:.85rem;opacity:.95;margin-top:6px;">Comandas ilimitadas, Caixa, Relatórios e Cardápio digital a partir de <b>' + R(planos[3].mes) + '/mês</b> no plano anual</div></div>';
         h += '<div style="text-align:center;padding:14px;background:' + cartao[0] + ';border-radius:12px;margin-bottom:14px;"><i class="fas ' + cartao[2] + '" style="color:' + cartao[1] + ';font-size:1.8rem;"></i><div style="font-weight:700;color:' + cartao[1] + ';margin-top:6px;">' + cartao[3] + '</div><div style="font-size:.85rem;color:#555;margin-top:4px;line-height:1.4;">' + cartao[4] + '</div></div>';
 
         h += '<div style="background:#fff;border-radius:12px;padding:14px;margin-bottom:14px;box-shadow:0 2px 8px rgba(0,0,0,.06);font-size:.88rem;">' +
             '<div style="display:flex;gap:10px;"><div style="flex:1;"><b>Gratuito</b><div style="color:#666;margin-top:4px;line-height:1.6;">✔ PDV e comandas<br>✔ ' + s.limiteComandas + ' comandas por dia<br>✔ Todos os cadastros (produtos, clientes, grupos, mesas, equipe)<br>✘ Caixa<br>✘ Relatórios<br>✘ Cardápio digital</div></div>' +
             '<div style="flex:1;"><b style="color:' + COR + ';">Premium</b><div style="color:#666;margin-top:4px;line-height:1.6;">✔ Tudo do gratuito<br>✔ Comandas ilimitadas<br>✔ Caixa completo<br>✔ Relatórios<br>✔ Cardápio digital<br>✔ Suporte</div></div></div></div>';
+
+        h += '<div style="text-align:center;font-size:.88rem;color:#444;margin:2px 8px 12px;line-height:1.4;">Quanto maior o período, menor o valor mensal.<br><b>No anual, você paga menos de R$ 20 por mês.</b></div>';
+        planos.forEach(function (p) {
+            const dest = p.id === 'trimestral', ouro = p.id === 'anual';
+            const borda = dest ? COR : ouro ? '#f9a825' : '#e0e0e0';
+            h += '<div style="position:relative;border:2px solid ' + borda + ';' + (dest ? 'box-shadow:0 0 0 3px #f8bbd0;' : '') + 'border-radius:14px;padding:12px;margin-bottom:12px;background:#fff;">' +
+                (p.selo ? '<span style="position:absolute;top:-10px;right:12px;background:' + (ouro ? '#f9a825;color:#3e2723' : COR + ';color:#fff') + ';font-size:.7rem;font-weight:700;border-radius:10px;padding:3px 10px;">' + p.selo + '</span>' : '') +
+                '<div style="display:flex;justify-content:space-between;align-items:center;"><b>' + p.nome + '</b>' + (p.desc ? '<span style="background:#e8f5e9;color:#2e7d32;font-weight:700;font-size:.72rem;border-radius:8px;padding:2px 7px;">-' + p.desc + '%</span>' : '') + '</div>' +
+                '<div style="font-size:1.5rem;font-weight:800;color:#222;">' + R(p.preco) + (p.meses === 1 ? '<small style="font-size:.75rem;color:#777;font-weight:600;">/mês</small>' : '') + '</div>' +
+                (p.meses > 1 ? '<div style="font-size:.78rem;color:#777;">equivale a <b' + (ouro ? ' style="color:#2e7d32;"' : '') + '>' + R(p.mes) + '/mês</b></div>' : '') +
+                (p.eco > 0.005 ? '<div style="font-size:.8rem;font-weight:700;color:#2e7d32;margin-top:3px;">Economize ' + R(p.eco) + (p.meses === 12 ? '/ano' : '') + '</div>' : '') +
+                '<div style="font-size:.78rem;color:#666;margin-top:3px;">' + esc(p.txt) + '</div>' +
+                '<button class="' + (dest || ouro ? 'btn-primary' : 'btn-outline') + '" style="margin-top:8px;width:100%;" onclick="licencaAssinar(\'' + p.id + '\')">Assinar ' + p.nome.toLowerCase() + '</button></div>';
+        });
+        h += '<div style="text-align:center;font-size:.74rem;color:#777;margin:-2px 0 12px;">🔒 Pagamento seguro por Pix • Sem cobrança automática</div>';
+        h += '<div style="background:#fff;border-radius:12px;padding:12px;margin-bottom:14px;box-shadow:0 2px 8px rgba(0,0,0,.06);overflow-x:auto;"><b style="font-size:.88rem;">Compare os planos</b>' +
+            '<table style="border-collapse:collapse;width:100%;font-size:.74rem;margin-top:6px;text-align:center;"><tr style="color:' + COR + ';"><th style="text-align:left;"></th>' + planos.map(function (p) { return '<th style="padding:5px 2px;">' + p.nome.slice(0, 5) + (p.id === 'trimestral' ? '⭐' : p.id === 'anual' ? '🏆' : '') + '</th>'; }).join('') + '</tr>' +
+            [['Preço', function (p) { return p.preco.toFixed(2).replace('.', ','); }], ['Por mês', function (p) { return p.mes.toFixed(2).replace('.', ','); }], ['Economia', function (p) { return p.eco > 0.005 ? p.eco.toFixed(2).replace('.', ',') : '—'; }], ['Desconto', function (p) { return p.desc ? p.desc + '%' : '—'; }]]
+                .map(function (r) { return '<tr><td style="text-align:left;color:#555;font-weight:600;padding:5px 2px;border-top:1px solid #eee;">' + r[0] + '</td>' + planos.map(function (p) { return '<td style="padding:5px 2px;border-top:1px solid #eee;">' + r[1](p) + '</td>'; }).join('') + '</tr>'; }).join('') +
+            '</table><div style="font-size:.72rem;color:#777;margin-top:6px;">Todos os planos incluem os mesmos recursos Premium.</div></div>';
 
         h += '<div style="background:#fff;border-radius:12px;padding:14px;margin-bottom:14px;box-shadow:0 2px 8px rgba(0,0,0,.06);">' +
             '<div style="font-size:.78rem;color:#777;">ID DESTE EQUIPAMENTO (informe ao assinar)</div>' +
@@ -132,9 +173,8 @@
 
         h += '<div style="background:#fff;border-radius:12px;padding:14px;margin-bottom:14px;box-shadow:0 2px 8px rgba(0,0,0,.06);">' +
             '<div style="font-weight:700;margin-bottom:8px;">Como ' + (s.estado === 'ativa' ? 'renovar' : 'assinar') + '</div>' +
-            '<div style="font-size:.88rem;color:#444;line-height:1.5;"><b>1.</b> Pague ' + R(valor) + ' por Pix.<br><b>2.</b> Toque em <b>Solicitar licença</b> e envie o pedido e o comprovante pelo WhatsApp.<br><b>3.</b> Você recebe um arquivo <b>.rlic</b>: toque em <b>Aplicar licença</b>.</div>' +
-            '<button class="btn-primary" style="margin-top:10px;" onclick="licencaPix()"><i class="fas fa-qrcode"></i> Pagar com Pix (' + R(valor) + ')</button>' +
-            '<button class="btn-outline" style="margin-top:8px;width:100%;" onclick="licencaSolicitar()"><i class="fas fa-paper-plane"></i> Solicitar licença (enviar pedido)</button>' +
+            '<div style="font-size:.88rem;color:#444;line-height:1.5;"><b>1.</b> Escolha o plano acima e pague por Pix.<br><b>2.</b> Toque em <b>Solicitar licença</b> e envie o pedido e o comprovante pelo WhatsApp.<br><b>3.</b> Você recebe um arquivo <b>.rlic</b>: toque em <b>Aplicar licença</b>.</div>' +
+            '<button class="btn-outline" style="margin-top:10px;width:100%;" onclick="licencaSolicitar()"><i class="fas fa-paper-plane"></i> Solicitar licença (enviar pedido)</button>' +
             '<input type="file" id="lic-arquivo" accept=".rlic" style="display:none;" onchange="licencaLerArquivo(this)">' +
             '<button class="btn-primary" style="margin-top:14px;background:#2e7d32;" onclick="document.getElementById(\'lic-arquivo\').click()"><i class="fas fa-file-circle-check"></i> Aplicar licença (arquivo .rlic)</button>' +
             '<div style="font-size:.74rem;color:#777;margin-top:6px;">Recebeu o arquivo <b>Assinatura.rlic</b> pelo WhatsApp ou e-mail? Toque nele e escolha Comandas, ou use o botão acima e escolha o arquivo <b>.rlic</b>. Sem digitar nada.</div>' +
@@ -204,31 +244,35 @@
     };
 
     // Pedido de licença: arquivo .pedido (equipamento + estabelecimento) que o dono importa no app "Licenca-app"
-    window.licencaSolicitar = async function () {
+    window.licencaSolicitar = async function (planoId) {
+        if (typeof planoId !== 'string') planoId = 'mensal';
+        const plano = await planoPorId(planoId);
         const s = window.LICENCA.status || {};
         let cfg = {}; try { cfg = window.normalizarArray(await window.apiGet('configuracoes'))[0] || {}; } catch (e) {}
         const dados = { app: 'Comandas', tipo: 'pedido-licenca', estabelecimento: cfg.nomeImpressao || s.cliente || '', telefone: cfg.telefone || cfg.whatsapp || '',
-            equipamento: s.instalacaoId || '', valor: await valorAssinatura(), pedido_em: new Date().toISOString() };
+            equipamento: s.instalacaoId || '', plano: plano.id, meses: plano.meses, valor: plano.preco, pedido_em: new Date().toISOString() };
         const b64 = btoa(unescape(encodeURIComponent(JSON.stringify(dados)))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
         const conteudo = JSON.stringify(Object.assign({}, dados, { codigo: 'CMDP1.' + b64 }), null, 1);
         const nome = 'pedido-' + String(dados.equipamento).replace(/-/g, '') + '.pedido';
         const texto = 'Olá, Central da Evolução! Quero assinar o Comandas.\nEstabelecimento: ' + (dados.estabelecimento || '—') + '\nID do equipamento: ' + dados.equipamento +
-            '\nValor: ' + R(dados.valor) + '\nPedido: CMDP1.' + b64 + '\n(Vou enviar o comprovante do Pix.)';
+            '\nPlano: ' + plano.nome + ' (' + plano.meses + (plano.meses === 1 ? ' mês' : ' meses') + ')\nValor: ' + R(dados.valor) + '\nPedido: CMDP1.' + b64 + '\n(Vou enviar o comprovante do Pix.)';
         const C = window.CONTATO || {};
         const old = document.getElementById('modal-licenca-pedido'); if (old) old.remove();
         const m = document.createElement('div');
         m.id = 'modal-licenca-pedido';
         m.style.cssText = 'display:flex;align-items:center;justify-content:center;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:300000;padding:16px;';
         m.innerHTML = '<div style="background:#fff;border-radius:16px;max-width:360px;width:100%;overflow:hidden;">' +
-            '<div style="background:' + COR + ';color:#fff;padding:14px;font-weight:700;"><i class="fas fa-paper-plane"></i> Solicitar licença</div>' +
-            '<div style="padding:16px;font-size:.88rem;color:#444;line-height:1.5;">Enviaremos o pedido da <b>' + esc(dados.estabelecimento || 'sua loja') + '</b> (equipamento <b>' + esc(dados.equipamento) + '</b>) para a <b>' + esc(C.empresa || '') + '</b>. Depois, mande também o comprovante do Pix.' +
+            '<div style="background:' + COR + ';color:#fff;padding:14px;font-weight:700;"><i class="fas fa-paper-plane"></i> Plano ' + plano.nome + ' — ' + R(plano.preco) + '</div>' +
+            '<div style="padding:16px;font-size:.88rem;color:#444;line-height:1.5;">Enviaremos o pedido da <b>' + esc(dados.estabelecimento || 'sua loja') + '</b> (equipamento <b>' + esc(dados.equipamento) + '</b>) para a <b>' + esc(C.empresa || '') + '</b>. Mande também o comprovante do Pix.' +
+            '<button class="btn-primary" id="lp-p" style="margin-top:12px;width:100%;background:#2e7d32;"><i class="fas fa-qrcode"></i> 1. Pagar com Pix (' + R(plano.preco) + ')</button><div style="margin-top:10px;"><b>2.</b> Depois de pagar, envie o pedido:</div>' +
             '<button class="btn-primary" id="lp-w" style="margin-top:12px;width:100%;background:#1b8f4a;"><i class="fab fa-whatsapp"></i> WhatsApp ' + esc(C.whatsappFmt || '') + '</button>' +
             '<button class="btn-primary" id="lp-e" style="margin-top:8px;width:100%;background:#1976d2;"><i class="fas fa-envelope"></i> E-mail ' + esc(C.email || '') + '</button>' +
             '<button class="btn-outline" id="lp-a" style="margin-top:8px;width:100%;"><i class="fas fa-file-export"></i> Compartilhar arquivo .pedido</button>' +
             '<button class="btn-outline" id="lp-c" style="margin-top:8px;width:100%;border-color:#bbb;color:#666;">Cancelar</button></div></div>';
         document.body.appendChild(m);
+        m.querySelector('#lp-p').onclick = function () { window.licencaPix(plano.id); };
         m.querySelector('#lp-w').onclick = function () { m.remove(); window.abrirLinkExterno(window.contatoWhatsAppUrl(texto)); };
-        m.querySelector('#lp-e').onclick = function () { m.remove(); window.abrirLinkExterno(window.contatoEmailUrl('Pedido de licença Comandas — ' + dados.equipamento, texto)); };
+        m.querySelector('#lp-e').onclick = function () { m.remove(); window.abrirLinkExterno(window.contatoEmailUrl('Pedido de licença Comandas — ' + plano.nome + ' — ' + dados.equipamento, texto)); };
         m.querySelector('#lp-c').onclick = function () { m.remove(); };
         m.querySelector('#lp-a').onclick = function () {
             m.remove();
@@ -241,19 +285,21 @@
         };
     };
     window.licencaEnviarComprovante = window.licencaSolicitar;
+    window.licencaAssinar = function (id) { window.licencaSolicitar(id); };
 
-    window.licencaPix = async function () {
+    window.licencaPix = async function (planoId) {
+        const plano = await planoPorId(typeof planoId === 'string' ? planoId : 'mensal');
         let chave = typeof CHAVE_PIX_PADRAO !== 'undefined' ? CHAVE_PIX_PADRAO : '';
         try { const c = window.normalizarArray(await window.apiGet('configuracoes'))[0] || {}; if (c.pixAssinatura && String(c.pixAssinatura).trim()) chave = String(c.pixAssinatura).trim(); } catch (e) {}
-        const valor = await valorAssinatura();
-        if (!chave || !window.gerarPixComValor) { await window.avisar('Pix da assinatura não configurado.'); return; }
+        const valor = plano.preco;
+        if (!chave || !window.gerarPixComValor) { await window.avisar('A chave Pix da assinatura ainda não está configurada neste aparelho. Envie o pedido (botões abaixo) que a Central da Evolução responde com o Pix do plano ' + plano.nome + '.'); return; }
         const pix = window.gerarPixComValor(chave, valor);
         const old = document.getElementById('modal-licenca-pix'); if (old) old.remove();
         const m = document.createElement('div');
         m.id = 'modal-licenca-pix';
         m.style.cssText = 'display:flex;align-items:center;justify-content:center;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:300000;padding:16px;';
         m.innerHTML = '<div style="background:#fff;border-radius:16px;max-width:360px;width:100%;overflow:hidden;text-align:center;">' +
-            '<div style="background:' + COR + ';color:#fff;padding:14px;font-weight:700;"><i class="fas fa-qrcode"></i> Pagamento Pix — ' + R(valor) + '</div>' +
+            '<div style="background:' + COR + ';color:#fff;padding:14px;font-weight:700;"><i class="fas fa-qrcode"></i> Pix — Plano ' + plano.nome + ' — ' + R(valor) + '</div>' +
             '<div style="padding:16px;"><img src="' + window.qrUrl(pix, '300x300') + '" alt="QR Pix" style="width:220px;height:220px;border:2px dashed ' + COR + ';border-radius:12px;padding:8px;">' +
             '<div style="font-size:.75rem;color:#777;margin:10px 0 4px;">Pix copia e cola</div><div style="font-size:.7rem;word-break:break-all;max-height:56px;overflow:hidden;color:#333;">' + esc(pix) + '</div>' +
             '<button class="btn-outline" style="margin-top:10px;width:100%;" id="lic-copiar-pix"><i class="far fa-copy"></i> Copiar código Pix</button>' +

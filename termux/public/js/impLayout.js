@@ -7,16 +7,18 @@
 (function () {
     'use strict';
     const COR = '#C2185B';
-    const DOCS = { comanda: 'Comanda', recibo: 'Recibo', cozinha: 'Cozinha' };
+    const DOCS = { comanda: 'Comanda', recibo: 'Recibo', cozinha: 'Cozinha', pendencia: 'Pendência' };
     const BLOCOS = {
         comanda: [['logo', 'Logo'], ['nome', 'Nome do estabelecimento'], ['titulo', 'Título do documento'], ['cor', 'Faixa de cor do caixa'], ['cab', 'Comanda / Mesa / Data'], ['cliente', 'Cliente e garçom'], ['itens', 'Itens'], ['totais', 'Totais'], ['qr', 'QR Code PIX'], ['final', 'Mensagem final']],
         recibo: [['logo', 'Logo'], ['nome', 'Nome do estabelecimento'], ['titulo', 'Título e situação'], ['cor', 'Faixa de cor do caixa'], ['cab', 'Comanda / Mesa / Data'], ['cliente', 'Cliente e garçom'], ['itens', 'Itens'], ['totais', 'Totais e pagamentos'], ['pendencias', 'Pendências'], ['qr', 'QR Code PIX'], ['assinatura', 'Linha de assinatura'], ['final', 'Mensagem final']],
+        pendencia: [['logo', 'Logo'], ['nome', 'Nome do estabelecimento'], ['titulo', 'Título e situação'], ['cor', 'Faixa de cor do caixa'], ['cab', 'Comanda / Mesa / Data'], ['cliente', 'Cliente e garçom'], ['itens', 'Itens'], ['totais', 'Totais, recebido e pendente'], ['pendencias', 'Pendências anteriores e total geral'], ['assinatura', 'Linha de assinatura'], ['final', 'Mensagem final']],
         cozinha: [['nome', 'Nome do estabelecimento'], ['titulo', 'Título do documento'], ['cab', 'Comanda / Mesa / Hora'], ['cliente', 'Cliente e garçom'], ['itens', 'Itens (sem preço)'], ['final', 'Mensagem final']]
     };
     const TEXTO_PADRAO = {
         comanda: { titulo: 'COMPROVANTE DE CONSUMO', final: 'Obrigado pela preferência!' },
         recibo: { titulo: 'RECIBO DE PAGAMENTO', final: 'Obrigado pela preferência!' },
-        cozinha: { titulo: 'PEDIDO - COZINHA', final: '' }
+        cozinha: { titulo: 'PEDIDO - COZINHA', final: '' },
+        pendencia: { titulo: 'COMPROVANTE DE PENDÊNCIA', final: 'Obrigado pela preferência!' }
     };
     const SUBS = { logo: 'Centralizado', itens: 'Qtd · Nome · Valor', final: 'Texto da mensagem' };
     const ON_PADRAO = { cozinha: { final: false } };
@@ -67,11 +69,13 @@
     // ---------- modelo neutro ----------
     window.impDocumento = async function (tipo, c, config, opts) {
         opts = opts || {}; config = config || {};
+        if (tipo === 'recibo' && c && c.pagamentoPendente && !opts.aberto) tipo = 'pendencia';   // comanda deixada em pendência usa o layout "Pendência"
+        const rec = tipo === 'recibo' || tipo === 'pendencia';
         const LAY = window.impLayoutDe(config), D = LAY[tipo] || LAY.comanda;
         const calc = window.calcularTotais ? window.calcularTotais(c) : { subtotal: c.subtotal || 0, desconto: 0, total: c.total || 0 };
         const L = [];
         const sep = function () { L.push({ k: 'sep' }); };
-        const tipoPix = tipo === 'recibo' ? 'recibo' : 'comanda';
+        const tipoPix = rec ? 'recibo' : 'comanda';
         let prev = null;
         const aplica = function () {
             if (!prev) return; const b = prev.b;
@@ -100,9 +104,9 @@
                 let t = b.texto || TEXTO_PADRAO[tipo].titulo;
                 if (tipo === 'recibo' && opts.aberto) t = 'RECIBO EM ABERTO';
                 if (t) L.push({ k: 't', t: t, b: 1, al: 'c' });
-                if (tipo === 'recibo') {
+                if (rec) {
                     if (opts.aberto) L.push({ k: 't', t: 'AGUARDANDO FECHAMENTO', b: 1, al: 'c', bg: '#fff3e0', fg: '#e65100' });
-                    else if (c.pagamentoPendente) L.push({ k: 't', t: 'PENDENTE (FIADO)', b: 1, al: 'c', bg: '#fff3e0', fg: '#e65100' });
+                    else if (tipo === 'pendencia') L.push({ k: 't', t: 'PENDENTE', b: 1, al: 'c', bg: '#fff3e0', fg: '#e65100' });
                     else L.push({ k: 't', t: 'PAGO', b: 1, al: 'c', bg: '#e8f5e9', fg: '#2e7d32' });
                 }
             } else if (id === 'cor') {
@@ -114,7 +118,7 @@
                 sep();
                 const mesa = window.formatarMesa ? window.formatarMesa(c.mesa) : (c.mesa || '-');
                 L.push({ k: 'duas', l: 'Comanda: ' + c.numero, r: /^mesa/i.test(String(mesa)) ? String(mesa) : 'Mesa: ' + mesa, b: 1 });
-                const data = tipo === 'cozinha' ? (opts.agora || new Date().toLocaleString('pt-BR')) : (tipo === 'recibo' ? (c.dataFechamento || opts.agora || new Date().toLocaleString('pt-BR')) : (c.dataAbertura || new Date().toLocaleString('pt-BR')));
+                const data = tipo === 'cozinha' ? (opts.agora || new Date().toLocaleString('pt-BR')) : (rec ? (c.dataFechamento || opts.agora || new Date().toLocaleString('pt-BR')) : (c.dataAbertura || new Date().toLocaleString('pt-BR')));
                 L.push({ k: 't', t: (tipo === 'cozinha' ? 'Hora: ' : 'Data: ') + data });
             } else if (id === 'cliente') {
                 if (c.cliente) L.push({ k: 't', t: 'Cliente: ' + c.cliente });
@@ -122,7 +126,7 @@
             } else if (id === 'itens') {
                 sep();
                 const itens = window.normalizarArray(c.itens) || [];
-                if (tipo === 'recibo') L.push({ k: 't', t: 'ITENS CONSUMIDOS (' + itens.reduce(function (s, i) { return s + Number(i.quantidade || 0); }, 0) + ')', b: 1 });
+                if (rec) L.push({ k: 't', t: 'ITENS CONSUMIDOS (' + itens.reduce(function (s, i) { return s + Number(i.quantidade || 0); }, 0) + ')', b: 1 });
                 itens.forEach(function (i) {
                     const q = Number(i.quantidade || 0), nome = q + 'x ' + i.nome;
                     if (tipo === 'cozinha') {
@@ -135,18 +139,19 @@
                 sep();
                 if (calc.desconto > 0) { L.push({ k: 'duas', l: 'Subtotal', r: money(calc.subtotal) }); L.push({ k: 'duas', l: 'Desconto' + (c.desconto && c.desconto.tipo === 'porcentagem' ? ' (' + c.desconto.valor + '%)' : ''), r: '-' + money(calc.desconto) }); if (c.desconto && c.desconto.motivo) L.push({ k: 't', t: 'Motivo: ' + c.desconto.motivo, small: 1 }); }
                 L.push({ k: 'duas', l: 'TOTAL', r: money(calc.total), b: 1, g: 1 });
-                if (tipo === 'recibo') {
+                if (rec) {
                     const pg = window.normalizarArray(c.pagamentos) || [];
-                    L.push({ k: 't', t: 'FORMA DE PAGAMENTO', b: 1, mt: 1 });
-                    if (!pg.length) L.push({ k: 't', t: 'Nenhum pagamento registrado.', al: 'c' });
+                    if (tipo === 'recibo' || pg.length) L.push({ k: 't', t: tipo === 'pendencia' ? 'RECEBIDO' : 'FORMA DE PAGAMENTO', b: 1, mt: 1 });
+                    if (!pg.length && tipo === 'recibo') L.push({ k: 't', t: 'Nenhum pagamento registrado.', al: 'c' });
                     pg.forEach(function (p) {
                         L.push({ k: 'duas', l: FORMAS[p.forma] || p.forma, r: money(p.valor) });
                         if (p.maquininha && window.maquininhaTexto) { const mt = window.maquininhaTexto(p.maquininha); if (mt) L.push({ k: 't', t: mt, small: 1 }); }
                     });
                     if (Number(c.troco) > 0) L.push({ k: 'duas', l: 'Troco', r: money(c.troco) });
+                    if (tipo === 'pendencia') L.push({ k: 'duas', l: 'VALOR PENDENTE', r: money(Number(c.valorPendente || 0)), b: 1, g: 1, mt: 1 });
                 }
             } else if (id === 'pendencias') {
-                if (tipo !== 'recibo' || !window.pendenciasAnteriores) continue;
+                if (!rec || !window.pendenciasAnteriores) continue;
                 let pa = { valor: 0 };
                 try { pa = opts.amostra ? { valor: 0 } : await window.pendenciasAnteriores(c); } catch (e) {}
                 const atual = opts.atualPend !== undefined ? Number(opts.atualPend || 0) : (c.pagamentoPendente ? Number(c.valorPendente || 0) : 0);
@@ -273,7 +278,7 @@
                 (livre ? '<button data-rm="' + i + '" style="border:0;background:none;color:#c62828;font-size:1rem;">🗑</button>' : '') + '</div>' + corpo + painelEst + '</div>';
         });
         const painel = '<div style="padding:12px;overflow-y:auto;' + (larg ? 'width:420px;flex:0 0 420px;' : '') + '">' +
-            '<div style="background:#FCE4EC;border-radius:12px;padding:12px;margin-bottom:10px;"><b style="font-size:.85rem;">Documento</b><div style="display:flex;gap:6px;margin:8px 0;">' +
+            '<div style="background:#FCE4EC;border-radius:12px;padding:12px;margin-bottom:10px;"><b style="font-size:.85rem;">Documento</b><div style="display:flex;flex-wrap:wrap;gap:6px;margin:8px 0;">' +
             Object.keys(DOCS).map(function (d) { return '<span data-doc="' + d + '" style="padding:6px 12px;border-radius:16px;font-size:.8rem;font-weight:600;cursor:pointer;' + (d === DOC ? 'background:' + COR + ';color:#fff;' : 'background:#fff;') + '">' + DOCS[d] + '</span>'; }).join('') + '</div>' +
             seg([['58', 'Térmica 58mm'], ['80', 'Térmica 80mm'], ['a4', 'A4']], D.papel, 'papel') + '</div>' +
             '<div style="background:#FCE4EC;border-radius:12px;padding:12px;margin-bottom:10px;"><b style="font-size:.85rem;">Blocos (use ▲ ▼ para reordenar)</b>' + lista +
