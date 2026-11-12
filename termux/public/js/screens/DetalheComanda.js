@@ -1367,6 +1367,7 @@ if (!window.renderDetalheComanda) {
             '                <label>Valor (R$)</label>' +
             '                <input type="number" step="0.01" id="pg-valor" style="width:100%; padding:10px; border:1px solid #ccc; border-radius:6px; font-size:1.1rem;">' +
             '            </div>' +
+            '            <div style="font-size:.75rem;color:#666;margin-bottom:8px;">Pode receber um valor <b>parcial</b> em qualquer forma (dinheiro, débito, crédito ou PIX). O restante pode ficar em pendência.</div>' +
             '            <button class="btn-outline" style="width:100%; border-color:#1976d2; color:#1976d2;" onclick="adicionarPagamentoTemp()"><i class="fas fa-plus"></i> Adicionar Pagamento</button>' +
             '        </div>' +
 
@@ -1672,7 +1673,7 @@ if (!window.renderDetalheComanda) {
             const c0 = window.comandaAtual, campos = ['pagamentos', 'troco', 'pagamentoPendente', 'valorPendente', 'cliente', 'clienteId'], snap = {};
             campos.forEach(function (k) { snap[k] = c0[k]; });
             Object.assign(c0, { pagamentos: window.pagamentosTemp, troco: 0, pagamentoPendente: true, valorPendente: pend, cliente: cli.nome, clienteId: cli.id });   // só para visualizar/imprimir; volta se cancelar
-            const okFiado = await dialogoFiado('Enviar ' + formatMoney(pend) + ' de ' + cli.nome + ' para PENDÊNCIAS?\n\nA venda não será fechada e nenhum recibo será gerado.');
+            const okFiado = await dialogoFiado((totalPago > 0.009 ? 'Recebido agora: ' + formatMoney(totalPago) + ' de ' + formatMoney(totais.total) + '.\n' : '') + 'Enviar ' + formatMoney(pend) + ' de ' + cli.nome + ' para PENDÊNCIAS?\n\nA venda não será fechada e nenhum recibo será gerado.');
             if (!okFiado) { campos.forEach(function (k) { if (snap[k] === undefined) delete c0[k]; else c0[k] = snap[k]; }); return; }
             const c = window.comandaAtual;
             c.status = 'pendente';
@@ -1691,8 +1692,11 @@ if (!window.renderDetalheComanda) {
             return;
         }
         if (!isFiado && falta > 0.01) {
-            alert('Ainda falta ' + formatMoney(falta) + ' para completar o pagamento. Adicione outro pagamento ou marque como Fiado.');
-            return;
+            // pagamento parcial (dinheiro, débito, crédito ou PIX): oferece deixar o restante em pendência
+            const querPend = await window.confirmar('Recebido ' + formatMoney(totalPago) + ' de ' + formatMoney(totais.total) + '.\n\nDeixar o restante, ' + formatMoney(falta) + ', em PENDÊNCIA (fiado)?\n\nOu toque em Cancelar para adicionar outro pagamento.', { titulo: 'Pagamento parcial', ok: 'Deixar em pendência' });
+            if (!querPend) return;
+            const chkF = document.getElementById('pg-fiado'); if (chkF) chkF.checked = true;
+            return window.confirmarFechamentoCompleto();
         }
         if (!await window.confirmar('Confirmar o recebimento de ' + formatMoney(totais.total) + (isFiado ? ' (com saldo pendente / fiado)' : '') + ' e gerar o recibo em aberto?', { titulo: 'Confirmar recebimento', ok: 'Gerar recibo' })) return;
 

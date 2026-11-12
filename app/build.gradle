@@ -12,7 +12,7 @@ android {
         // O Android só aceita atualizar por cima se o versionCode SOBE a cada versão.
         // No GitHub Actions usa o número da execução; local, usa o valor fixo abaixo.
         versionCode (System.getenv('GITHUB_RUN_NUMBER') ? (System.getenv('GITHUB_RUN_NUMBER') as int) + 100 : 100)
-        versionName '2.20.1'
+        versionName '2.20.2'
         ndk { abiFilters 'arm64-v8a', 'armeabi-v7a', 'x86_64' }
         python { version '3.11' }   // servidor usa só a biblioteca padrão: nenhum pip necessário
     }
