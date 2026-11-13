@@ -335,3 +335,15 @@ Obs.: itens alterados depois de gerar o recibo em aberto não atualizam o valor 
 ## 47. v2.22.3 — QR Code no Recibo (pendente)
 - O **Recibo (pendente)** (Pendências e aviso do fiado) mostra o **QR Code PIX com o valor que está pendente** quando a chave PIX do restaurante está configurada e a opção "QR Code PIX nos recibos de pendência" (Configurações › Pix) está ligada. Sem PIX configurado, não aparece.
 - Comanda e recibo normais continuam com QR só quando há pagamento em PIX.
+
+## 48. v2.22.4 — Pix funcional por plano na Assinatura
+- O Pix da assinatura usa o **Pix copia e cola da Central da Evolução** (chave aleatória, "Jhonny Ferreira Albuquer", São Paulo) e **refaz o valor (campo 54) e o CRC16 a cada plano**: R$ 25,99 / 69,90 / 129,90 / 239,90. QR Code e "Copiar código Pix" mostram o código do plano escolhido.
+- Conferido: com R$ 19,99 o gerador reproduz exatamente o código original; todos os planos têm CRC válido. Se `pixAssinatura` estiver preenchido em Configurações (código copia e cola ou chave), ele continua tendo prioridade.
+
+## 49. v2.23.0 — Fiado com escolha de cadastro, pendência sem forma de pagamento, aviso de impressora
+- **Deixar fiado (Pendente):** ao marcar, **sempre pergunta o cadastro** do cliente (dá para trocar o escolhido). **Desmarcar** remove o cadastro escolhido e a comanda volta ao estado original (o nome que tinha antes); **fechar a janela de escolha** ou **Cancelar o fechamento** também voltam ao original.
+- **Enviar para pendência:** a comanda vai **sem forma de pagamento** (só o que já foi realmente recebido fica registrado). A forma padrão só é preenchida ao **receber** (e ao desmarcar o fiado).
+- **QR Code:** comandas pendentes só mostram o QR no **Recibo (pendente)**; na comanda pendente não aparece.
+- **Impressora não encontrada:** a impressão é **cancelada**, o app avisa e oferece **WhatsApp**, **Compartilhar** (e-mail, Drive, outros), **Imprimir pelo celular** ou Fechar.
+- Pix da assinatura (v2.22.4): o gerador de Pix com valor agora lê os campos do código (não depende mais de padrão de texto) e refaz o CRC.
+- Testado no navegador. Não testado: impressora Bluetooth real.

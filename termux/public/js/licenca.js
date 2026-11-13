@@ -287,13 +287,35 @@
     window.licencaEnviarComprovante = window.licencaSolicitar;
     window.licencaAssinar = function (id) { window.licencaSolicitar(id); };
 
+    // Pix copia e cola da assinatura (Central da Evolução). O valor (campo 54) e o CRC são refeitos para cada plano.
+    const PIX_ASSINATURA = '00020126580014br.gov.bcb.pix013692131427-5aaa-42ba-97c2-733cfa1bf945520400005303986540519.995802BR5924Jhonny Ferreira Albuquer6009Sao Paulo62220518daqr654421878421066304B8FD';
+    function crc16(t) {
+        let r = 0xFFFF;
+        for (let i = 0; i < t.length; i++) { r ^= t.charCodeAt(i) << 8; for (let k = 0; k < 8; k++) r = (r & 0x8000) ? ((r << 1) ^ 0x1021) & 0xFFFF : (r << 1) & 0xFFFF; }
+        return r.toString(16).toUpperCase().padStart(4, '0');
+    }
+    function pixComValorTLV(payload, valor) {
+        const itens = []; let i = 0; const p = String(payload).trim();
+        while (i + 4 <= p.length) { const id = p.substr(i, 2), n = parseInt(p.substr(i + 2, 2), 10); if (isNaN(n)) return null; itens.push([id, p.substr(i + 4, n)]); i += 4 + n; }
+        const v = Number(valor).toFixed(2), out = [];
+        let pos = false;
+        itens.forEach(function (it) {
+            if (it[0] === '63' || it[0] === '54') return;
+            if (it[0] === '58' && !pos) { out.push(['54', v]); pos = true; }
+            out.push(it);
+        });
+        if (!pos) out.push(['54', v]);
+        const t = out.map(function (it) { return it[0] + String(it[1].length).padStart(2, '0') + it[1]; }).join('') + '6304';
+        return t + crc16(t);
+    }
+    window.licencaPixPayload = function (valor, chave) { return pixComValorTLV(chave || PIX_ASSINATURA, valor); };
     window.licencaPix = async function (planoId) {
         const plano = await planoPorId(typeof planoId === 'string' ? planoId : 'mensal');
-        let chave = typeof CHAVE_PIX_PADRAO !== 'undefined' ? CHAVE_PIX_PADRAO : '';
+        let chave = PIX_ASSINATURA;
         try { const c = window.normalizarArray(await window.apiGet('configuracoes'))[0] || {}; if (c.pixAssinatura && String(c.pixAssinatura).trim()) chave = String(c.pixAssinatura).trim(); } catch (e) {}
         const valor = plano.preco;
-        if (!chave || !window.gerarPixComValor) { await window.avisar('A chave Pix da assinatura ainda não está configurada neste aparelho. Envie o pedido (botões abaixo) que a Central da Evolução responde com o Pix do plano ' + plano.nome + '.'); return; }
-        const pix = window.gerarPixComValor(chave, valor);
+        if (!chave) { await window.avisar('A chave Pix da assinatura ainda não está configurada neste aparelho. Envie o pedido (botões abaixo) que a Central da Evolução responde com o Pix do plano ' + plano.nome + '.'); return; }
+        const pix = (/^000201/.test(chave) ? pixComValorTLV(chave, valor) : window.gerarPixComValor(chave, valor));
         const old = document.getElementById('modal-licenca-pix'); if (old) old.remove();
         const m = document.createElement('div');
         m.id = 'modal-licenca-pix';

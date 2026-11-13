@@ -167,6 +167,7 @@
                     L.push({ k: 'duas', l: 'TOTAL GERAL PENDENTE', r: money(pa.valor + atual), b: 1 });
                 }
             } else if (id === 'qr') {
+                if (tipo === 'comanda' && !opts.amostra && (c.pagamentoPendente || String(c.status || '').toLowerCase() === 'pendente')) continue;   // comanda pendente: QR só no Recibo (pendente)
                 const pix = opts.amostra ? (tipo === 'pendencia' ? 16 : 26) : (tipo === 'pendencia' ? Number(c.valorPendente || 0) : (window.pixValorPago ? window.pixValorPago(c) : 0));
                 if (!(pix > 0.004)) continue;
                 if (opts.amostra) { L.push({ k: 'qr', amostra: true, valor: pix }); continue; }

@@ -1276,6 +1276,7 @@ if (!window.renderDetalheComanda) {
         let totais = calcularTotais(window.comandaAtual);
         const itens = window.comandaAtual.itens || [];
         window.__descSnap = JSON.stringify(window.comandaAtual.desconto || null);   // desfaz o desconto se cancelar
+        window.__fiadoOrig = { cliente: window.comandaAtual.cliente, clienteId: window.comandaAtual.clienteId };   // volta ao estado original se desistir do fiado
 
         window.pagamentosTemp = [];
         window.__formasAtivas = formasAtivas;
@@ -1406,10 +1407,11 @@ if (!window.renderDetalheComanda) {
             totais = calcularTotais(window.comandaAtual);
             const ant = window.pagamentosTemp.filter(function (p) { return p.anterior; }).reduce(function (a, p) { return a + Number(p.valor || 0); }, 0);
             const novos = window.pagamentosTemp.filter(function (p) { return !p.anterior; });
-            if (novos.length === 1 && !novos[0].maquininha) {
+            const fiadoOn = (document.getElementById('pg-fiado') || {}).checked;
+            if (fiadoOn) { /* pendência: sem forma de pagamento pré-preenchida */ } else if (novos.length === 1 && !novos[0].maquininha) {
                 const v = Math.round((totais.total - ant) * 100) / 100;
                 if (v > 0.009) novos[0].valor = v; else window.pagamentosTemp = window.pagamentosTemp.filter(function (p) { return p.anterior; });
-            } else if (!novos.length && ant < totais.total - 0.009) window.pagamentosTemp.push({ forma: formaInicial, valor: Math.round((totais.total - ant) * 100) / 100 });
+            } else if (!fiadoOn && !novos.length && ant < totais.total - 0.009) window.pagamentosTemp.push({ forma: formaInicial, valor: Math.round((totais.total - ant) * 100) / 100 });
             const iv = document.getElementById('pg-valor'); if (iv) iv.value = Math.max(0, totais.total - window.pagamentosTemp.reduce(function (a, p) { return a + Number(p.valor || 0); }, 0)).toFixed(2);
             atualizarDOM();
         };
@@ -1442,7 +1444,7 @@ if (!window.renderDetalheComanda) {
         };
         window.cancelarFechamentoModal = function () {
             try { const d = JSON.parse(window.__descSnap || 'null'); if (d) window.comandaAtual.desconto = d; else delete window.comandaAtual.desconto; } catch (e) {}
-            fecharModalFechamento();
+            window.restaurarClienteOriginal().then(function () { fecharModalFechamento(); window.__fiadoOrig = null; });
         };
         pintarTipo();
         if (window.comandaAtual.desconto && window.comandaAtual.desconto.valor > 0) {   // já havia desconto: abre a área preenchida
@@ -1659,33 +1661,51 @@ if (!window.renderDetalheComanda) {
         return { cliente: cli, valor: valor, qtd: qtd };
     };
 
+    // Volta o cadastro (cliente) da comanda ao que era antes de marcar "Deixar fiado"
+    window.restaurarClienteOriginal = async function () {
+        const o = window.__fiadoOrig, c = window.comandaAtual;
+        if (!o || !c) return;
+        if (c.cliente === o.cliente && c.clienteId === o.clienteId) return;
+        if (o.cliente === undefined) delete c.cliente; else c.cliente = o.cliente;
+        if (o.clienteId === undefined) delete c.clienteId; else c.clienteId = o.clienteId;
+        try { await salvarComanda(); } catch (e) {}
+    };
     window.fiadoMarcado = async function (on) {
-        if (!on) return;
-        if (!(window.__pendAnt && window.__pendAnt.cliente)) {
-            const chk = document.getElementById('pg-fiado'); if (chk) chk.checked = false;
-            window.abrirVinculoClienteFiado(async function () {
-                window.__pendAnt = await window.pendenciasAnteriores(window.comandaAtual);
-                const c2 = document.getElementById('pg-fiado'); if (c2) c2.checked = !!window.__pendAnt.cliente;
-                window.fiadoMarcado(true);
-            });
+        const chk = document.getElementById('pg-fiado');
+        if (!on) {   // desmarcou: desiste do fiado → remove o cadastro escolhido e volta ao pagamento normal
+            await window.restaurarClienteOriginal();
+            window.__pendAnt = await window.pendenciasAnteriores(window.comandaAtual);
+            const tot = calcularTotais(window.comandaAtual).total;
+            const ja = window.pagamentosTemp.reduce((a, p) => a + Number(p.valor || 0), 0);
+            if (ja < tot - 0.009) window.pagamentosTemp.push({ forma: window.__formaInicial || 'dinheiro', valor: Math.round((tot - ja) * 100) / 100 });
+            if (window.atualizarListaPagamentos) window.atualizarListaPagamentos();
             return;
         }
-        const tot = calcularTotais(window.comandaAtual).total;
-        const soma = window.pagamentosTemp.reduce((a, p) => a + Number(p.valor), 0);
-        if (soma >= tot - 0.009) window.pagamentosTemp = window.pagamentosTemp.filter(function (p) { return p.anterior; });   // tudo vira pendência (mantém o já recebido)
-        if (window.atualizarListaPagamentos) window.atualizarListaPagamentos();
+        // marcou: sempre pergunta o cadastro (pode trocar o escolhido antes); cancelar volta ao estado original
+        if (chk) chk.checked = false;
+        window.abrirVinculoClienteFiado(async function () {
+            window.__pendAnt = await window.pendenciasAnteriores(window.comandaAtual);
+            const c2 = document.getElementById('pg-fiado');
+            if (!(window.__pendAnt && window.__pendAnt.cliente)) { if (c2) c2.checked = false; return; }
+            if (c2) c2.checked = true;
+            window.pagamentosTemp = window.pagamentosTemp.filter(function (p) { return p.anterior; });   // pendência: sem forma de pagamento (só entra ao receber)
+            if (window.atualizarListaPagamentos) window.atualizarListaPagamentos();
+        }, function () {   // cancelou a escolha
+            window.restaurarClienteOriginal().then(async function () { window.__pendAnt = await window.pendenciasAnteriores(window.comandaAtual); });
+            const c3 = document.getElementById('pg-fiado'); if (c3) c3.checked = false;
+        });
     };
 
     /** Escolher um cliente cadastrado ou cadastrar um novo (obrigatório para fiado). */
-    window.abrirVinculoClienteFiado = async function (depois) {
+    window.abrirVinculoClienteFiado = async function (depois, aoCancelar) {
         const clientes = window.normalizarArray(await apiGet('clientes')).sort((a, b) => String(a.nome || '').localeCompare(String(b.nome || '')));
-        window.__vincDepois = depois; window.__vincClientes = clientes;
+        window.__vincDepois = depois; window.__vincCancelar = aoCancelar || null; window.__vincClientes = clientes;
         const old = document.getElementById('modal-vinc-cli'); if (old) old.remove();
         const m = document.createElement('div');
         m.id = 'modal-vinc-cli'; m.className = 'modal-overlay'; m.style.zIndex = '250000';
         m.innerHTML = '<div class="modal-content" style="max-width:380px;border-radius:16px;overflow:hidden;max-height:90vh;display:flex;flex-direction:column;">' +
             '<div class="modal-header" style="background:#e65100;color:#fff;display:flex;justify-content:space-between;align-items:center;"><strong><i class="fas fa-user-check"></i> Cliente do fiado</strong>' +
-            '<button class="btn-limpar" onclick="document.getElementById(\'modal-vinc-cli\').remove()" style="color:#fff;"><i class="fas fa-xmark"></i></button></div>' +
+            '<button class="btn-limpar" onclick="vincFechar()" style="color:#fff;"><i class="fas fa-xmark"></i></button></div>' +
             '<div class="modal-body" style="overflow-y:auto;"><div style="font-size:.82rem;color:#666;margin-bottom:8px;">Fiado só para cliente cadastrado. Escolha um cliente ou cadastre agora.</div>' +
             '<input type="text" id="vinc-busca" placeholder="Pesquisar cliente" oninput="vincFiltrar()" style="width:100%;padding:10px;border:1px solid #ccc;border-radius:8px;">' +
             '<div id="vinc-lista" style="margin:8px 0 14px;max-height:30vh;overflow-y:auto;"></div>' +
@@ -1695,6 +1715,11 @@ if (!window.renderDetalheComanda) {
             '<button class="btn-primary" style="width:100%;" onclick="vincCadastrar()"><i class="fas fa-save"></i> Cadastrar e usar</button></div></div></div>';
         document.body.appendChild(m);
         window.vincFiltrar();
+    };
+    window.vincFechar = function () {
+        const m = document.getElementById('modal-vinc-cli'); if (m) m.remove();
+        const cb = window.__vincCancelar; window.__vincCancelar = null; window.__vincDepois = null;
+        if (cb) cb();
     };
     window.vincFiltrar = function () {
         const t = (document.getElementById('vinc-busca') || {}).value || '';
@@ -1708,7 +1733,7 @@ if (!window.renderDetalheComanda) {
         window.comandaAtual.cliente = cli.nome; window.comandaAtual.clienteId = cli.id;
         await salvarComanda();
         const m = document.getElementById('modal-vinc-cli'); if (m) m.remove();
-        const cb = window.__vincDepois; window.__vincDepois = null;
+        const cb = window.__vincDepois; window.__vincDepois = null; window.__vincCancelar = null;
         if (cb) cb();
     }
     window.vincEscolher = function (id) {
@@ -1777,7 +1802,7 @@ if (!window.renderDetalheComanda) {
         const falta = totais.total - totalPago;
         const troco = falta < 0 ? Math.abs(falta) : 0;
 
-        if (isFiado && !(window.__pendAnt && window.__pendAnt.cliente)) { window.abrirVinculoClienteFiado(function () { window.confirmarFechamentoCompleto(); }); return; }
+        if (isFiado && !(window.__pendAnt && window.__pendAnt.cliente)) { window.abrirVinculoClienteFiado(function () { window.confirmarFechamentoCompleto(); }, function () { const x = document.getElementById('pg-fiado'); if (x) x.checked = false; }); return; }
         if (isFiado) {
             const cli = window.__pendAnt.cliente;
             const pend = falta > 0 ? falta : totais.total;
@@ -1789,7 +1814,8 @@ if (!window.renderDetalheComanda) {
             const c = window.comandaAtual;
             c.status = 'pendente';
             c.clienteId = cli.id; c.cliente = cli.nome;
-            c.pagamentos = window.pagamentosTemp;          // pagamentos parciais já recebidos
+            c.pagamentos = window.pagamentosTemp.filter(function (p) { return p.anterior || p.confirmado !== false; }).filter(function (p) { return Number(p.valor) > 0; });   // só o que já foi recebido
+            if (totalPago <= 0.009) { c.pagamentos = []; delete c.formaPagamento; }   // nada recebido: sem modo de pagamento (só entra ao receber)
             c.troco = 0;
             c.pagamentoPendente = true;
             c.valorPendente = pend;

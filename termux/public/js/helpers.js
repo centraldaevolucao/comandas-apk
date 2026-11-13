@@ -349,31 +349,23 @@ window.tocarSomNotificacao = function () {
 // ============================================================
 window.gerarPixComValor = function (payloadEstatico, valor) {
     if (!valor || isNaN(valor) || valor <= 0) return payloadEstatico;
-
     const valorStr = Number(valor).toFixed(2);
-    const valorLen = String(valorStr.length).padStart(2, '0');
-
-    let base = String(payloadEstatico).trim();
-
-    if (base.endsWith('6304' + base.slice(-4))) {
-        base = base.slice(0, -8);
-    } else if (base.endsWith('6304')) {
-        base = base.slice(0, -4);
-    } else {
-        base = base.slice(0, -4);
+    // lê os campos (TLV) do BR Code, troca/insere o valor (campo 54) e recalcula o CRC — sem mexer nos demais campos
+    const txt = String(payloadEstatico).trim();
+    const campos = [];
+    let i = 0, ok = true;
+    while (i + 4 <= txt.length) {
+        const id = txt.substr(i, 2), n = parseInt(txt.substr(i + 2, 2), 10);
+        if (isNaN(n) || i + 4 + n > txt.length) { ok = false; break; }
+        campos.push([id, txt.substr(i + 4, n)]);
+        i += 4 + n;
     }
-
-    base = base.replace(/54\d{2}\d+(\.\d{2})?/, '');
-
-    const posPais = base.indexOf('5802BR');
-    if (posPais !== -1) {
-        base = base.slice(0, posPais) + '54' + valorLen + valorStr + base.slice(posPais);
-    } else {
-        base += '54' + valorLen + valorStr;
-    }
-
-    base += '6304';
-
+    if (!ok || !campos.length) return payloadEstatico;
+    const novos = campos.filter(function (c) { return c[0] !== '54' && c[0] !== '63'; });
+    let pos = novos.findIndex(function (c) { return c[0] === '58'; });   // o valor vem antes do país (58)
+    if (pos < 0) pos = novos.length;
+    novos.splice(pos, 0, ['54', valorStr]);
+    let base = novos.map(function (c) { return c[0] + String(c[1].length).padStart(2, '0') + c[1]; }).join('') + '6304';
     return base + calcularCRC16(base);
 };
 

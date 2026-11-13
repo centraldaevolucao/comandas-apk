@@ -158,9 +158,33 @@ console.log('✔ bluetooth.js carregado');
         const r = await window.btEnviar(config.btImpressora.mac, linhas, !config.btSemAcentos);
         window.btAguardeFechar();
         if (!r.ok) {
-            if (await window.confirmar('Não foi possível imprimir na impressora Bluetooth:\n' + r.msg + '\n\nImprimir pelo método normal do celular?')) return false;
+            const esc = (opts && opts.c && opts.c.aberto) ? 'recibo' : (tipo === 'comanda' || tipo === 'cozinha' ? 'comanda' : 'recibo');
+            const r2 = await window.btFalhaImpressao(r.msg, esc);
+            if (r2 === 'celular') return false;   // imprime pelo método normal do celular
         }
         return true;
+    };
+
+    // Impressora não localizada: informa, cancela a impressão e oferece outras formas de enviar o comprovante
+    window.btFalhaImpressao = function (msg, tipoEnvio) {
+        return new Promise(function (resolve) {
+            const m = document.createElement('div');
+            m.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:400000;display:flex;align-items:center;justify-content:center;padding:16px;';
+            m.innerHTML = '<div style="background:#fff;border-radius:16px;max-width:360px;width:100%;overflow:hidden;">' +
+                '<div style="background:#c62828;color:#fff;padding:14px 16px;font-weight:700;"><i class="fas fa-print"></i> Impressora não encontrada</div>' +
+                '<div style="padding:16px;font-size:.9rem;color:#444;line-height:1.45;">A impressão foi <b>cancelada</b>.<div style="font-size:.78rem;color:#888;margin-top:6px;">' + String(msg || '').replace(/</g, '&lt;') + '</div>' +
+                '<div style="margin-top:12px;font-weight:600;">Enviar o comprovante de outra forma:</div>' +
+                '<button class="btn-primary" id="bf-w" style="background:#25d366;width:100%;margin-top:8px;"><i class="fab fa-whatsapp"></i> WhatsApp</button>' +
+                '<button class="btn-outline" id="bf-o" style="width:100%;margin-top:8px;"><i class="fas fa-share-nodes"></i> Compartilhar (e-mail, Drive, outros)</button>' +
+                '<button class="btn-outline" id="bf-c" style="width:100%;margin-top:8px;"><i class="fas fa-mobile-screen"></i> Imprimir pelo celular</button>' +
+                '<button class="btn-outline" id="bf-x" style="width:100%;margin-top:8px;border-color:#c62828;color:#c62828;">Fechar</button></div></div>';
+            document.body.appendChild(m);
+            const fim = function (v, fn) { m.remove(); if (fn) { try { fn(); } catch (e) {} } resolve(v); };
+            m.querySelector('#bf-w').onclick = function () { fim('whatsapp', function () { window.enviarWhatsApp && window.enviarWhatsApp(tipoEnvio); }); };
+            m.querySelector('#bf-o').onclick = function () { fim('outros', function () { window.enviarWhatsApp && window.enviarWhatsApp(tipoEnvio, 'outros'); }); };
+            m.querySelector('#bf-c').onclick = function () { fim('celular'); };
+            m.querySelector('#bf-x').onclick = function () { fim('cancelar'); };
+        });
     };
 
     // ---------- diálogo "aguarde" ----------
