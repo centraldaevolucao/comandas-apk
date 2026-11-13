@@ -331,3 +331,7 @@ Obs.: itens alterados depois de gerar o recibo em aberto não atualizam o valor 
 
 ## 46. v2.22.2 — Forma padrão no Receber pendência
 - **Receber pendência** agora abre com a mesma forma de pagamento padrão do Fechamento de comanda (Configurações › Fechamento, ex.: PIX) já preenchida, e só oferece as formas ativas em Configurações.
+
+## 47. v2.22.3 — QR Code no Recibo (pendente)
+- O **Recibo (pendente)** (Pendências e aviso do fiado) mostra o **QR Code PIX com o valor que está pendente** quando a chave PIX do restaurante está configurada e a opção "QR Code PIX nos recibos de pendência" (Configurações › Pix) está ligada. Sem PIX configurado, não aparece.
+- Comanda e recibo normais continuam com QR só quando há pagamento em PIX.

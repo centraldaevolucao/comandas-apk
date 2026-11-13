@@ -167,7 +167,7 @@
                     L.push({ k: 'duas', l: 'TOTAL GERAL PENDENTE', r: money(pa.valor + atual), b: 1 });
                 }
             } else if (id === 'qr') {
-                const pix = opts.amostra ? (tipo === 'pendencia' ? 10 : 26) : (window.pixValorPago ? window.pixValorPago(c) : 0);
+                const pix = opts.amostra ? (tipo === 'pendencia' ? 16 : 26) : (tipo === 'pendencia' ? Number(c.valorPendente || 0) : (window.pixValorPago ? window.pixValorPago(c) : 0));
                 if (!(pix > 0.004)) continue;
                 if (opts.amostra) { L.push({ k: 'qr', amostra: true, valor: pix }); continue; }
                 if (!config.pixRestaurante) continue;
@@ -238,7 +238,7 @@
 
     function amostraDe(d) {
         if (d !== 'pendencia') return AMOSTRA;
-        return Object.assign({}, AMOSTRA, { pagamentos: [{ forma: 'pix', valor: 10 }], pagamentoPendente: true, valorPendente: 16 });
+        return Object.assign({}, AMOSTRA, { pagamentos: [{ forma: 'dinheiro', valor: 10 }], pagamentoPendente: true, valorPendente: 16 });
     }
 
     async function salvar() {

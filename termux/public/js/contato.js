@@ -1,7 +1,7 @@
 // Dados da empresa (um só lugar): contato do suporte, pedidos de licença e rodapé.
 (function () {
     'use strict';
-    window.APP_VERSAO='2.22.2';                      // atualizar a cada versão (rodapé do Suporte e do menu)
+    window.APP_VERSAO='2.22.3';                      // atualizar a cada versão (rodapé do Suporte e do menu)
     window.CONTATO = {
         empresa: 'Central da Evolução',
         whatsapp: '5591981385331',                     // com 55 + DDD (wa.me)
