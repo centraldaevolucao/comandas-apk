@@ -71,6 +71,9 @@ if (!window.renderConfiguracoes) {
                 pixQrReciboImp: (config.pixQrReciboImp !== undefined ? config.pixQrReciboImp : (config.pixQrImpressao !== undefined ? config.pixQrImpressao : config.exibirPixRecibo)) === true,
                 pixQrComandaCompart: (config.pixQrComandaCompart !== undefined ? config.pixQrComandaCompart : config.pixQrWhatsapp) === true,
                 pixQrReciboCompart: (config.pixQrReciboCompart !== undefined ? config.pixQrReciboCompart : config.pixQrWhatsapp) === true,
+                pixQrPendenciaImp: config.pixQrPendenciaImp !== false,
+                pixQrPendenciaZap: config.pixQrPendenciaZap !== false,
+                pixQrPendenciaCompart: config.pixQrPendenciaCompart !== false,
                 pagDinheiro: config.pagDinheiro !== false,
                 pagDebito: config.pagDebito !== false,
                 pagCredito: config.pagCredito !== false,
@@ -148,7 +151,11 @@ if (!window.renderConfiguracoes) {
             html += linhaTog('Visualização e Bluetooth', 'Tela de pré-visualização, impressão e impressora Bluetooth', 'cfg-qr-rec-imp', c.pixQrReciboImp);
             html += linhaTog('WhatsApp direto', 'Envio ao WhatsApp do cliente cadastrado', 'cfg-qr-rec-zap', c.pixQrReciboZap);
             html += linhaTog('Compartilhar com terceiros', 'WhatsApp (escolhendo o contato), e-mail, Bluetooth e outros', 'cfg-qr-rec-wa', c.pixQrReciboCompart);
-            html += '    <div style="font-size:0.72rem;color:#666;margin:-6px 0 14px;">O QR só aparece quando há pagamento em PIX e leva apenas o valor pago em PIX.</div>';
+            html += '    <div style="font-size:0.8rem;color:#C2185B;font-weight:700;margin:4px 0 10px;">QR Code PIX nos RECIBOS DE PENDÊNCIA</div>';
+            html += linhaTog('Visualização e Bluetooth', 'Tela de pré-visualização, impressão e impressora Bluetooth', 'cfg-qr-pen-imp', c.pixQrPendenciaImp);
+            html += linhaTog('WhatsApp direto', 'Envio ao WhatsApp do cliente cadastrado', 'cfg-qr-pen-zap', c.pixQrPendenciaZap);
+            html += linhaTog('Compartilhar com terceiros', 'WhatsApp (escolhendo o contato), e-mail, Bluetooth e outros', 'cfg-qr-pen-wa', c.pixQrPendenciaCompart);
+            html += '    <div style="font-size:0.72rem;color:#666;margin:-6px 0 14px;">Comanda e recibo: o QR só aparece quando há pagamento em PIX e leva só o valor pago em PIX. Recibo de pendência: o QR leva o valor que ficou pendente.</div>';
             html += linhaTog('Nome nas impressões', 'Mostra o nome do estabelecimento no topo da comanda e do recibo', 'cfg-imp-nome', c.imprimirNome);
             html += linhaTog('Logo nas impressões', 'Mostra a logo no topo da comanda e do recibo', 'cfg-imp-logo', c.imprimirLogo);
 
@@ -547,6 +554,9 @@ if (!window.renderConfiguracoes) {
             config.pixQrReciboCompart = chk('cfg-qr-rec-wa');
             config.pixQrComandaZap = chk('cfg-qr-cmd-zap');
             config.pixQrReciboZap = chk('cfg-qr-rec-zap');
+            config.pixQrPendenciaImp = chk('cfg-qr-pen-imp');
+            config.pixQrPendenciaCompart = chk('cfg-qr-pen-wa');
+            config.pixQrPendenciaZap = chk('cfg-qr-pen-zap');
             config.imprimirNome = chk('cfg-imp-nome');
             config.imprimirLogo = chk('cfg-imp-logo');
             config.pixQrImpressao = config.pixQrComandaImp || config.pixQrReciboImp;   // compatibilidade

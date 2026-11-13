@@ -163,61 +163,169 @@
         if (!g) return;
         const alvo = comandaId != null && comandaId !== '' ? g.comandas.filter(function (c) { return String(c.id) === String(comandaId); }) : g.comandas;
         if (!alvo.length) return;
-        const total = alvo.reduce(function (s, c) { return s + Number(c.valorPendente || 0); }, 0);
-        window.__pendAlvo = { ids: alvo.map(function (c) { return String(c.id); }), total: total, forma: 'dinheiro' };
-        const old = document.getElementById('modal-pend'); if (old) old.remove();
+        const total = Math.round(alvo.reduce(function (s, c) { return s + Number(c.valorPendente || 0); }, 0) * 100) / 100;
+        window.__pendAlvo = { ids: alvo.map(function (c) { return String(c.id); }), total: total, nome: g.nome, qtd: alvo.length, pags: [{ forma: 'dinheiro', valor: total }], dsc: { on: false, tipo: 'valor', valor: 0, motivo: '' } };
+        window.pendenciaFechar();
         const m = document.createElement('div');
         m.id = 'modal-pend'; m.className = 'modal-overlay'; m.style.zIndex = '200000';
-        const forma = function (id, ic, t) { return '<button type="button" data-f="' + id + '" onclick="pendenciaForma(\'' + id + '\')" class="btn-outline" style="padding:10px;"><i class="fas ' + ic + '"></i> ' + t + '</button>'; };
-        m.innerHTML = '<div class="modal-content" style="max-width:380px;border-radius:16px;overflow:hidden;">' +
-            '<div class="modal-header" style="background:#C2185B;color:#fff;display:flex;justify-content:space-between;align-items:center;"><strong><i class="fas fa-hand-holding-usd"></i> Receber pendência</strong>' +
+        m.innerHTML = '<div class="modal-content" style="max-width:450px;">' +
+            '<div class="modal-header" style="background:#e65100;color:#fff;"><strong>Receber pendência</strong>' +
             '<button class="btn-limpar" onclick="pendenciaFechar()" style="color:#fff;"><i class="fas fa-xmark"></i></button></div>' +
-            '<div class="modal-body"><div style="background:#fff3e0;border-radius:10px;padding:12px;text-align:center;margin-bottom:12px;">' +
-            '<div style="font-size:.75rem;color:#666;">' + esc(g.nome) + ' · ' + alvo.length + ' comanda(s)</div>' +
-            '<div style="font-size:1.5rem;font-weight:700;color:#e65100;">' + R(total) + '</div></div>' +
-            '<label style="font-size:.78rem;font-weight:700;color:#555;">FORMA DE PAGAMENTO</label>' +
-            '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:6px 0 12px;">' + forma('dinheiro', 'fa-money-bill-wave', 'Dinheiro') + forma('debito', 'fa-credit-card', 'Débito') + forma('credito', 'fa-credit-card', 'Crédito') + forma('pix', 'fa-qrcode', 'PIX') + '</div>' +
-            '<label style="font-size:.78rem;font-weight:700;color:#555;">CAIXA / GRUPO DE TRABALHO (ao quitar, a venda entra no caixa atual)</label>' +
-            '<div id="pend-grupo-box" style="margin:6px 0 12px;"></div>' +
-            '<label style="font-size:.78rem;font-weight:700;color:#555;">VALOR RECEBIDO (R$) — parcial permitido</label>' +
-            '<input type="number" step="0.01" id="pend-valor" value="' + total.toFixed(2) + '" style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;font-size:1.2rem;text-align:right;margin:6px 0 14px;">' +
-            '<div style="display:flex;gap:8px;"><button class="btn-outline" style="flex:1;" onclick="pendenciaFechar()">Cancelar</button>' +
-            '<button class="btn-primary" style="flex:1;background:#2e7d32;" onclick="pendenciaConfirmar()"><i class="fas fa-check"></i> Confirmar</button></div></div></div>';
+            '<div class="modal-body" id="pend-corpo"></div></div>';
         document.body.appendChild(m);
+        pendRender();
+    };
+    const FORMAS_P = { dinheiro: ['Dinheiro', 'fa-money-bill-wave'], debito: ['Débito', 'fa-credit-card'], credito: ['Crédito', 'fa-credit-card'], pix: ['PIX', 'fa-qrcode'] };
+    function pendDesc() {   // valor do desconto em R$
+        const a = window.__pendAlvo, d = a.dsc; if (!d.on) return 0;
+        let v = Number(d.valor) || 0; if (v < 0) v = 0;
+        const r = d.tipo === 'porcentagem' ? a.total * Math.min(100, v) / 100 : Math.min(v, a.total);
+        return Math.round(r * 100) / 100;
+    }
+    function pendRender(foco) {
+        const a = window.__pendAlvo, box = document.getElementById('pend-corpo'); if (!box) return;
+        const desc = pendDesc(), aPagar = Math.max(0, Math.round((a.total - desc) * 100) / 100);
+        const pago = Math.round(a.pags.reduce(function (s, x) { return s + Number(x.valor || 0); }, 0) * 100) / 100;
+        const falta = Math.max(0, Math.round((aPagar - pago) * 100) / 100);
+        const lin = function (l, v, ex) { return '<div style="display:flex;justify-content:space-between;padding:3px 0;' + (ex || '') + '"><span>' + l + '</span><b>' + v + '</b></div>'; };
+        box.innerHTML =
+            '<div style="background:#fff3e0;border-radius:10px;padding:12px;text-align:center;margin-bottom:14px;"><div style="font-size:.75rem;color:#666;">' + esc(a.nome) + ' · ' + a.qtd + ' comanda(s)</div>' +
+            '<div style="font-size:1.5rem;font-weight:700;color:#e65100;">' + R(a.total) + '</div><div style="font-size:.72rem;color:#888;">pendente</div></div>' +
+            '<div>' + (a.pags.length ? a.pags.map(function (p, i) {
+                const f = FORMAS_P[p.forma] || [p.forma, 'fa-money-bill'];
+                return '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #eee;"><i class="fas ' + f[1] + '" style="color:#e65100;width:22px;text-align:center;"></i><span style="flex:1;font-weight:600;">' + f[0] + '</span><b>' + R(p.valor) + '</b>' +
+                    '<button class="btn-limpar" onclick="pendAddPag(' + i + ')" style="color:#1976d2;"><i class="fas fa-pen-to-square"></i></button><button class="btn-limpar" onclick="pendDelPag(' + i + ')" style="color:#c62828;"><i class="fas fa-trash"></i></button></div>';
+            }).join('') : '<div style="color:#888;font-size:.85rem;padding:8px 0;">Nenhum pagamento adicionado.</div>') + '</div>' +
+            '<div style="background:#f5f5f5;border-radius:10px;padding:10px 12px;margin-top:12px;font-size:.88rem;">' + lin('Total pendente:', R(a.total)) + (desc > 0 ? lin('Desconto:', '- ' + R(desc), 'color:#2e7d32;') : '') + lin('Total recebido:', R(pago)) +
+            (falta > 0.009 ? lin('Continua pendente:', R(falta), 'color:#e65100;') : '') + '</div>' +
+            '<div style="font-size:.75rem;color:#666;margin:12px 0 8px;">Pode receber um valor <b>parcial</b> em qualquer forma. O restante continua pendente.</div>' +
+            '<button class="btn-outline" style="width:100%;border-color:#1976d2;color:#1976d2;" onclick="pendAddPag()"><i class="fas fa-plus"></i> Adicionar Pagamento</button>' +
+            '<div style="margin-top:14px;border:1px solid #ffe0b2;background:#fff8e1;border-radius:10px;padding:10px 12px;"><label style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;"><b style="color:#e65100;"><i class="fas fa-percent"></i> Desconto</b>' +
+            '<input type="checkbox" id="pend-dsc-on" ' + (a.dsc.on ? 'checked' : '') + ' onchange="pendDescToggle(this.checked)" style="width:20px;height:20px;accent-color:#e65100;"></label>' +
+            (a.dsc.on ? '<div style="margin-top:10px;display:flex;align-items:center;gap:8px;"><div style="display:inline-flex;border:2px solid #e65100;border-radius:10px;overflow:hidden;flex:none;">' +
+                ['valor', 'porcentagem'].map(function (t) { const on = a.dsc.tipo === t; return '<span onclick="pendDescTipo(\'' + t + '\')" style="padding:8px 14px;font-weight:700;cursor:pointer;background:' + (on ? '#e65100' : '#fff') + ';color:' + (on ? '#fff' : '#e65100') + ';">' + (t === 'valor' ? 'R$' : '%') + '</span>'; }).join('') + '</div>' +
+                '<input type="number" step="0.01" min="0" id="pend-dsc-v" value="' + (a.dsc.valor || '') + '" oninput="pendDescValor(this)" placeholder="' + (a.dsc.tipo === 'porcentagem' ? '0 a 100' : '0,00') + '" style="flex:1;min-width:0;padding:10px;border:2px solid #ccc;border-radius:8px;font-size:1.1rem;"></div>' +
+                '<input type="text" id="pend-dsc-m" maxlength="80" value="' + esc(a.dsc.motivo || '') + '" oninput="__pendAlvo.dsc.motivo=this.value" placeholder="Motivo (opcional)" style="width:100%;box-sizing:border-box;margin-top:8px;padding:9px;border:1px solid #ccc;border-radius:8px;">' : '') + '</div>' +
+            '<label style="font-size:.75rem;font-weight:700;color:#666;display:block;margin-top:14px;">CAIXA / GRUPO DE TRABALHO (ao quitar, a venda entra no caixa atual)</label><div id="pend-grupo-box" style="margin:6px 0;"></div>' +
+            '<button class="btn-primary" style="background:#e65100;margin-top:14px;padding:14px;width:100%;" onclick="pendenciaConfirmar()"><i class="fas fa-receipt"></i> Confirmar e gerar recibo</button>' +
+            '<button class="btn-outline" style="width:100%;margin-top:10px;" onclick="pendenciaFechar()">Cancelar</button>';
         montarSeletorGrupo(document.getElementById('pend-grupo-box'), 'pend-grupo');
-        window.pendenciaForma('dinheiro');
+        if (foco) { const e = document.getElementById(foco); if (e) { e.focus(); } }
+    }
+    function pendAuto() { const a = window.__pendAlvo; if (a.pags.length === 1 && a.__auto !== false) a.pags[0].valor = Math.max(0, Math.round((a.total - pendDesc()) * 100) / 100); }
+    window.pendDescToggle = function (on) { const a = window.__pendAlvo; a.dsc.on = on; if (!on) a.dsc.valor = 0; pendAuto(); pendRender(); };
+    window.pendDescTipo = function (t) { const a = window.__pendAlvo; a.dsc.tipo = t; a.dsc.valor = 0; pendAuto(); pendRender(); };
+    window.pendDescValor = function (el) {
+        const a = window.__pendAlvo; let v = parseFloat(el.value) || 0;
+        if (a.dsc.tipo === 'porcentagem' && v > 100) { v = 100; el.value = '100'; }
+        if (a.dsc.tipo === 'valor' && v > a.total) { v = a.total; el.value = a.total.toFixed(2); }
+        a.dsc.valor = v;
+        // atualiza só os totais (mantém o foco no campo)
+        const aPagar = Math.max(0, a.total - pendDesc());
+        const unico = a.pags.length === 1 && a.__auto !== false;
+        if (unico) a.pags[0].valor = Math.round(aPagar * 100) / 100;
+        const foco = el.id; const pos = el.selectionStart; pendRender(foco); const n = document.getElementById(foco); if (n) { try { n.setSelectionRange(pos, pos); } catch (e) {} }
     };
-    window.pendenciaForma = function (f) {
-        window.__pendAlvo.forma = f;
-        document.querySelectorAll('#modal-pend [data-f]').forEach(function (b) {
-            const on = b.getAttribute('data-f') === f;
-            b.style.background = on ? '#FCE4EC' : ''; b.style.borderColor = on ? '#C2185B' : ''; b.style.color = on ? '#C2185B' : ''; b.style.fontWeight = on ? '700' : '';
-        });
+    window.pendDelPag = function (i) { window.__pendAlvo.pags.splice(i, 1); window.__pendAlvo.__auto = false; pendRender(); };
+    window.pendAddPag = function (idx) {
+        const a = window.__pendAlvo; const antigo = document.getElementById('modal-pend-pag'); if (antigo) antigo.remove();
+        const ed = idx != null && idx !== '' ? a.pags[idx] : null;
+        const pago = a.pags.reduce(function (s, x, k) { return s + (k === idx ? 0 : Number(x.valor || 0)); }, 0);
+        const resto = Math.max(0, Math.round((a.total - pendDesc() - pago) * 100) / 100);
+        let forma = ed ? ed.forma : 'dinheiro';
+        const m = document.createElement('div');
+        m.id = 'modal-pend-pag'; m.className = 'modal-overlay';
+        m.style.cssText = 'display:flex;align-items:center;justify-content:center;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:300000;padding:16px;';
+        m.innerHTML = '<div style="background:#fff;border-radius:16px;max-width:380px;width:100%;overflow:hidden;">' +
+            '<div style="background:#e65100;color:#fff;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;"><strong><i class="fas fa-plus"></i> ' + (ed ? 'Editar' : 'Adicionar') + ' pagamento</strong><button type="button" id="pp-x" style="background:none;border:none;color:#fff;font-size:1.2rem;"><i class="fas fa-xmark"></i></button></div>' +
+            '<div style="padding:16px;"><div style="font-size:.75rem;color:#666;font-weight:600;margin-bottom:6px;">FORMA DE PAGAMENTO</div><div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;">' +
+            Object.keys(FORMAS_P).map(function (k) { return '<button type="button" class="pp-f" data-f="' + k + '" style="flex:1 1 45%;display:flex;align-items:center;justify-content:center;gap:8px;padding:12px 8px;border-radius:12px;border:2px solid #e0e0e0;background:#fff;font-weight:600;"><i class="fas ' + FORMAS_P[k][1] + '"></i> ' + FORMAS_P[k][0] + '</button>'; }).join('') + '</div>' +
+            '<div style="font-size:.75rem;color:#666;font-weight:600;margin-bottom:6px;">VALOR (R$)</div><input type="number" inputmode="decimal" step="0.01" min="0.01" id="pp-v" value="' + (ed ? Number(ed.valor).toFixed(2) : (resto > 0 ? resto.toFixed(2) : '')) + '" style="width:100%;box-sizing:border-box;font-size:1.4rem;font-weight:700;padding:12px;border:2px solid #ccc;border-radius:12px;">' +
+            '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;font-size:.8rem;color:#666;"><span>Pendente: <b>' + R(a.total) + '</b></span><button type="button" id="pp-r" style="border:1px solid #e65100;background:#fff;color:#e65100;border-radius:16px;padding:4px 10px;font-weight:600;">Restante ' + R(resto) + '</button></div>' +
+            '<div id="pp-e" style="color:#c62828;font-size:.85rem;min-height:18px;margin-top:6px;"></div>' +
+            '<div style="display:flex;gap:10px;margin-top:8px;"><button type="button" id="pp-c" class="btn-outline" style="flex:1;">Cancelar</button><button type="button" id="pp-ok" class="btn-primary" style="flex:1;background:#e65100;"><i class="fas fa-check"></i> ' + (ed ? 'Salvar' : 'Adicionar') + '</button></div></div></div>';
+        document.body.appendChild(m);
+        const marca = function () { m.querySelectorAll('.pp-f').forEach(function (x) { const on = x.getAttribute('data-f') === forma; x.style.borderColor = on ? '#e65100' : '#e0e0e0'; x.style.background = on ? '#fff3e0' : '#fff'; x.style.color = on ? '#e65100' : '#555'; }); };
+        marca();
+        m.querySelectorAll('.pp-f').forEach(function (x) { x.onclick = function () { forma = x.getAttribute('data-f'); marca(); }; });
+        const v = m.querySelector('#pp-v');
+        m.querySelector('#pp-r').onclick = function () { v.value = resto.toFixed(2); };
+        m.querySelector('#pp-x').onclick = m.querySelector('#pp-c').onclick = function () { m.remove(); };
+        m.querySelector('#pp-ok').onclick = function () {
+            const n = Math.round((parseFloat(v.value) || 0) * 100) / 100;
+            if (n <= 0) { m.querySelector('#pp-e').textContent = 'Informe um valor maior que zero.'; return; }
+            if (n > resto + 0.009) { m.querySelector('#pp-e').textContent = 'O valor passa do que falta receber (' + R(resto) + ').'; return; }
+            if (ed) { ed.forma = forma; ed.valor = n; } else a.pags.push({ forma: forma, valor: n });
+            a.__auto = false; m.remove(); pendRender();
+        };
+        setTimeout(function () { v.focus(); v.select(); }, 50);
     };
-    window.pendenciaFechar = function () { const m = document.getElementById('modal-pend'); if (m) m.remove(); };
+    window.pendenciaFechar = function () { ['modal-pend-pag', 'modal-pend'].forEach(function (i) { const m = document.getElementById(i); if (m) m.remove(); }); };
 
     window.pendenciaConfirmar = async function () {
         const a = window.__pendAlvo; if (!a) return;
-        let valor = parseFloat(document.getElementById('pend-valor').value) || 0;
-        if (valor <= 0) { await window.avisar('Informe um valor maior que zero.'); return; }
-        if (valor > a.total + 0.009) { await window.avisar('O valor não pode ser maior que a pendência (' + R(a.total) + ').'); return; }
-        if (!await window.confirmar('Confirmar o recebimento de ' + R(valor) + (valor < a.total - 0.009 ? ' (parcial — restará ' + R(a.total - valor) + ')' : ' e finalizar a pendência') + '?', { titulo: 'Receber pendência', ok: 'Confirmar' })) return;
+        const desc = pendDesc(), aPagar = Math.max(0, Math.round((a.total - desc) * 100) / 100);
+        const pags = a.pags.filter(function (p) { return Number(p.valor) > 0; }).map(function (p) { return { forma: p.forma, valor: Number(p.valor) }; });
+        const valor = Math.round(pags.reduce(function (s, p) { return s + p.valor; }, 0) * 100) / 100;
+        if (valor <= 0 && desc <= 0) { await window.avisar('Adicione um pagamento ou um desconto.'); return; }
+        if (valor > aPagar + 0.009) { await window.avisar('O valor recebido não pode ser maior que a pendência' + (desc > 0 ? ' com desconto' : '') + ' (' + R(aPagar) + ').'); return; }
+        const falta = Math.max(0, Math.round((aPagar - valor) * 100) / 100);
+        if (!await window.confirmar('Confirmar o recebimento de ' + R(valor) + (desc > 0 ? ' com desconto de ' + R(desc) : '') + (falta > 0.009 ? ' (parcial — restará ' + R(falta) + ')' : '') + ' e gerar o recibo em aberto?', { titulo: 'Confirmar recebimento', ok: 'Gerar recibo' })) return;
+        // etapa 1: recibo em aberto (aguardando recebimento) — só depois de "recebido" os pagamentos são gravados
+        const selG0 = document.getElementById('pend-grupo');
+        const lista0 = window.normalizarArray(await apiGet('comandas'));
+        const cs = a.ids.map(function (id) { return lista0.find(function (x) { return String(x.id) === id; }); }).filter(Boolean);
+        const base = Object.assign({}, cs[0]);
+        if (cs.length > 1) {
+            base.numero = cs.map(function (x) { return x.numero; }).join(', ');
+            base.itens = cs.reduce(function (r, x) { return r.concat(window.normalizarArray(x.itens)); }, []);
+        }
+        base.pagamentos = [];
+        base.descontoPendencia = desc; base.descontoPendenciaMotivo = (a.dsc.motivo || '').trim();
+        base.pagamentoPendente = false; base.valorPendente = 0;
+        window.__pendReceb = { dados: { ids: a.ids, pags: pags, desc: desc, motivo: (a.dsc.motivo || ''), cor: selG0 ? selG0.value : '', valor: valor }, total: a.total };
+        window.comandaAtual = base;
+        window.pagamentosTemp = pags.map(function (p) { return { forma: p.forma, valor: p.valor }; });
+        window.recebimentoAtual = { troco: 0, falta: falta, fiado: falta > 0.009 };
+        window.pendenciaFechar();
+        await window.abrirPreviewImpressao('recibo', { aberto: true });
+    };
+    window.pendenciaCancelarReceb = async function () {
+        if (!await window.confirmar('Cancelar o recebimento? Nada será registrado e a pendência continua.', { titulo: 'Cancelar recebimento', ok: 'Cancelar recebimento', perigo: true })) return;
+        window.__pendReceb = null; window.recebimentoAtual = null; window.pagamentosTemp = [];
+        const m = document.getElementById('modal-preview-impressao'); if (m) m.remove();
+    };
+    window.pendenciaFinalizar = async function () {
+        const pr = window.__pendReceb; if (!pr) return;
+        if (!await window.confirmar('Confirma que o pagamento foi recebido?', { titulo: 'Confirmar recebimento', ok: 'Confirmar' })) return;
+        const d = pr.dados, valor = d.valor, desc = d.desc, pags = d.pags;
+        const a = { ids: d.ids, dsc: { motivo: d.motivo } };
+        window.__pendReceb = null; window.recebimentoAtual = null;
+        { const m = document.getElementById('modal-preview-impressao'); if (m) m.remove(); }
         try {
             const lista = window.normalizarArray(await apiGet('comandas'));
             const agora = new Date().toLocaleString('pt-BR');
-            let restante = valor;
+            let rDesc = desc; const fila = pags.map(function (p) { return { forma: p.forma, valor: p.valor }; });
             let caixaAtual = null; const quitadas = [];
-            const selG = document.getElementById('pend-grupo'); const corEscolhida = selG ? selG.value : '';
+            const corEscolhida = d.cor || '';
             try { caixaAtual = await window.obterCaixaAbertoAtual(); } catch (e) {}
             a.ids.forEach(function (id) {   // mais antigas primeiro (ordem da lista)
-                if (restante <= 0.009) return;
                 const c = lista.find(function (x) { return String(x.id) === id; });
                 if (!c || !temPend(c)) return;
-                const pago = Math.min(restante, Number(c.valorPendente || 0));
-                restante -= pago;
+                let pend = Number(c.valorPendente || 0);
                 c.pagamentos = window.normalizarArray(c.pagamentos);
-                c.pagamentos.push({ forma: a.forma, valor: pago, valorBase: pago, parcelas: 1, dataPagamento: agora, origem: 'pendencia' });
-                c.valorPendente = Math.max(0, Number(c.valorPendente || 0) - pago);
+                const dd = Math.min(rDesc, pend);
+                if (dd > 0.004) {
+                    rDesc -= dd; pend -= dd;
+                    c.descontoPendencia = Math.round(((Number(c.descontoPendencia) || 0) + dd) * 100) / 100;
+                    const mot = (a.dsc.motivo || '').trim(); if (mot) c.descontoPendenciaMotivo = mot;
+                }
+                while (pend > 0.009 && fila.length) {
+                    const f = fila[0], pago = Math.min(f.valor, pend);
+                    c.pagamentos.push({ forma: f.forma, valor: pago, valorBase: pago, parcelas: 1, dataPagamento: agora, origem: 'pendencia' });
+                    pend -= pago; f.valor -= pago; if (f.valor <= 0.009) fila.shift();
+                }
+                c.valorPendente = Math.max(0, Math.round(pend * 100) / 100);
                 if (c.valorPendente <= 0.009) {
                     c.valorPendente = 0; c.pagamentoPendente = false; c.dataPagamentoFiado = agora;
                     if (String(c.status).toLowerCase() === 'pendente') {   // pendência quitada → a venda fecha agora, no caixa aberto
@@ -228,7 +336,6 @@
                 }
             });
             await apiSave('comandas', lista);
-            window.pendenciaFechar();
             if (window.mostrarToast) window.mostrarToast('✅ Recebido: ' + R(valor));
             await window.pendenciasCarregar();
             if (quitadas.length === 1 && window.abrirPreviewImpressao) {   // recibo final liberado só após quitar

@@ -320,3 +320,11 @@ Obs.: itens alterados depois de gerar o recibo em aberto não atualizam o valor 
 - **Fechamento:** "Adicionar pagamento" agora abre uma **janela** (forma + valor, com o restante já sugerido) em vez dos campos soltos na tela.
 - **Pendência:** o texto "(FIADO)" saiu do recibo/comanda pendente; o comprovante virou **COMPROVANTE DE PENDÊNCIA** e há um 4º layout editável, **Pendência**, em Layout de impressão (Comanda, Recibo, Cozinha, Pendência).
 - Testado no navegador. Não testado: impressora real e Pix real.
+
+## 45. v2.22.1 — Receber pendência no layout do fechamento, blocos iguais no layout e QR da pendência
+- **Receber pendência** (laranja, mesmo layout do fechamento): lista de pagamentos (editar/excluir), **+ Adicionar Pagamento** (Dinheiro/Débito/Crédito/PIX, várias formas), **Desconto** (R$ ou %, motivo opcional), quadro Total pendente / Desconto / Total recebido / Continua pendente e seletor de caixa. Parcial continua valendo.
+- **Fluxo em duas etapas, como no fechamento:** **Confirmar e gerar recibo** → abre o **Recibo em aberto (aguardando)** com Imprimir/WhatsApp/Compartilhar → só em **Confirmar recebimento (recebido)** os pagamentos são gravados (e a venda quitada fecha no caixa atual). **Cancelar recebimento** não grava nada.
+- O desconto fica na comanda como **Desconto na pendência** (aparece no recibo) e não entra como pagamento.
+- **Layout de impressão:** Comanda, Recibo, Cozinha e Pendência têm os **mesmos blocos** (liga/desliga cada um), incluindo QR Code PIX, totais, pendências e assinatura; layouts já salvos ganham os blocos novos na posição certa.
+- **QR Code só para PIX:** em todos os documentos o QR sai apenas quando há pagamento em PIX, com o valor do PIX. Novo grupo em Configurações › Pix: **QR Code PIX nos recibos de pendência** (visualização/Bluetooth, WhatsApp direto, compartilhar).
+- Testado no navegador. Não testado: impressora real e Pix real.

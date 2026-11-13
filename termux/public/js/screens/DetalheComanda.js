@@ -1821,6 +1821,7 @@ if (!window.renderDetalheComanda) {
 
     // Etapa 2: pagamento recebido → fecha a comanda e libera o recibo final (pago / pendente).
     window.finalizarRecebimento = async function () {
+        if (window.__pendReceb) return window.pendenciaFinalizar();
         const c = window.comandaAtual;
         if (!c) return;
         const r = window.recebimentoAtual || c.recebimentoTemp;
@@ -1847,6 +1848,7 @@ if (!window.renderDetalheComanda) {
 
     // Cancela o recebimento: nada é fechado, a comanda segue aberta.
     window.cancelarRecebimento = async function () {
+        if (window.__pendReceb) return window.pendenciaCancelarReceb();
         const c = window.comandaAtual;
         if (!c) return;
         if (!await window.confirmar('Cancelar o recebimento? A comanda continua aberta e nada será fechado.', { titulo: 'Cancelar recebimento', ok: 'Cancelar recebimento', perigo: true })) return;
@@ -1903,7 +1905,7 @@ if (!window.renderDetalheComanda) {
         if (valor <= 0.004) return '';   // QR só existe se houver pagamento em PIX (e mostra só o valor do PIX)
         if (estilo === 'forcar') {
             const u = window.qrUrl(window.gerarPixComValor(config.pixRestaurante, valor), '150x150');
-            return '<div data-pix-qr="1" style="text-align:center;margin-top:12px;"><hr style="border:none;border-top:1px dashed #000;margin:10px 0;"><div style="font-weight:bold;font-size:11px;">PAGUE COM PIX</div><img src="' + u + '" style="width:140px;height:140px;margin:5px auto;display:block;"><div style="font-size:10px;">Valor: ' + formatMoney(valor) + '</div>' + (config.pixChave ? '<div style="font-size:10px;">PIX: <b>' + window.pixFormatarChave(config.pixTipo, config.pixChave) + '</b></div>' : '') + '</div>';
+            return '<div data-pix-qr="' + (tipo || '1') + '" style="text-align:center;margin-top:12px;"><hr style="border:none;border-top:1px dashed #000;margin:10px 0;"><div style="font-weight:bold;font-size:11px;">PAGUE COM PIX</div><img src="' + u + '" style="width:140px;height:140px;margin:5px auto;display:block;"><div style="font-size:10px;">Valor: ' + formatMoney(valor) + '</div>' + (config.pixChave ? '<div style="font-size:10px;">PIX: <b>' + window.pixFormatarChave(config.pixTipo, config.pixChave) + '</b></div>' : '') + '</div>';
         }
         const imp = window.pixQrAtivo(config, 'impressao', tipo), wa = window.pixQrAtivo(config, 'whatsapp', tipo) || window.pixQrAtivo(config, 'compartilhar', tipo);
         if (!imp && !wa) return '';
@@ -1912,7 +1914,7 @@ if (!window.renderDetalheComanda) {
         const pixComValor = window.gerarPixComValor(config.pixRestaurante, valor);
         const url = window.qrUrl(pixComValor, '150x150');
         const oculto = (estilo === 'preview' && !imp) ? 'display:none;' : '';
-        return '<div data-pix-qr="1" style="' + oculto + 'text-align:center;margin-top:12px;">' +
+        return '<div data-pix-qr="' + (tipo || '1') + '" style="' + oculto + 'text-align:center;margin-top:12px;">' +
             '<hr style="border:none;border-top:1px dashed #000;margin:10px 0;">' +
             '<div style="font-weight:bold;font-size:11px;">PAGAMENTO VIA PIX</div>' +
             '<img src="' + url + '" style="width:120px;height:120px;margin:5px auto;display:block;">' +
@@ -1966,7 +1968,7 @@ if (!window.renderDetalheComanda) {
             '    <div style="padding:15px; background:#fff; border-top:1px solid #ddd; border-radius:0 0 12px 12px;">' +
             '        <div style="font-size:.8rem;color:#666;text-align:center;margin-bottom:8px;">Receba o pagamento e depois feche a comanda. Você já pode imprimir este recibo (aguardando pagamento).</div>' +
             '        <div style="display:flex;gap:8px;margin-bottom:8px;"><button class="btn-primary" style="background:#1976d2;flex:1;padding:10px;" onclick="imprimirReciboAberto()"><i class="fas fa-print"></i> Imprimir</button><button class="btn-primary" style="background:#25d366;flex:1;padding:10px;" onclick="enviarWhatsApp(\'recibo\')"><i class="fab fa-whatsapp"></i> WhatsApp</button><button class="btn-outline" style="flex:1;padding:10px;" onclick="enviarWhatsApp(\'recibo\', \'outros\')"><i class="fas fa-share-nodes"></i> Compartilhar</button></div>' +
-            '        <button class="btn-primary" style="width:100%;background:#2e7d32;padding:14px;" onclick="finalizarRecebimento()"><i class="fas fa-check-circle"></i> Fechar comanda (recebido)</button>' +
+            '        <button class="btn-primary" style="width:100%;background:#2e7d32;padding:14px;" onclick="finalizarRecebimento()"><i class="fas fa-check-circle"></i> ' + (window.__pendReceb ? 'Confirmar recebimento (recebido)' : 'Fechar comanda (recebido)') + '</button>' +
             '        <button class="btn-outline" style="width:100%;margin-top:8px;border-color:#c62828;color:#c62828;" onclick="cancelarRecebimento()"><i class="fas fa-times-circle"></i> Cancelar recebimento</button>' +
             '    </div>';
 
@@ -2028,7 +2030,7 @@ if (!window.renderDetalheComanda) {
                 try { cfgW = window.normalizarArray(await apiGet('configuracoes'))[0] || {}; } catch (e) {}
                 const bq = alvo.querySelector('[data-pix-qr]');
                 const antes = bq ? bq.style.display : '';
-                if (bq) bq.style.display = window.pixQrAtivo(cfgW, outros ? 'compartilhar' : 'whatsapp', tipo === 'recibo' ? 'recibo' : 'comanda') ? '' : 'none';   // QR no WhatsApp conforme a configuração
+                if (bq) bq.style.display = window.pixQrAtivo(cfgW, outros ? 'compartilhar' : 'whatsapp', bq.getAttribute('data-pix-qr') === 'pendencia' ? 'pendencia' : (tipo === 'recibo' ? 'recibo' : 'comanda')) ? '' : 'none';   // QR no WhatsApp conforme a configuração
                 let png;
                 try { png = await window.elementoParaPng(alvo); } finally { if (bq) bq.style.display = antes; }
                 const nome = (tipo === 'comanda' ? 'comanda-' : 'recibo-') + (window.comandaAtual.numero || '') + '.png';

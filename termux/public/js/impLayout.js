@@ -8,12 +8,9 @@
     'use strict';
     const COR = '#C2185B';
     const DOCS = { comanda: 'Comanda', recibo: 'Recibo', cozinha: 'Cozinha', pendencia: 'Pendência' };
-    const BLOCOS = {
-        comanda: [['logo', 'Logo'], ['nome', 'Nome do estabelecimento'], ['titulo', 'Título do documento'], ['cor', 'Faixa de cor do caixa'], ['cab', 'Comanda / Mesa / Data'], ['cliente', 'Cliente e garçom'], ['itens', 'Itens'], ['totais', 'Totais'], ['qr', 'QR Code PIX'], ['final', 'Mensagem final']],
-        recibo: [['logo', 'Logo'], ['nome', 'Nome do estabelecimento'], ['titulo', 'Título e situação'], ['cor', 'Faixa de cor do caixa'], ['cab', 'Comanda / Mesa / Data'], ['cliente', 'Cliente e garçom'], ['itens', 'Itens'], ['totais', 'Totais e pagamentos'], ['pendencias', 'Pendências'], ['qr', 'QR Code PIX'], ['assinatura', 'Linha de assinatura'], ['final', 'Mensagem final']],
-        pendencia: [['logo', 'Logo'], ['nome', 'Nome do estabelecimento'], ['titulo', 'Título e situação'], ['cor', 'Faixa de cor do caixa'], ['cab', 'Comanda / Mesa / Data'], ['cliente', 'Cliente e garçom'], ['itens', 'Itens'], ['totais', 'Totais, recebido e pendente'], ['pendencias', 'Pendências anteriores e total geral'], ['assinatura', 'Linha de assinatura'], ['final', 'Mensagem final']],
-        cozinha: [['nome', 'Nome do estabelecimento'], ['titulo', 'Título do documento'], ['cab', 'Comanda / Mesa / Hora'], ['cliente', 'Cliente e garçom'], ['itens', 'Itens (sem preço)'], ['final', 'Mensagem final']]
-    };
+    // mesmos blocos para todos os documentos (cada um liga/desliga o que quiser)
+    const BLOCOS_BASE = [['logo', 'Logo'], ['nome', 'Nome do estabelecimento'], ['titulo', 'Título e situação'], ['cor', 'Faixa de cor do caixa'], ['cab', 'Comanda / Mesa / Data'], ['cliente', 'Cliente e garçom'], ['itens', 'Itens'], ['totais', 'Totais, pagamentos e pendente'], ['pendencias', 'Pendências anteriores e total geral'], ['qr', 'QR Code PIX'], ['assinatura', 'Linha de assinatura'], ['final', 'Mensagem final']];
+    const BLOCOS = { comanda: BLOCOS_BASE, recibo: BLOCOS_BASE, cozinha: BLOCOS_BASE, pendencia: BLOCOS_BASE };
     const TEXTO_PADRAO = {
         comanda: { titulo: 'COMPROVANTE DE CONSUMO', final: 'Obrigado pela preferência!' },
         recibo: { titulo: 'RECIBO DE PAGAMENTO', final: 'Obrigado pela preferência!' },
@@ -21,7 +18,10 @@
         pendencia: { titulo: 'COMPROVANTE DE PENDÊNCIA', final: 'Obrigado pela preferência!' }
     };
     const SUBS = { logo: 'Centralizado', itens: 'Qtd · Nome · Valor', final: 'Texto da mensagem' };
-    const ON_PADRAO = { cozinha: { final: false } };
+    const ON_PADRAO = {
+        comanda: { pendencias: false, assinatura: false },
+        cozinha: { logo: false, cor: false, totais: false, pendencias: false, qr: false, assinatura: false, final: false }
+    };
     const PAPEL_COLS = { '58': 32, '80': 48, 'a4': 48 };
     const PAPEL_PX = { '58': 280, '80': 340, 'a4': 700 };
     const MARGEM_PX = { menor: 4, normal: 10, maior: 20 };
@@ -55,7 +55,12 @@
                     if (mapa[b.id]) { out.push(Object.assign({}, mapa[b.id], b)); delete mapa[b.id]; }
                     else if (/^t\d+$/.test(b.id)) out.push(Object.assign({ on: true, al: 'c', texto: '' }, b));
                 });
-                Object.keys(mapa).forEach(function (k) { out.push(mapa[k]); });
+                BLOCOS[d].forEach(function (bb, bi) {
+                    const m = mapa[bb[0]]; if (!m) return;
+                    let pos = 0;
+                    for (let q = bi - 1; q >= 0; q--) { const ix = out.findIndex(function (x) { return x.id === BLOCOS[d][q][0]; }); if (ix >= 0) { pos = ix + 1; break; } }
+                    out.splice(pos, 0, m);
+                });
                 base[d].blocos = out;
             }
         });
@@ -75,7 +80,7 @@
         const calc = window.calcularTotais ? window.calcularTotais(c) : { subtotal: c.subtotal || 0, desconto: 0, total: c.total || 0 };
         const L = [];
         const sep = function () { L.push({ k: 'sep' }); };
-        const tipoPix = rec ? 'recibo' : 'comanda';
+        const tipoPix = tipo === 'pendencia' ? 'pendencia' : (rec ? 'recibo' : 'comanda');
         let prev = null;
         const aplica = function () {
             if (!prev) return; const b = prev.b;
@@ -135,7 +140,6 @@
                     } else L.push({ k: 'duas', l: nome, r: money(Number(i.preco) * q) });
                 });
             } else if (id === 'totais') {
-                if (tipo === 'cozinha') continue;
                 sep();
                 if (calc.desconto > 0) { L.push({ k: 'duas', l: 'Subtotal', r: money(calc.subtotal) }); L.push({ k: 'duas', l: 'Desconto' + (c.desconto && c.desconto.tipo === 'porcentagem' ? ' (' + c.desconto.valor + '%)' : ''), r: '-' + money(calc.desconto) }); if (c.desconto && c.desconto.motivo) L.push({ k: 't', t: 'Motivo: ' + c.desconto.motivo, small: 1 }); }
                 L.push({ k: 'duas', l: 'TOTAL', r: money(calc.total), b: 1, g: 1 });
@@ -147,11 +151,12 @@
                         L.push({ k: 'duas', l: FORMAS[p.forma] || p.forma, r: money(p.valor) });
                         if (p.maquininha && window.maquininhaTexto) { const mt = window.maquininhaTexto(p.maquininha); if (mt) L.push({ k: 't', t: mt, small: 1 }); }
                     });
+                    if (Number(c.descontoPendencia) > 0) L.push({ k: 'duas', l: 'Desconto na pendência' + (c.descontoPendenciaMotivo ? ' (' + c.descontoPendenciaMotivo + ')' : ''), r: '-' + money(c.descontoPendencia) });
                     if (Number(c.troco) > 0) L.push({ k: 'duas', l: 'Troco', r: money(c.troco) });
                     if (tipo === 'pendencia') L.push({ k: 'duas', l: 'VALOR PENDENTE', r: money(Number(c.valorPendente || 0)), b: 1, g: 1, mt: 1 });
                 }
             } else if (id === 'pendencias') {
-                if (!rec || !window.pendenciasAnteriores) continue;
+                if (!window.pendenciasAnteriores) continue;
                 let pa = { valor: 0 };
                 try { pa = opts.amostra ? { valor: 0 } : await window.pendenciasAnteriores(c); } catch (e) {}
                 const atual = opts.atualPend !== undefined ? Number(opts.atualPend || 0) : (c.pagamentoPendente ? Number(c.valorPendente || 0) : 0);
@@ -162,8 +167,7 @@
                     L.push({ k: 'duas', l: 'TOTAL GERAL PENDENTE', r: money(pa.valor + atual), b: 1 });
                 }
             } else if (id === 'qr') {
-                if (tipo === 'cozinha') continue;
-                const pix = opts.amostra ? 26 : (window.pixValorPago ? window.pixValorPago(c) : 0);
+                const pix = opts.amostra ? (tipo === 'pendencia' ? 10 : 26) : (window.pixValorPago ? window.pixValorPago(c) : 0);
                 if (!(pix > 0.004)) continue;
                 if (opts.amostra) { L.push({ k: 'qr', amostra: true, valor: pix }); continue; }
                 if (!config.pixRestaurante) continue;
@@ -232,6 +236,11 @@
         itens: [{ nome: 'Pastel de carne', quantidade: 2, preco: 6 }, { nome: 'Suco de laranja', quantidade: 1, preco: 8 }, { nome: 'Pastel de queijo', quantidade: 1, preco: 6, observacao: 'sem cebola' }],
         pagamentos: [{ forma: 'pix', valor: 26 }], troco: 0, desconto: 0 };
 
+    function amostraDe(d) {
+        if (d !== 'pendencia') return AMOSTRA;
+        return Object.assign({}, AMOSTRA, { pagamentos: [{ forma: 'pix', valor: 10 }], pagamentoPendente: true, valorPendente: 16 });
+    }
+
     async function salvar() {
         clearTimeout(timer);
         timer = setTimeout(async function () {
@@ -289,7 +298,7 @@
             '<div style="font-size:.72rem;color:#777;line-height:1.3;margin-top:4px;">A margem vale para tela e impressão comum. O tipo e o tamanho da fonte ficam em Configurações › Fonte da impressão.</div>' +
             '<button data-reset class="btn-outline" style="width:100%;margin-top:10px;background:#fff;">Restaurar layout padrão</button></div></div>';
         const cfgP = Object.assign({}, CFG, { imprimirLogo: CFG.imprimirLogo !== false, layoutImp: LAY });
-        const doc = await window.impDocumento(DOC, AMOSTRA, cfgP, { amostra: true, aberto: false });
+        const doc = await window.impDocumento(DOC, amostraDe(DOC), cfgP, { amostra: true, aberto: false });
         const prev = '<div style="padding:12px;overflow-y:auto;flex:1;min-width:0;"><b style="font-size:.85rem;">Pré-visualização</b><div style="background:#eee;border-radius:12px;padding:12px;margin-top:8px;overflow-x:auto;">' + window.impHtml(doc, cfgP) + '</div><div style="font-size:.72rem;color:#777;margin-top:6px;">Exemplo com dados fictícios. Na térmica Bluetooth, logo e QR saem como imagem.</div></div>';
         const abas = larg ? '' : '<div style="display:flex;background:#fff;border-bottom:1px solid #ddd;">' + [['editar', 'Editar'], ['previa', 'Pré-visualizar']].map(function (a) { return '<div data-visao="' + a[0] + '" style="flex:1;text-align:center;padding:10px;font-weight:700;font-size:.85rem;cursor:pointer;' + (VISAO === a[0] ? 'color:' + COR + ';border-bottom:3px solid ' + COR + ';' : 'color:#777;') + '">' + a[1] + '</div>'; }).join('') + '</div>';
         ov.innerHTML = '<div style="background:' + COR + ';color:#fff;padding:14px 16px;font-weight:700;display:flex;align-items:center;gap:10px;"><span data-fechar style="cursor:pointer;font-size:1.2rem;">←</span> Layout de impressão</div>' + abas +
@@ -332,7 +341,7 @@
     async function atualizaPrev(ov) {   // digitação: atualiza só o cupom, sem recriar os campos
         const caixa = ov.querySelector('.imp-cupom'); if (!caixa) return;
         const cfgP = Object.assign({}, CFG, { imprimirLogo: CFG.imprimirLogo !== false, layoutImp: LAY });
-        const doc = await window.impDocumento(DOC, AMOSTRA, cfgP, { amostra: true });
+        const doc = await window.impDocumento(DOC, amostraDe(DOC), cfgP, { amostra: true });
         caixa.parentNode.innerHTML = window.impHtml(doc, cfgP);
     }
     window.abrirLayoutImpressao = async function () {

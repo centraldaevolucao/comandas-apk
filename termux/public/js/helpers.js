@@ -718,7 +718,11 @@ window.pixValorPago = function (c) {
 window.pixQrAtivo = function (config, destino, tipo) {
     // destino: 'impressao' (visualização/Bluetooth) | 'whatsapp' (WhatsApp direto ao cliente cadastrado) | 'compartilhar' (terceiros)
     if (!config || !config.pixRestaurante) return false;
-    const T = tipo === 'recibo' ? 'Recibo' : 'Comanda';
+    const T = tipo === 'pendencia' ? 'Pendencia' : (tipo === 'recibo' ? 'Recibo' : 'Comanda');
+    if (tipo === 'pendencia') {   // padrão: ligado
+        const k = destino === 'impressao' ? 'Imp' : (destino === 'compartilhar' ? 'Compart' : 'Zap');
+        return config['pixQr' + T + k] !== false;
+    }
     if (tipo) {
         if (destino === 'impressao') { if (config['pixQr' + T + 'Imp'] !== undefined) return config['pixQr' + T + 'Imp'] === true; }
         else if (destino === 'compartilhar') { if (config['pixQr' + T + 'Compart'] !== undefined) return config['pixQr' + T + 'Compart'] === true; }
