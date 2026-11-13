@@ -158,13 +158,18 @@
     };
 
     // ---- recebimento ----
-    window.pendenciaReceber = function (chave, comandaId) {
+    window.pendenciaReceber = async function (chave, comandaId) {
+        let cfg = {}; try { cfg = window.normalizarArray(await apiGet('configuracoes'))[0] || {}; } catch (e) {}
+        const ativas = { dinheiro: cfg.pagDinheiro !== false, debito: cfg.pagDebito !== false, credito: cfg.pagCredito !== false, pix: cfg.pagPix !== false };
+        let fi = ['dinheiro', 'debito', 'credito', 'pix'].find(function (k) { return ativas[k]; }) || 'dinheiro';   // mesma regra do Fechamento
+        const mp = { 'dinheiro': 'dinheiro', 'débito': 'debito', 'debito': 'debito', 'crédito': 'credito', 'credito': 'credito', 'pix': 'pix' }[String(cfg.formaPagamentoPadrao || '').trim().toLowerCase()];
+        if (mp && ativas[mp]) fi = mp;
         const g = agrupar().find(function (x) { return x.chave === chave; });
         if (!g) return;
         const alvo = comandaId != null && comandaId !== '' ? g.comandas.filter(function (c) { return String(c.id) === String(comandaId); }) : g.comandas;
         if (!alvo.length) return;
         const total = Math.round(alvo.reduce(function (s, c) { return s + Number(c.valorPendente || 0); }, 0) * 100) / 100;
-        window.__pendAlvo = { ids: alvo.map(function (c) { return String(c.id); }), total: total, nome: g.nome, qtd: alvo.length, pags: [{ forma: 'dinheiro', valor: total }], dsc: { on: false, tipo: 'valor', valor: 0, motivo: '' } };
+        window.__pendAlvo = { ids: alvo.map(function (c) { return String(c.id); }), total: total, nome: g.nome, qtd: alvo.length, ativas: ativas, formaInicial: fi, pags: [{ forma: fi, valor: total }], dsc: { on: false, tipo: 'valor', valor: 0, motivo: '' } };
         window.pendenciaFechar();
         const m = document.createElement('div');
         m.id = 'modal-pend'; m.className = 'modal-overlay'; m.style.zIndex = '200000';
@@ -232,14 +237,14 @@
         const ed = idx != null && idx !== '' ? a.pags[idx] : null;
         const pago = a.pags.reduce(function (s, x, k) { return s + (k === idx ? 0 : Number(x.valor || 0)); }, 0);
         const resto = Math.max(0, Math.round((a.total - pendDesc() - pago) * 100) / 100);
-        let forma = ed ? ed.forma : 'dinheiro';
+        let forma = ed ? ed.forma : a.formaInicial;
         const m = document.createElement('div');
         m.id = 'modal-pend-pag'; m.className = 'modal-overlay';
         m.style.cssText = 'display:flex;align-items:center;justify-content:center;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:300000;padding:16px;';
         m.innerHTML = '<div style="background:#fff;border-radius:16px;max-width:380px;width:100%;overflow:hidden;">' +
             '<div style="background:#e65100;color:#fff;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;"><strong><i class="fas fa-plus"></i> ' + (ed ? 'Editar' : 'Adicionar') + ' pagamento</strong><button type="button" id="pp-x" style="background:none;border:none;color:#fff;font-size:1.2rem;"><i class="fas fa-xmark"></i></button></div>' +
             '<div style="padding:16px;"><div style="font-size:.75rem;color:#666;font-weight:600;margin-bottom:6px;">FORMA DE PAGAMENTO</div><div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;">' +
-            Object.keys(FORMAS_P).map(function (k) { return '<button type="button" class="pp-f" data-f="' + k + '" style="flex:1 1 45%;display:flex;align-items:center;justify-content:center;gap:8px;padding:12px 8px;border-radius:12px;border:2px solid #e0e0e0;background:#fff;font-weight:600;"><i class="fas ' + FORMAS_P[k][1] + '"></i> ' + FORMAS_P[k][0] + '</button>'; }).join('') + '</div>' +
+            Object.keys(FORMAS_P).filter(function (k) { return a.ativas[k] !== false; }).map(function (k) { return '<button type="button" class="pp-f" data-f="' + k + '" style="flex:1 1 45%;display:flex;align-items:center;justify-content:center;gap:8px;padding:12px 8px;border-radius:12px;border:2px solid #e0e0e0;background:#fff;font-weight:600;"><i class="fas ' + FORMAS_P[k][1] + '"></i> ' + FORMAS_P[k][0] + '</button>'; }).join('') + '</div>' +
             '<div style="font-size:.75rem;color:#666;font-weight:600;margin-bottom:6px;">VALOR (R$)</div><input type="number" inputmode="decimal" step="0.01" min="0.01" id="pp-v" value="' + (ed ? Number(ed.valor).toFixed(2) : (resto > 0 ? resto.toFixed(2) : '')) + '" style="width:100%;box-sizing:border-box;font-size:1.4rem;font-weight:700;padding:12px;border:2px solid #ccc;border-radius:12px;">' +
             '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;font-size:.8rem;color:#666;"><span>Pendente: <b>' + R(a.total) + '</b></span><button type="button" id="pp-r" style="border:1px solid #e65100;background:#fff;color:#e65100;border-radius:16px;padding:4px 10px;font-weight:600;">Restante ' + R(resto) + '</button></div>' +
             '<div id="pp-e" style="color:#c62828;font-size:.85rem;min-height:18px;margin-top:6px;"></div>' +

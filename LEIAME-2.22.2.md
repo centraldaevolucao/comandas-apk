@@ -328,3 +328,6 @@ Obs.: itens alterados depois de gerar o recibo em aberto não atualizam o valor 
 - **Layout de impressão:** Comanda, Recibo, Cozinha e Pendência têm os **mesmos blocos** (liga/desliga cada um), incluindo QR Code PIX, totais, pendências e assinatura; layouts já salvos ganham os blocos novos na posição certa.
 - **QR Code só para PIX:** em todos os documentos o QR sai apenas quando há pagamento em PIX, com o valor do PIX. Novo grupo em Configurações › Pix: **QR Code PIX nos recibos de pendência** (visualização/Bluetooth, WhatsApp direto, compartilhar).
 - Testado no navegador. Não testado: impressora real e Pix real.
+
+## 46. v2.22.2 — Forma padrão no Receber pendência
+- **Receber pendência** agora abre com a mesma forma de pagamento padrão do Fechamento de comanda (Configurações › Fechamento, ex.: PIX) já preenchida, e só oferece as formas ativas em Configurações.
