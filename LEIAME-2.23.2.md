@@ -353,3 +353,7 @@ Obs.: itens alterados depois de gerar o recibo em aberto não atualizam o valor 
 - **Filtro Produto:** lista os produtos relacionados aos filtros aplicados (inclusive o cliente escolhido).
 - **Filtros aplicados:** os filtros ativos aparecem em destaque (rosa) acima do relatório e também dentro do card **Total geral no período**.
 - Testado no navegador.
+
+## 51. Relatórios: filtrar clientes sem nome (v2.23.2)
+- Na lista do filtro **Cliente** aparece a opção **(sem nome)** no topo, com a quantidade de comandas e o total das vendas sem cliente informado. Ao escolher, o relatório mostra só essas comandas.
+- Testado no navegador.

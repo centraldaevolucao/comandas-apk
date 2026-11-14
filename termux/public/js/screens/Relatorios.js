@@ -68,7 +68,7 @@ if (!window.renderRelatorios) {
         const mapa = {};
         if (campo === 'cliente') {
             comandas.forEach(function (c) {
-                const nome = String(c.cliente || '').trim(); if (!nome) return;
+                const nome = String(c.cliente || '').trim() || '(sem nome)';
                 const m = mapa[nome] || (mapa[nome] = { nome: nome, qtd: 0, total: 0 });
                 m.qtd += 1; m.total += Number(c.total || 0);
             });
@@ -81,7 +81,10 @@ if (!window.renderRelatorios) {
                 });
             });
         }
-        return Object.keys(mapa).map(function (k) { return mapa[k]; }).sort(function (x, y) { return x.nome.localeCompare(y.nome, 'pt-BR'); });
+        return Object.keys(mapa).map(function (k) { return mapa[k]; }).sort(function (x, y) {
+            if (x.nome === '(sem nome)') return -1; if (y.nome === '(sem nome)') return 1;
+            return x.nome.localeCompare(y.nome, 'pt-BR');
+        });
     };
 
     window.carregarDadosRelatorios = async function() {
@@ -161,6 +164,7 @@ if (!window.renderRelatorios) {
     function filtrarComandasPorCliente(comandas) {
         const termo = window.relatoriosState.filtroCliente.trim().toLowerCase();
         if (!termo) return comandas;
+        if (termo === '(sem nome)') return comandas.filter(c => !String(c.cliente || '').trim());
         return comandas.filter(c => String(c.cliente || '').toLowerCase().includes(termo));
     }
 
