@@ -347,3 +347,9 @@ Obs.: itens alterados depois de gerar o recibo em aberto não atualizam o valor 
 - **Impressora não encontrada:** a impressão é **cancelada**, o app avisa e oferece **WhatsApp**, **Compartilhar** (e-mail, Drive, outros), **Imprimir pelo celular** ou Fechar.
 - Pix da assinatura (v2.22.4): o gerador de Pix com valor agora lê os campos do código (não depende mais de padrão de texto) e refaz o CRC.
 - Testado no navegador. Não testado: impressora Bluetooth real.
+
+## 50. Relatórios: filtros de Cliente e Produto e identificação dos filtros (v2.23.1)
+- **Filtro Cliente:** abre uma lista com todos os clientes que aparecem nos demais filtros aplicados (período, caixa, produto, espécie), com busca, nº de comandas e total. Toque para escolher; "Todos (limpar)" remove.
+- **Filtro Produto:** lista os produtos relacionados aos filtros aplicados (inclusive o cliente escolhido).
+- **Filtros aplicados:** os filtros ativos aparecem em destaque (rosa) acima do relatório e também dentro do card **Total geral no período**.
+- Testado no navegador.

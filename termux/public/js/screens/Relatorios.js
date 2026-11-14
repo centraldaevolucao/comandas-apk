@@ -57,6 +57,33 @@ if (!window.renderRelatorios) {
         `;
     };
 
+    // Opções para os filtros Cliente/Produto: só o que existe nas comandas dos DEMAIS filtros (período, caixa, espécie e o outro filtro)
+    window.relOpcoesFiltro = async function (campo) {
+        let comandas = window.normalizarArray(await apiGet('comandas'));
+        comandas = filtrarComandasPorPeriodo(comandas);
+        comandas = filtrarComandasPorCaixa(comandas);
+        if (campo !== 'cliente') comandas = filtrarComandasPorCliente(comandas);
+        if (campo !== 'produto') comandas = filtrarComandasPorProduto(comandas);
+        comandas = filtrarComandasPorEspecie(comandas);
+        const mapa = {};
+        if (campo === 'cliente') {
+            comandas.forEach(function (c) {
+                const nome = String(c.cliente || '').trim(); if (!nome) return;
+                const m = mapa[nome] || (mapa[nome] = { nome: nome, qtd: 0, total: 0 });
+                m.qtd += 1; m.total += Number(c.total || 0);
+            });
+        } else {
+            comandas.forEach(function (c) {
+                window.normalizarArray(c.itens).forEach(function (i) {
+                    const nome = String(i.nome || '').trim(); if (!nome) return;
+                    const m = mapa[nome] || (mapa[nome] = { nome: nome, qtd: 0, total: 0 });
+                    m.qtd += Number(i.quantidade || 0); m.total += Number(i.preco || 0) * Number(i.quantidade || 0);
+                });
+            });
+        }
+        return Object.keys(mapa).map(function (k) { return mapa[k]; }).sort(function (x, y) { return x.nome.localeCompare(y.nome, 'pt-BR'); });
+    };
+
     window.carregarDadosRelatorios = async function() {
         const container = document.getElementById('relatorios-resultado');
         if (!container) return;
@@ -267,11 +294,24 @@ if (!window.renderRelatorios) {
         return d;
     }
 
+    // Chips dos filtros: os aplicados (diferentes de Todos) em destaque, os demais esmaecidos
+    function chipsFiltros(filtros) {
+        const def = function (v) { return /^(todos|todas)$/i.test(String(v).trim()); };
+        const ativos = filtros.filter(function (f) { return !def(f[1]); }).length;
+        const chip = function (f) {
+            const on = !def(f[1]) || f[0] === 'Período' || f[0] === 'Tipo';
+            const forte = !def(f[1]) && f[0] !== 'Período' && f[0] !== 'Tipo';
+            return '<span style="display:inline-block;border-radius:14px;padding:4px 10px;margin:0 6px 6px 0;font-size:0.78rem;' +
+                (forte ? 'background:#C2185B;color:#fff;border:1px solid #C2185B;' : 'background:#fff;border:1px solid ' + (on ? '#f0c4d4' : '#e5e5e5') + ';' + (on ? '' : 'opacity:.7;')) + '">' +
+                '<span style="' + (forte ? 'opacity:.85;' : 'color:#888;') + '">' + f[0] + ':</span> <b style="' + (forte ? '' : 'color:#C2185B;') + '">' + String(f[1]).replace(/</g, '&lt;') + '</b></span>';
+        };
+        return filtros.map(chip).join('') + '';
+    }
+    window.__chipsFiltros = chipsFiltros;
+
     // Faixa com os filtros aplicados + botões de imprimir / PDF / CSV
     function renderBarraRelatorio(d) {
-        const chips = d.filtros.map(f =>
-            '<span style="display:inline-block;background:#fff;border:1px solid #f0c4d4;border-radius:14px;padding:4px 10px;margin:0 6px 6px 0;font-size:0.78rem;">' +
-            '<span style="color:#888;">' + f[0] + ':</span> <b style="color:#C2185B;">' + String(f[1]).replace(/</g, '&lt;') + '</b></span>').join('');
+        const chips = chipsFiltros(d.filtros);
         const btn = (acao, icone, texto, cor) =>
             '<button type="button" onclick="exportarRelatorio(\'' + acao + '\')" class="btn-outline" style="flex:1 1 90px;display:inline-flex;align-items:center;justify-content:center;gap:6px;border-color:' + cor + ';color:' + cor + ';">' +
             '<i class="fas ' + icone + '"></i> ' + texto + '</button>';
@@ -315,6 +355,7 @@ if (!window.renderRelatorios) {
                 <div style="font-size:0.85rem; opacity:0.9;">Total geral${st.filtroEspecie !== 'todas' ? ' em ' + (ROTULO_ESPECIE[st.filtroEspecie] || st.filtroEspecie) : ' no período'}</div>
                 <div style="font-size:2.2rem; font-weight:800; margin-top:5px;">${formatMoney(totalGeral)}</div>
                 <div style="font-size:0.8rem; opacity:0.8; margin-top:5px;">Baseado em ${comandas.length} comandas</div>
+                ${(function () { const a = dados.filtros.filter(f => !/^(todos|todas)$/i.test(String(f[1]).trim()) && f[0] !== 'Tipo'); return a.length ? '<div style="font-size:0.78rem;margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.3);"><i class="fas fa-filter"></i> ' + a.map(f => f[0] + ': <b>' + String(f[1]).replace(/</g, '&lt;') + '</b>').join(' · ') + '</div>' : ''; })()}
             </div>
 
             <div class="card">

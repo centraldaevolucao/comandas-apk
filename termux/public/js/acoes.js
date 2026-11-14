@@ -326,6 +326,30 @@ console.log('✔ acoes.js carregado');
         recarregarRelatorio();
     };
 
+    window.filtrarListaOpcoes = function (campo) {
+        const box = document.getElementById('lista-opcoes-' + campo); if (!box) return;
+        const st = estadoRel(), atual = String(campo === 'cliente' ? st.filtroCliente : st.filtroProduto).toLowerCase();
+        const termo = String((document.getElementById('filtro-texto-' + campo) || {}).value || '').trim().toLowerCase();
+        const todas = (window.__opcoesFiltro || {})[campo] || [];
+        const l = todas.filter(function (o) { return !termo || o.nome.toLowerCase().includes(termo); });
+        if (!todas.length) { box.innerHTML = '<div style="padding:14px;text-align:center;color:#999;">Nada encontrado com os filtros atuais.</div>'; return; }
+        if (!l.length) { box.innerHTML = '<div style="padding:14px;text-align:center;color:#999;">Nenhum resultado para "' + esc(termo) + '".</div>'; return; }
+        const fm = function (v) { return 'R$ ' + Number(v).toFixed(2).replace('.', ','); };
+        box.innerHTML = l.map(function (o, i) {
+            const sel = o.nome.toLowerCase() === atual;
+            return '<div class="drop-item' + (sel ? ' selecionado' : '') + '" role="button" tabindex="0" data-i="' + i + '" onclick="escolherOpcaoLista(\'' + campo + '\', ' + todas.indexOf(o) + ')">' +
+                '<span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;">' + esc(o.nome) + '</span>' +
+                '<span style="font-size:.72rem;color:#888;margin-left:8px;white-space:nowrap;">' + (campo === 'cliente' ? o.qtd + ' comanda(s)' : o.qtd + ' un.') + ' · ' + fm(o.total) + '</span>' + (sel ? '<i class="fas fa-check" style="margin-left:6px;"></i>' : '') + '</div>';
+        }).join('');
+    };
+    window.escolherOpcaoLista = function (campo, idx) {
+        const o = ((window.__opcoesFiltro || {})[campo] || [])[idx]; if (!o) return;
+        const st = estadoRel();
+        if (campo === 'cliente') st.filtroCliente = o.nome; else st.filtroProduto = o.nome;
+        window.fecharDropdownFiltro();
+        recarregarRelatorio();
+    };
+
     window.limparFiltroTexto = function (campo) {
         const st = estadoRel();
         if (campo === 'cliente') st.filtroCliente = ''; else st.filtroProduto = '';
@@ -374,11 +398,13 @@ console.log('✔ acoes.js carregado');
         } else if (id === 'cliente' || id === 'produto') {
             const atual = id === 'cliente' ? st.filtroCliente : st.filtroProduto;
             h = '<input type="search" class="search-input" id="filtro-texto-' + id + '" autocomplete="off" placeholder="' +
-                (id === 'cliente' ? 'Nome do cliente' : 'Nome do produto') + '" value="' + esc(atual) + '" ' +
-                'onkeydown="if(event.key===\'Enter\'){aplicarFiltroTexto(\'' + id + '\')}">' +
+                (id === 'cliente' ? 'Buscar cliente' : 'Buscar produto') + '" value="' + esc(atual) + '" ' +
+                'oninput="filtrarListaOpcoes(\'' + id + '\')" onkeydown="if(event.key===\'Enter\'){aplicarFiltroTexto(\'' + id + '\')}">' +
+                '<div id="lista-opcoes-' + id + '" style="max-height:42vh;overflow-y:auto;margin:8px 0;"><div style="padding:14px;text-align:center;color:#999;">Carregando...</div></div>' +
                 '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">' +
-                '<button type="button" class="btn-outline" onclick="limparFiltroTexto(\'' + id + '\')">Limpar</button>' +
-                '<button type="button" class="btn-primary" onclick="aplicarFiltroTexto(\'' + id + '\')"><i class="fas fa-check"></i> Aplicar</button></div>';
+                '<button type="button" class="btn-outline" onclick="limparFiltroTexto(\'' + id + '\')">Todos (limpar)</button>' +
+                '<button type="button" class="btn-primary" onclick="aplicarFiltroTexto(\'' + id + '\')"><i class="fas fa-check"></i> Aplicar texto</button></div>';
+            if (window.relOpcoesFiltro) window.relOpcoesFiltro(id).then(function (l) { window.__opcoesFiltro = window.__opcoesFiltro || {}; window.__opcoesFiltro[id] = l; window.filtrarListaOpcoes(id); }).catch(function () { const b = document.getElementById('lista-opcoes-' + id); if (b) b.innerHTML = '<div style="padding:14px;color:#c62828;">Erro ao carregar a lista.</div>'; });
         }
         cont.innerHTML = h;
         cont.classList.add('aberto');
