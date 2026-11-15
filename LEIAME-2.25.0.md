@@ -369,3 +369,15 @@ Primeiro módulo do mapa "Estoque e compras" (o estoque, as movimentações e as
 - **Permissão nova:** "Compras e fornecedores" (Estoque), editável nos Níveis de Acesso.
 - Estoque continua em unidades inteiras, como no cadastro de produto.
 - Testado no navegador (sugestão, pedido, recebimento, custo médio, movimentação, pagamento).
+
+## 53. Ficha técnica e Precificação (v2.25.0)
+Segundo módulo do mapa (Estoque e compras → Ficha técnica e CMV; Financeiro → Precificação).
+- **Menu Cadastros → Precificação:** lista de produtos ordenada pela pior margem, com custo, preço de venda, preço sugerido e filtros "Abaixo da meta" e "Sem custo".
+- **Ficha técnica por produto:** ingredientes escolhidos da lista de produtos (usa o custo deles) ou itens avulsos (embalagem, gás, mão de obra). O custo do produto (CMV) é a soma; ao salvar, atualiza o **valor de custo** do cadastro.
+- **Parâmetros (ícone de ajustes):** impostos, taxa média de cartão/Pix, despesas fixas rateadas e margem de lucro desejada, todos em % do preço de venda.
+- **Preço sugerido** = custo ÷ (1 − impostos − taxas − despesas fixas − margem), arredondado para terminar em ,90. Mostra a margem real e o lucro por unidade no preço atual e o ganho com o preço sugerido.
+- **Salvar e aplicar:** grava a ficha, o custo e o novo preço de venda; ou "Salvar sem mudar o preço".
+- Os percentuais padrão (6% / 2,5% / 22% / 15%) são exemplos; ajuste à sua realidade e confirme os impostos com o contador.
+- A ficha serve ao cálculo de custo e preço; **não baixa ingredientes do estoque** nas vendas (o estoque continua por produto, em unidades inteiras).
+- Permissão: usa "Editar produtos".
+- Testado no navegador (custo R$ 16,00 → sugerido R$ 29,90; margem real 12,4% no preço de R$ 28,00).

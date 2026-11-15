@@ -29,7 +29,7 @@
         m.innerHTML = '<div class="modal-content" style="max-width:' + (largura || 460) + 'px;max-height:92vh;display:flex;flex-direction:column;">' +
             '<div class="modal-header" style="background:' + COR + ';color:#fff;"><strong>' + titulo + '</strong>' +
             '<button class="btn-limpar" onclick="document.getElementById(\'' + id + '\').remove()" style="color:#fff;" aria-label="Fechar"><i class="fas fa-xmark"></i></button></div>' +
-            '<div class="modal-body" style="overflow-y:auto;"><style>#' + id + ' label{display:block;margin-bottom:3px;}#' + id + ' input,#' + id + ' select{width:100%;box-sizing:border-box;min-width:0;}</style>' + corpo + '</div></div>';
+            '<div class="modal-body" style="overflow-y:auto;"><style>#' + id + ' label{display:block;margin-bottom:3px;}#' + id + ' input,#' + id + ' select{width:100%;box-sizing:border-box;min-width:0;}#' + id + ' .row-add button{flex:none;width:auto;white-space:nowrap;}</style>' + corpo + '</div></div>';
         document.body.appendChild(m);
         return m;
     }
@@ -144,7 +144,7 @@
         const livres = s.produtos.filter(function (p) { return usados.indexOf(String(p.id)) < 0; }).sort(function (a, b) { return String(a.nome).localeCompare(String(b.nome), 'pt-BR'); });
         box.innerHTML =
             '<label style="font-size:.8rem;color:#555;">Fornecedor</label>' +
-            '<div style="display:flex;gap:8px;margin-bottom:10px;"><select id="ce-forn" style="flex:1;"><option value="">Selecione…</option>' +
+            '<div class="row-add" style="display:flex;gap:8px;margin-bottom:10px;"><select id="ce-forn" style="flex:1;"><option value="">Selecione…</option>' +
             s.fornecedores.map(function (f) { return '<option value="' + esc(f.id) + '"' + (String(f.id) === String(ed.fornecedorId) ? ' selected' : '') + '>' + esc(f.nome) + '</option>'; }).join('') + '</select>' +
             '<button class="btn-outline" onclick="fornecedorEditar(null, true)" style="white-space:nowrap;">+ Novo</button></div>' +
             '<label style="font-size:.8rem;color:#555;">Vencimento do pagamento (opcional)</label><input type="date" id="ce-venc" value="' + esc(ed.vencimento) + '" style="margin-bottom:10px;">' +
@@ -158,7 +158,7 @@
                     '<div style="flex:1;"><label style="font-size:.7rem;color:#777;">Custo unitário</label><input type="number" min="0" step="0.01" id="ce-c' + i + '" value="' + (it.custo || '') + '" oninput="compraRecalc()"></div>' +
                     '<div style="flex:1;text-align:right;"><div style="font-size:.7rem;color:#777;">Subtotal</div><b id="ce-s' + i + '">' + R(Number(it.quantidade || 0) * Number(it.custo || 0)) + '</b></div></div></div>';
             }).join('') : '<div style="color:#888;font-size:.85rem;padding:8px 0;">Nenhum item. Adicione abaixo ou use a sugestão.</div>') +
-            '<div style="display:flex;gap:8px;margin:8px 0;"><select id="ce-add" style="flex:1;"><option value="">Adicionar produto…</option>' +
+            '<div class="row-add" style="display:flex;gap:8px;margin:8px 0;"><select id="ce-add" style="flex:1;"><option value="">Adicionar produto…</option>' +
             livres.map(function (p) { return '<option value="' + esc(p.id) + '">' + esc(p.nome) + ' (estoque ' + Number(p.estoque || 0) + ')</option>'; }).join('') + '</select>' +
             '<button class="btn-primary" onclick="compraItemAdd()">Adicionar</button></div>' +
             '<label style="font-size:.8rem;color:#555;">Observação</label><input type="text" id="ce-obs" value="' + esc(ed.obs) + '" placeholder="Ex.: entregar na sexta" style="margin-bottom:10px;">' +

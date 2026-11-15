@@ -108,6 +108,10 @@ window.renderMenuLateral = function () {
         '                    <i class="fas fa-box"></i> <span>Produtos</span>',
         '                </div>',
 
+        '                <div class="menu-item sub-item" onclick="navigateTo(\'precificacao\'); fecharMenuMobile();" style="' + isAtivo('precificacao') + '">',
+        '                    <i class="fas fa-tags"></i> <span>Precificação</span>',
+        '                </div>',
+
         '                <div class="menu-item sub-item" onclick="navigateTo(\'grupos\'); fecharMenuMobile();" style="' + isAtivo('grupos') + '">',
         '                    <i class="fas fa-layer-group"></i> <span>Grupos de Produtos</span>',
         '                </div>',
