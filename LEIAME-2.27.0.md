@@ -393,3 +393,12 @@ Um app só, três edições com a mesma base de dados. Quem libera cada edição
 - Telas fora da edição somem do menu; se alguém abrir o endereço direto, aparece "Disponível na edição X".
 - Pedido de licença agora informa a edição (e se é troca de edição). Subir de edição: paga só a diferença pelo tempo que falta; descer vale na renovação.
 - Testado no navegador (licenças das três edições, menu, bloqueios, abas, preços). Não testado em aparelho: Java/Android.
+
+## 55. Plano grátis completo, teste de 30 dias e garantia (v2.27.0)
+- **Plano grátis = tudo do Essencial** (PDV, comandas, caixa, relatórios, clientes e fiado, estoque, impressão, Pix) com o limite de **30 comandas por dia**. O cardápio digital por QR continua só para assinantes. O caixa deixou de abrir sozinho: no grátis agora se abre e fecha como no Essencial.
+- **Teste gratuito de 30 dias** da edição Gestão ou Completo: na tela Assinatura, abas Gestão e Completo, botão **Testar**. Vale **uma única vez por equipamento**; o servidor registra a data, a edição, o equipamento e o **usuário** que pediu (também na base, coleção "testesLicenca"). Depois que usa, o botão some.
+- Fim do teste: volta ao plano grátis (ou à licença paga que o cliente tiver). Dados continuam salvos.
+- **A licença de TESTE emitida pelo dono (app Licenças) prevalece** sobre o teste do app. As licenças de teste do dono agora são **por edição** (Essencial, Gestão ou Completo) e com prazo livre; para dar mais prazo ou renovar, basta emitir outra.
+- **Garantia:** a licença comprada tem 30 dias de teste; desistindo nos **35 primeiros dias** o cliente recebe o valor integral (o reembolso vale **uma única vez** por cliente). O texto aparece na tela Assinatura. O cancelamento chega como um arquivo de licença que volta o app ao plano grátis.
+- Limite conhecido: o registro do teste fica no equipamento; apagar os dados do app reinicia o controle (como toda licença offline).
+- Testado no navegador (grátis, teste, fim do teste, teste do dono prevalecendo, cancelamento).

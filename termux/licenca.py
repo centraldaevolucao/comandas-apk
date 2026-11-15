@@ -19,6 +19,8 @@ CARENCIA_PADRAO_DIAS = 3        # depois do vencimento, tudo continua funcionand
 AVISO_DIAS = 7                  # aviso de renovação
 PREFIXO = "CMD1"
 EDICOES = ("essencial", "gestao", "completo")     # edições (todas no mesmo app e na mesma base): a licença assinada libera cada uma
+TESTE_APP_DIAS = 30                               # teste gratuito de Gestão ou Completo pedido pelo próprio app (uma vez por equipamento)
+TESTE_APP_EDICOES = ("gestao", "completo")
 EXTRAS = ("cardapio",)                            # bônus avulsos que a licença pode liberar além da edição
 
 # ----------------------------------------------------------------------------------------------------------
@@ -190,6 +192,8 @@ def _ler_codigo_em(t, pos):
 # ----------------------------------------------------------------------------------------------------------
 _ALFA = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"   # sem 0/O/1/I/L
 
+_RANK = {"gratis": 0, "essencial": 1, "gestao": 2, "completo": 3}
+
 class Licenca:
     def __init__(self, data_dir, publica_hex=None, hoje_fn=None, equipamento=None):
         self.arq = os.path.join(str(data_dir), "licenca.json")
@@ -255,11 +259,12 @@ class Licenca:
         mesmo = dados.get("i") in ("*", self.instalacao_id.replace("-", ""), self.instalacao_id)
         if not mesmo: return False, "Este código é de outra instalação (ID " + str(dados.get("i")) + "). O ID deste aparelho é " + self.instalacao_id + "."
         atual = self._licenca_valida()
-        if atual and atual["fim"] > dados["fim"]:
+        if atual and atual["fim"] > dados["fim"] and not dados.get("r"):
             return False, "Já existe uma licença com validade maior (até " + atual["fim"] + ")."
         with self.lock:
             self.e["codigo"] = "".join(str(codigo).split()); self._gravar()
-        if dados.get("p") == "teste": return True, "Licença de TESTE ativada: acesso total até " + dados["fim"] + "."
+        if dados.get("r"): return True, "Assinatura cancelada (reembolso). O app voltou ao plano gratuito."
+        if dados.get("p") == "teste": return True, "Licença de TESTE ativada: edição " + {"essencial": "Essencial", "gestao": "Gestão", "completo": "Completo"}.get(dados.get("e") or "completo") + " até " + dados["fim"] + "."
         return True, "Assinatura ativada até " + dados["fim"] + "."
 
     def status(self):
@@ -278,12 +283,41 @@ class Licenca:
             if dias >= 0: s.update(estado="ativa", limitado=False, aviso=dias <= AVISO_DIAS)
             elif -dias <= g: s.update(estado="carencia", limitado=False, aviso=True)
             else: s.update(estado="vencida", limitado=True)
+            if d.get("r"): s["cancelada"] = True                       # licença de cancelamento (reembolso)
             if not s["limitado"]:
-                ed = "completo" if d.get("p") == "teste" else (d.get("e") or "essencial")   # licença antiga (sem edição) = Essencial; teste = tudo
+                ed = d.get("e") or ("completo" if d.get("p") == "teste" else "essencial")   # licença antiga: teste = tudo; assinatura = Essencial
                 ex = [x for x in (d["x"] if "x" in d else ["cardapio"]) if x in EXTRAS]     # licença antiga (sem extras) mantém o cardápio QR
                 if ed == "completo" and "cardapio" not in ex: ex.append("cardapio")
                 s.update(edicao=ed, extras=ex, cardapio="cardapio" in ex)
+        # teste gratuito pedido pelo app (30 dias, uma vez). A licença de TESTE emitida pelo dono (Licenças) prevalece sobre ele.
+        t = self.e.get("teste_app")
+        s["testeApp"] = {"usado": bool(t), "ativo": False}
+        s["podeTestar"] = not t
+        if t:
+            try: tfim = date.fromisoformat(t["fim"])
+            except Exception: tfim = h - timedelta(days=1)
+            tdias = (tfim - h).days
+            s["testeApp"].update(edicao=t.get("edicao"), fim=t["fim"], inicio=t.get("inicio"), usuario=t.get("usuario", ""), diasRestantes=tdias, ativo=tdias >= 0)
+            lic_teste = bool(d) and d.get("p") == "teste" and not s["limitado"]
+            if tdias >= 0 and not lic_teste and _RANK.get(t.get("edicao"), 0) > _RANK.get(s["edicao"], 0):
+                eram_limitado = s["limitado"]
+                s.update(edicao=t["edicao"], cardapio=True, extras=["cardapio"] if t["edicao"] != "completo" else ["cardapio"], limitado=False, testeAppAtivo=True)
+                if eram_limitado:
+                    s.update(estado="testeapp", teste=True, validade=t["fim"], diasRestantes=tdias, cliente="", plano="teste")
         return s
+
+    def iniciar_teste(self, edicao, usuario=""):
+        """Teste gratuito de 30 dias da edição Gestão ou Completo, pedido pelo próprio app. Vale UMA vez por equipamento: fica registrado quando, qual edição e quem pediu."""
+        if edicao not in TESTE_APP_EDICOES: return False, "Edição inválida para teste."
+        with self.lock:
+            if self.e.get("teste_app"): return False, "O teste gratuito já foi usado neste equipamento."
+            st = self.status()
+            if not st["limitado"] and st.get("teste") and not st.get("testeAppAtivo") and st["estado"] != "testeapp": return False, "Este equipamento já tem uma licença de teste ativa."
+            if not st["limitado"] and _RANK.get(st.get("edicao"), 0) >= _RANK[edicao]: return False, "Sua licença já inclui a edição " + {"gestao": "Gestão", "completo": "Completo"}[edicao] + "."
+            h = self.hoje()
+            self.e["teste_app"] = {"edicao": edicao, "inicio": h.isoformat(), "fim": (h + timedelta(days=TESTE_APP_DIAS - 1)).isoformat(), "usuario": str(usuario or "")[:60], "equipamento": self.instalacao_id}
+            self._gravar()
+        return True, "Teste de %d dias da edição %s iniciado." % (TESTE_APP_DIAS, {"gestao": "Gestão", "completo": "Completo"}[edicao])
 
     def permitir_comandas(self, ids_novos):
         """ids_novos: ids de comandas que estão sendo CRIADAS agora. Registra (conta) e devolve (ok, msg)."""

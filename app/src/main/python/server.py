@@ -14,7 +14,7 @@ DB_PATH = DATA_DIR / "database.sqlite"
 HOST, PORT = os.getenv("HOST", "0.0.0.0"), int(os.getenv("PORT", "3000"))
 MAX_BODY = 10 * 1024 * 1024
 DB_LOCK = threading.RLock()
-VERSAO_SERVIDOR = "2.26.0"
+VERSAO_SERVIDOR = "2.27.0"
 INICIO = time.time()
 # Tempo real: cada gravação aumenta REV e acorda quem está ouvindo /api/eventos (SSE)
 REV = {"n": 0, "ultimo": ""}
@@ -319,8 +319,6 @@ class Handler(BaseHTTPRequestHandler):
     # ---------------- link externo (túnel Cloudflare) ----------------
     def licenca_bloqueia(self, col, client_id, body):
         """Regras da assinatura nas gravações. Devolve a mensagem de bloqueio ou None."""
-        if col == "caixas" and LIC.status()["limitado"]:
-            return "Fechamento e histórico de caixa são recursos de assinante."
         if col == "comandas":
             existentes = {str(i.get("id")) for i in read_resource("comandas", client_id) if isinstance(i, dict)}
             itens = body if isinstance(body, list) else [body]
@@ -621,6 +619,19 @@ class Handler(BaseHTTPRequestHandler):
                 try: body = self.read_json()
                 except ValueError: return self.send_json(400, {"error": "JSON inválido"})
                 ok, msg = LIC.ativar(str((body or {}).get("codigo", "")))
+                return self.send_json(200 if ok else 400, {"ok": ok, "msg": msg, "status": LIC.status()})
+            if self.command == "POST" and item_id == "teste":
+                # teste gratuito de 30 dias (Gestão ou Completo), uma vez por equipamento; registra quem pediu e grava na base
+                if self.externo(): return self.send_json(403, {"error": "Somente na rede local"})
+                try: body = self.read_json()
+                except ValueError: return self.send_json(400, {"error": "JSON inválido"})
+                u = self.session_user() or {}
+                usuario = str(u.get("nome") or u.get("email") or (body or {}).get("usuario") or "")
+                ok, msg = LIC.iniciar_teste(str((body or {}).get("edicao", "")), usuario)
+                if ok:
+                    t = LIC.e.get("teste_app", {})
+                    try: write_resource("testesLicenca", client_id, [dict(t, id=novo_id(), tipo="teste-app")])
+                    except Exception: pass
                 return self.send_json(200 if ok else 400, {"ok": ok, "msg": msg, "status": LIC.status()})
             return self.send_json(405, {"error": "Método não permitido"})
 

@@ -22,10 +22,7 @@
     const ROTAS_EDICAO = { gestao: ['compras', 'fornecedores', 'precificacao', 'financeiro'] };
 
     const GRUPOS = {
-        caixa: { nome: 'Caixa (fechamento, resumo e histórico)', rotas: ['caixa', 'resumo-caixa', 'historico-caixa'] },
-        relatorios: { nome: 'Relatórios', rotas: ['relatorios', 'comandas-arquivadas', 'produtos-vendidos', 'totais-especie', 'relatorio-estoque'] },
-        cardapio: { nome: 'Cardápio digital (QR Code)', rotas: ['cardapio-dia', 'qrcodes'] }
-    };
+        cardapio: { nome: 'Cardápio digital (QR Code)', rotas: ['cardapio-dia', 'qrcodes'] }    };
     const esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
     const dataBR = function (iso) { if (!iso) return '—'; const p = String(iso).split('-'); return p.length === 3 ? p[2] + '/' + p[1] + '/' + p[0] : iso; };
 
@@ -51,8 +48,7 @@
         if (ed && !window.licencaTemEdicao(ed)) return 'ed:' + ed;
         const k = Object.keys(GRUPOS).find(function (g) { return GRUPOS[g].rotas.indexOf(rota) >= 0; });
         if (!k) return null;
-        if (s.limitado) return k;
-        if (k === 'cardapio' && !s.cardapio) return 'ed:completo';     // cardápio QR: bônus da licença ou edição Completo
+        if (k === 'cardapio' && !s.cardapio) return 'cardapio';     // cardápio QR: bônus da licença (Essencial/Gestão) ou edição Completo; o plano grátis não tem
         return null;
     };
 
@@ -93,7 +89,7 @@
             return;
         }
         const g = GRUPOS[grupo] || { nome: 'Este recurso' };
-        modalUpsell('Recurso para assinantes', '<b>' + esc(g.nome) + '</b> está disponível apenas com a assinatura ativa.<br><span style="font-size:.85rem;color:#777;">No plano gratuito você usa o PDV, comandas (até ' + ((window.LICENCA.status || {}).limiteComandas || 30) + ' por mês), todos os cadastros livres.</span>');
+        modalUpsell('Recurso para assinantes', '<b>' + esc(g.nome) + '</b> está disponível com a assinatura (bônus nas edições Essencial e Gestão; incluído no Completo).<br><span style="font-size:.85rem;color:#777;">O plano gratuito tem tudo do Essencial, com até ' + ((window.LICENCA.status || {}).limiteComandas || 30) + ' comandas por dia.</span>');
     };
 
     /** Chamar antes de criar uma comanda. false = limite do plano gratuito atingido (mostra a oferta). */
@@ -101,7 +97,7 @@
         const s = await window.licencaCarregar();
         if (!s || !s.limitado) return true;
         if (s.comandasDia >= s.limiteComandas) {
-            modalUpsell('Limite do plano gratuito', 'Você já criou <b>' + s.comandasDia + ' de ' + s.limiteComandas + ' comandas</b> hoje.<br>Assine para criar comandas sem limite e liberar Caixa, Relatórios e Cardápio digital.');
+            modalUpsell('Limite do plano gratuito', 'Você já criou <b>' + s.comandasDia + ' de ' + s.limiteComandas + ' comandas</b> hoje.<br>Assine para criar comandas sem limite (ou teste 30 dias a edição Gestão ou Completo, na tela Assinatura).');
             return false;
         }
         return true;
@@ -117,6 +113,7 @@
     window.licencaFaixa = function () {
         const s = window.LICENCA.status; if (!s) return '';
         let txt = '', cor = '#e65100', bg = '#fff3e0';
+        if (s.estado === 'testeapp') { return '<div onclick="navigateTo(\'assinatura\')" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px;background:#e3f2fd;color:#1565c0;border-radius:20px;padding:4px 12px;margin-bottom:8px;font-size:.72rem;font-weight:600;"><i class="fas fa-flask"></i> Teste da edição ' + EDICOES[s.edicao].nome + ': ' + s.diasRestantes + ' dia(s)</div>'; }
         if (s.estado === 'gratis' || s.estado === 'vencida') {
             txt = (s.estado === 'vencida' ? 'Assinatura vencida em ' + dataBR(s.validade) + ' · ' : 'Plano gratuito · ') + s.comandasDia + '/' + s.limiteComandas + ' comandas hoje';
             if (s.comandasDia >= s.limiteComandas) { cor = '#c62828'; bg = '#ffebee'; }
@@ -126,15 +123,7 @@
         return '<div onclick="navigateTo(\'assinatura\')" style="cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:8px;background:' + bg + ';color:' + cor + ';border-radius:10px;padding:8px 12px;margin-bottom:10px;font-size:.8rem;font-weight:600;"><span><i class="fas fa-crown"></i> ' + txt + '</span><span style="text-decoration:underline;white-space:nowrap;">' + (s.limitado ? 'Assinar' : 'Renovar') + '</span></div>';
     };
 
-    // No plano gratuito o caixa abre sozinho (não existe tela de caixa): o PDV funciona direto.
-    window.licencaGarantirCaixaAberto = async function () {
-        if (!window.licencaLimitado()) return false;
-        const atual = await window.obterCaixaAbertoAtual();
-        if (atual) return false;
-        const cor = ((window.CORES_CAIXA || [])[0] || {}).id || 'azul';
-        await window.apiSave('caixaAtual', [{ id: Date.now(), cor: cor, valorInicial: 0, status: 'aberto', dataAbertura: new Date().toLocaleString('pt-BR'), usuario: 'Operador', observacao: 'Aberto automaticamente (plano gratuito)', modoGratis: true }]);
-        return true;
-    };
+    window.licencaGarantirCaixaAberto = async function () { return false; };   // o plano gratuito agora tem Caixa como o Essencial: abre-se normalmente
 
     // ---------- tela Assinatura ----------
     const R = function (v) { return 'R$ ' + (Math.round(Number(v) * 100 + 1e-6) / 100).toFixed(2).replace('.', ','); };
@@ -172,10 +161,15 @@
         const nomeEd = edAtual ? EDICOES[edAtual].nome : '';
         const bonus = edAtual && edAtual !== 'completo' && s.cardapio ? ' + Cardápio QR (bônus)' : '';
         let cartao;
-        if (s.estado === 'ativa') cartao = ['#e8f5e9', '#2e7d32', s.teste ? 'fa-flask' : 'fa-check-circle', s.teste ? 'Licença de TESTE — acesso total' : 'Edição ' + nomeEd + ' ativa', 'Válida até <b>' + dataBR(s.validade) + '</b>' + (s.teste ? '' : '<br>Inclui: ' + nomeEd + bonus) + (s.cliente ? '<br>Cliente: ' + esc(s.cliente) : '') + '<div id="lic-contador" data-fim="' + esc(s.validade) + '" style="margin-top:10px;font-size:1.5rem;font-weight:700;font-family:monospace;color:#2e7d32;"></div><div style="font-size:.72rem;color:#777;">tempo restante (dias · hh:mm:ss)</div>'];
+        if (s.estado === 'ativa') cartao = ['#e8f5e9', '#2e7d32', s.teste ? 'fa-flask' : 'fa-check-circle', s.teste ? 'Licença de TESTE — edição ' + nomeEd : 'Edição ' + nomeEd + ' ativa', 'Válida até <b>' + dataBR(s.validade) + '</b>' + (s.teste ? '' : '<br>Inclui: ' + nomeEd + bonus) + (s.cliente ? '<br>Cliente: ' + esc(s.cliente) : '') + '<div id="lic-contador" data-fim="' + esc(s.validade) + '" style="margin-top:10px;font-size:1.5rem;font-weight:700;font-family:monospace;color:#2e7d32;"></div><div style="font-size:.72rem;color:#777;">tempo restante (dias · hh:mm:ss)</div>'];
         else if (s.estado === 'carencia') cartao = ['#fff3e0', '#e65100', 'fa-triangle-exclamation', 'Assinatura vencida', 'Venceu em <b>' + dataBR(s.validade) + '</b>. Tudo segue liberado por poucos dias — renove para não perder o acesso.<div id="lic-contador" data-fim="' + esc(s.validade) + '" data-carencia="' + (s.carenciaDias || 0) + '" style="margin-top:10px;font-size:1.3rem;font-weight:700;font-family:monospace;color:#e65100;"></div><div style="font-size:.72rem;color:#777;">tempo até o bloqueio</div>'];
-        else if (s.estado === 'vencida') cartao = ['#ffebee', '#c62828', 'fa-lock', 'Assinatura vencida', 'Venceu em <b>' + dataBR(s.validade) + '</b>. Você está no plano gratuito.'];
-        else cartao = ['#f3f3f3', '#555', 'fa-gift', 'Plano gratuito', 'Comandas hoje: <b>' + s.comandasDia + ' de ' + s.limiteComandas + '</b><br>Sem Caixa, Relatórios e Cardápio digital.'];
+        else if (s.estado === 'vencida' && !s.cancelada) cartao = ['#ffebee', '#c62828', 'fa-lock', 'Assinatura vencida', 'Venceu em <b>' + dataBR(s.validade) + '</b>. Você está no plano gratuito.'];
+        else if (s.estado === 'testeapp') cartao = ['#e3f2fd', '#1565c0', 'fa-flask', 'Teste gratuito da edição ' + EDICOES[s.edicao].nome, 'Vai até <b>' + dataBR(s.validade) + '</b>. Depois volta ao plano gratuito (ou à sua licença).<div id="lic-contador" data-fim="' + esc(s.validade) + '" style="margin-top:10px;font-size:1.5rem;font-weight:700;font-family:monospace;color:#1565c0;"></div><div style="font-size:.72rem;color:#777;">tempo restante (dias · hh:mm:ss)</div>'];
+        else cartao = ['#f3f3f3', '#555', 'fa-gift', 'Plano gratuito', 'Comandas hoje: <b>' + s.comandasDia + ' de ' + s.limiteComandas + '</b><br>Tudo do Essencial, com limite de ' + s.limiteComandas + ' comandas por dia. Cardápio digital por QR só com assinatura.'];
+        if (s.cancelada && s.estado === 'vencida') cartao = ['#ffebee', '#c62828', 'fa-rotate-left', 'Assinatura cancelada (reembolso)', 'Você voltou ao plano gratuito. Pode assinar de novo quando quiser.'];
+        const ta = s.testeApp || {};
+        if (s.testeAppAtivo && s.estado !== 'testeapp') cartao[4] += '<br><b>Teste da edição ' + EDICOES[s.edicao].nome + '</b> até ' + dataBR(ta.fim);
+        else if (ta.usado && !ta.ativo) cartao[4] += '<br><span style="font-size:.78rem;color:#777;">Seu teste gratuito (' + (EDICOES[ta.edicao] || {}).nome + ') terminou em ' + dataBR(ta.fim) + '.</span>';
         const anual = planosCat('essencial')[3];
         let h = '<div style="padding:20px 16px;background:linear-gradient(135deg,' + COR + ',#880E4F);color:#fff;border-radius:12px;margin-bottom:14px;text-align:center;"><i class="fas fa-crown" style="font-size:2.2rem;color:#ffd54f;"></i>' +
             '<div style="font-size:1.25rem;font-weight:700;margin-top:8px;">Comandas — escolha sua edição</div><div style="font-size:.85rem;opacity:.95;margin-top:6px;">Um app só: você troca de edição quando quiser e seus dados continuam salvos. A partir de <b>' + R(anual.mes) + '/mês</b> no plano anual.</div></div>';
@@ -194,6 +188,8 @@
             (aba === 'essencial' || aba === 'gestao' ? '<div style="margin-top:8px;"><span style="background:#1B6B3A;color:#fff;font-size:.68rem;font-weight:700;padding:2px 8px;border-radius:99px;">BÔNUS</span> Cardápio digital por QR</div>' : '') +
             (E.nota ? '<div style="font-size:.76rem;color:#777;margin-top:8px;">' + E.nota + '</div>' : '') + '</div>';
 
+        const podeTestar = s.podeTestar && aba !== 'essencial' && !(s.teste && !s.testeAppAtivo) && !(edAtual && EDICOES[edAtual].rank >= E.rank);
+        if (podeTestar) h += '<div style="background:#e3f2fd;border-radius:12px;padding:12px 14px;margin-bottom:12px;"><div style="font-weight:700;color:#1565c0;">Quer experimentar antes?</div><div style="font-size:.82rem;color:#444;margin:4px 0 8px;">Teste a edição ' + E.nome + ' por 30 dias, sem pagar. Vale uma vez por equipamento; no fim volta ao seu plano.</div><button class="btn-outline" style="width:100%;" onclick="licencaTestar(\'' + aba + '\')"><i class="fas fa-flask"></i> Testar ' + E.nome + ' por 30 dias</button></div>';
         planos.forEach(function (p) {
             const dest = p.meses === 3, ouro = p.meses === 12;
             const borda = dest ? COR : ouro ? '#f9a825' : '#e0e0e0';
@@ -210,7 +206,7 @@
             const sobe = EDICOES[aba].rank > EDICOES[edAtual].rank;
             h += '<div style="font-size:.78rem;color:#6B5A62;line-height:1.5;margin:-2px 4px 12px;">' + (sobe ? 'Vindo do ' + EDICOES[edAtual].nome + ', você paga só a diferença pelo tempo que falta: informe no pedido que é uma troca de edição.' : 'Voltando para o ' + E.nome + ', a mudança vale na próxima renovação e nada é apagado.') + '</div>';
         }
-        h += '<div style="text-align:center;font-size:.74rem;color:#777;margin:-2px 0 12px;">🔒 Pagamento seguro por Pix • Sem cobrança automática</div>';
+        h += '<div style="background:#fff;border-radius:12px;padding:12px 14px;margin-bottom:12px;font-size:.8rem;color:#444;line-height:1.5;box-shadow:0 2px 8px rgba(0,0,0,.06);">🛡️ <b>Garantia de reembolso:</b> a licença comprada tem 30 dias de teste. Desistindo nos <b>35 primeiros dias</b> (para dar tempo de ver os relatórios do mês), você recebe o <b>valor integral</b> de volta. O reembolso vale <b>uma única vez</b> por cliente.</div><div style="text-align:center;font-size:.74rem;color:#777;margin:-2px 0 12px;">🔒 Pagamento seguro por Pix • Sem cobrança automática</div>';
 
         h += '<div style="background:#fff;border-radius:12px;padding:14px;margin-bottom:14px;box-shadow:0 2px 8px rgba(0,0,0,.06);">' +
             '<div style="font-size:.78rem;color:#777;">ID DESTE EQUIPAMENTO (informe ao assinar)</div>' +
@@ -263,6 +259,22 @@
             if (j.ok) { if (document.getElementById('assinatura-conteudo')) carregarTelaAssinatura(); else window.navigateTo('assinatura'); }
             return !!j.ok;
         } catch (e) { await window.avisar('Erro ao aplicar a licença: ' + e.message); return false; }
+    };
+
+    // Teste gratuito de 30 dias da edição Gestão ou Completo (uma vez por equipamento; o servidor registra quando, qual edição e quem pediu)
+    window.licencaTestar = async function (ed) {
+        const e = EDICOES[ed]; if (!e) return;
+        const ok = await window.confirmar('Iniciar o teste gratuito de 30 dias da edição ' + e.nome + '?\n\nO teste só pode ser usado uma vez neste equipamento. Ao terminar, o app volta ao plano gratuito (ou à sua licença) e os dados continuam salvos.');
+        if (!ok) return;
+        try {
+            const caminho = window.MT ? window.MT.apiPath('licenca/teste') : '/api/licenca/teste';
+            const op = { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ edicao: ed }) };
+            const res = window.CX ? await window.CX.fetch(caminho, op) : await fetch(caminho, op);
+            const j = await res.json().catch(function () { return {}; });
+            if (j.status) { window.LICENCA.status = j.status; aplicarMenu(); }
+            await window.avisar(j.msg || j.error || 'Não foi possível iniciar o teste.');
+            if (j.ok) { window.LICENCA.aba = ed; carregarTelaAssinatura(); }
+        } catch (err) { await window.avisar('Erro ao iniciar o teste: ' + err.message); }
     };
 
     window.licencaLerArquivo = function (inp) {
