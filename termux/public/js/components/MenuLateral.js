@@ -175,6 +175,10 @@ window.renderMenuLateral = function () {
         '                    <i class="fas fa-chart-line"></i> <span>Visão Geral</span>',
         '                </div>',
 
+        '                <div class="menu-item sub-item" onclick="navigateTo(\'financeiro\'); fecharMenuMobile();" style="' + isAtivo('financeiro') + '">',
+        '                    <i class="fas fa-scale-balanced"></i> <span>Financeiro (DRE)</span>',
+        '                </div>',
+
         '                <div class="menu-item sub-item" onclick="navigateTo(\'comandas-arquivadas\'); fecharMenuMobile();" style="' + isAtivo('comandas-arquivadas') + '">',
         '                    <i class="fas fa-calendar"></i> <span>Comandas Arquivadas</span>',
         '                </div>',

@@ -50,7 +50,7 @@ window.PERMISSOES_CATALOGO = [
     { grupo: 'Cadastros', itens: [['produtos.ver', 'Ver produtos'], ['produtos.editar', 'Editar produtos'], ['grupos.editar', 'Grupos'], ['adicionais.editar', 'Adicionais'], ['clientes.ver', 'Ver clientes e pendências'], ['clientes.editar', 'Editar clientes'], ['mesas.editar', 'Mesas e QR Codes']] },
     { grupo: 'Equipe', itens: [['colaboradores.ver', 'Ver colaboradores, funções e níveis'], ['colaboradores.editar', 'Editar colaboradores, funções e níveis'], ['usuarios.gerenciar', 'Gerenciar usuários e senhas']] },
     { grupo: 'Estoque', itens: [['perdas.registrar', 'Controle de perdas'], ['estoque.movimentar', 'Movimentação de estoque'], ['compras.gerenciar', 'Compras e fornecedores']] },
-    { grupo: 'Relatórios', itens: [['relatorios.ver', 'Relatórios']] },
+    { grupo: 'Relatórios', itens: [['relatorios.ver', 'Relatórios'], ['financeiro.ver', 'Financeiro (DRE, fluxo de caixa e contas)']] },
     { grupo: 'Sistema', itens: [['configuracoes.ver', 'Ver configurações'], ['configuracoes.editar', 'Editar configurações, impressoras, PIX e cardápio do dia'], ['backup.gerenciar', 'Backup']] }
 ];
 (function () {

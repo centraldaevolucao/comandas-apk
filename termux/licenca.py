@@ -18,6 +18,8 @@ TESTE_CURINGA_MAX_DIAS = 30     # licença de teste sem equipamento fixo ('*'): 
 CARENCIA_PADRAO_DIAS = 3        # depois do vencimento, tudo continua funcionando por estes dias
 AVISO_DIAS = 7                  # aviso de renovação
 PREFIXO = "CMD1"
+EDICOES = ("essencial", "gestao", "completo")     # edições (todas no mesmo app e na mesma base): a licença assinada libera cada uma
+EXTRAS = ("cardapio",)                            # bônus avulsos que a licença pode liberar além da edição
 
 # ----------------------------------------------------------------------------------------------------------
 # Ed25519 (RFC 8032)
@@ -137,6 +139,7 @@ def ler_codigo(codigo, publica_hex=None):
     except Exception:
         return None, "Licença com dados ilegíveis."
     if fim < ini: return None, "Licença com datas inválidas."
+    if dados.get("e") is not None and dados.get("e") not in EDICOES: return None, "Licença com edição desconhecida."
     if dados.get("i") == "*":                              # sem equipamento fixo: só teste, e curto
         if dados.get("p") != "teste": return None, "Licença sem equipamento definido só é aceita como TESTE."
         if (fim - ini).days > TESTE_CURINGA_MAX_DIAS: return None, "Licença de teste sem equipamento fixo vale no máximo %d dias." % TESTE_CURINGA_MAX_DIAS
@@ -264,7 +267,8 @@ class Licenca:
         dia = h.isoformat()
         usadas = len(self.e.get("contadas", {}).get(dia, []))
         s = {"instalacaoId": self.instalacao_id, "equipamentoVinculado": self.vinculado, "hoje": h.isoformat(), "limiteComandas": LIMITE_COMANDAS_DIA,
-             "comandasDia": usadas, "comandasMes": usadas, "teste": False, "estado": "gratis", "limitado": True, "cliente": "", "validade": None, "diasRestantes": None, "plano": "gratis"}
+             "comandasDia": usadas, "comandasMes": usadas, "teste": False, "estado": "gratis", "limitado": True, "cliente": "", "validade": None, "diasRestantes": None, "plano": "gratis",
+             "edicao": "gratis", "extras": [], "cardapio": False}
         d = self._licenca_valida()
         if d:
             fim = date.fromisoformat(d["fim"]); g = int(d.get("g", CARENCIA_PADRAO_DIAS))
@@ -274,6 +278,11 @@ class Licenca:
             if dias >= 0: s.update(estado="ativa", limitado=False, aviso=dias <= AVISO_DIAS)
             elif -dias <= g: s.update(estado="carencia", limitado=False, aviso=True)
             else: s.update(estado="vencida", limitado=True)
+            if not s["limitado"]:
+                ed = "completo" if d.get("p") == "teste" else (d.get("e") or "essencial")   # licença antiga (sem edição) = Essencial; teste = tudo
+                ex = [x for x in (d["x"] if "x" in d else ["cardapio"]) if x in EXTRAS]     # licença antiga (sem extras) mantém o cardápio QR
+                if ed == "completo" and "cardapio" not in ex: ex.append("cardapio")
+                s.update(edicao=ed, extras=ex, cardapio="cardapio" in ex)
         return s
 
     def permitir_comandas(self, ids_novos):

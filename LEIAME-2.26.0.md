@@ -381,3 +381,15 @@ Segundo módulo do mapa (Estoque e compras → Ficha técnica e CMV; Financeiro 
 - A ficha serve ao cálculo de custo e preço; **não baixa ingredientes do estoque** nas vendas (o estoque continua por produto, em unidades inteiras).
 - Permissão: usa "Editar produtos".
 - Testado no navegador (custo R$ 16,00 → sugerido R$ 29,90; margem real 12,4% no preço de R$ 28,00).
+
+## 54. Edições Essencial, Gestão e Completo + Financeiro (v2.26.0)
+Um app só, três edições com a mesma base de dados. Quem libera cada edição é a **licença assinada**; trocar de edição não apaga nada (só esconde telas).
+- **Tela Assinatura com abas** Essencial, Gestão e Completo, cada uma com o que inclui e os planos Mensal, Trimestral, Semestral e Anual. A aba "seu plano" fica marcada.
+- **Preços** (mesma regra de desconto de antes, terminando em ,90): Essencial 25,90 / 69,90 / 129,90 / 238,90; Gestão 35,90 / 96,90 / 179,90 / 330,90; Completo 45,90 / 123,90 / 229,90 / 423,90.
+- **Essencial:** tudo o que o app já tinha (PDV, comandas, caixa, clientes e fiado, impressão, Pix QR, relatórios, estoque). **Gestão:** Compras e Fornecedores, Precificação e o novo **Financeiro**. **Completo:** tudo do Gestão (os módulos de nuvem, delivery, NFC-e etc. entram aos poucos).
+- **Cardápio digital por QR** é bônus nas edições Essencial e Gestão, marcado na licença (e já incluído no Completo). O dono pode remover o bônus depois gerando uma licença ajustada no app Licenças.
+- Licenças antigas (sem edição) valem como Essencial e mantêm o cardápio QR. Licença de teste = acesso total.
+- **Financeiro (DRE, fluxo de caixa e contas):** DRE do mês (receita bruta, impostos, CMV, taxas, despesas por categoria e resultado), fluxo de caixa, contas a pagar/receber, despesas recorrentes, pagamento de contas e de compras, compartilhar resumo.
+- Telas fora da edição somem do menu; se alguém abrir o endereço direto, aparece "Disponível na edição X".
+- Pedido de licença agora informa a edição (e se é troca de edição). Subir de edição: paga só a diferença pelo tempo que falta; descer vale na renovação.
+- Testado no navegador (licenças das três edições, menu, bloqueios, abas, preços). Não testado em aparelho: Java/Android.

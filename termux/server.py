@@ -14,7 +14,7 @@ DB_PATH = DATA_DIR / "database.sqlite"
 HOST, PORT = os.getenv("HOST", "0.0.0.0"), int(os.getenv("PORT", "3000"))
 MAX_BODY = 10 * 1024 * 1024
 DB_LOCK = threading.RLock()
-VERSAO_SERVIDOR = "2.25.0"
+VERSAO_SERVIDOR = "2.26.0"
 INICIO = time.time()
 # Tempo real: cada gravação aumenta REV e acorda quem está ouvindo /api/eventos (SSE)
 REV = {"n": 0, "ultimo": ""}
@@ -445,7 +445,7 @@ class Handler(BaseHTTPRequestHandler):
             return self.send_json(403, {"error": "Somente no aparelho servidor"})
         if self.colab_valido():
             return False   # colaborador autorizado: usa a API normal (menos o que está bloqueado acima)
-        if LIC.status()["limitado"]:   # cardápio digital (QR / link) é recurso de assinante
+        if not LIC.status().get("cardapio"):   # cardápio digital (QR / link): assinante com o bônus/edição que o inclui
             return self.send_json(402, {"error": "Cardápio digital indisponível: assinatura inativa.", "licenca": True})
         if self.command == "DELETE":
             return self.send_json(403, {"error": "Não permitido pelo link externo"})
