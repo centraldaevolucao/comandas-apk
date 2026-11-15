@@ -357,3 +357,15 @@ Obs.: itens alterados depois de gerar o recibo em aberto não atualizam o valor 
 ## 51. Relatórios: filtrar clientes sem nome (v2.23.2)
 - Na lista do filtro **Cliente** aparece a opção **(sem nome)** no topo, com a quantidade de comandas e o total das vendas sem cliente informado. Ao escolher, o relatório mostra só essas comandas.
 - Testado no navegador.
+
+## 52. Compras e Fornecedores (v2.24.0)
+Primeiro módulo do mapa "Estoque e compras" (o estoque, as movimentações e as perdas já existiam).
+- **Menu Estoque → Fornecedores:** cadastro com nome, telefone/WhatsApp e observação; mostra quantas compras e quanto já foi recebido de cada um.
+- **Menu Estoque → Compras:** pedidos de compra com fornecedor, itens (quantidade e custo unitário), vencimento do pagamento e observação.
+- **Sugestão de compra:** aviso quando há produtos no estoque mínimo ou abaixo; o botão "Montar pedido sugerido" (ou "Sugerir abaixo do mínimo" no pedido) repõe até o dobro do mínimo.
+- **Enviar por WhatsApp:** abre a conversa com o fornecedor com o pedido escrito.
+- **Receber mercadoria:** soma no estoque, atualiza o **custo médio** do produto (estoque atual × custo atual + compra × custo novo) e registra a entrada em Movimentação de Estoque (motivo "Compra / Reposição", com o nº da compra).
+- **A pagar:** compras recebidas ficam "a pagar" até marcar como paga; filtro "A pagar" e total no topo.
+- **Permissão nova:** "Compras e fornecedores" (Estoque), editável nos Níveis de Acesso.
+- Estoque continua em unidades inteiras, como no cadastro de produto.
+- Testado no navegador (sugestão, pedido, recebimento, custo médio, movimentação, pagamento).

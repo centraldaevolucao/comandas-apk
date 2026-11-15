@@ -148,6 +148,14 @@ window.renderMenuLateral = function () {
         '                    <i class="fas fa-arrow-up"></i> <span>Movimentação de Estoque</span>',
         '                </div>',
 
+        '                <div class="menu-item sub-item" onclick="navigateTo(\'compras\'); fecharMenuMobile();" style="' + isAtivo('compras') + '">',
+        '                    <i class="fas fa-cart-shopping"></i> <span>Compras</span>',
+        '                </div>',
+
+        '                <div class="menu-item sub-item" onclick="navigateTo(\'fornecedores\'); fecharMenuMobile();" style="' + isAtivo('fornecedores') + '">',
+        '                    <i class="fas fa-truck"></i> <span>Fornecedores</span>',
+        '                </div>',
+
         '            </div>',
         '        </div>',
 
