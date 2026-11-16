@@ -402,3 +402,9 @@ Um app só, três edições com a mesma base de dados. Quem libera cada edição
 - **Garantia:** a licença comprada tem 30 dias de teste; desistindo nos **35 primeiros dias** o cliente recebe o valor integral (o reembolso vale **uma única vez** por cliente). O texto aparece na tela Assinatura. O cancelamento chega como um arquivo de licença que volta o app ao plano grátis.
 - Limite conhecido: o registro do teste fica no equipamento; apagar os dados do app reinicia o controle (como toda licença offline).
 - Testado no navegador (grátis, teste, fim do teste, teste do dono prevalecendo, cancelamento).
+
+## 56. Avalie o Comandas (v2.28.0)
+- O item do menu "Gostou do App?" (que abria a loja de aplicativos, que este app não usa) virou **Avalie o Comandas**.
+- Nova tela de avaliação: nota de 1 a 5 estrelas, "o que você mais gostou" (opções para marcar), "o que podemos melhorar", nome do estabelecimento (opcional) e se pode responder pelo WhatsApp.
+- **Enviar pelo WhatsApp ou por e-mail** direto ao desenvolvedor. A mensagem leva a versão, a edição e o ID do equipamento, mais um código CMDA1 que o app Licenças lê. Depois do envio aparece o modal de agradecimento. A última avaliação fica guardada no aparelho.
+- No app Licenças (1.7.0): aba **Avaliações** com as estrelas contadas por edição (Essencial, Gestão, Completo e Grátis), média, distribuição, o que mais gostaram, comentários e a edição **mais bem avaliada** em destaque.

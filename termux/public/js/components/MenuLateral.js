@@ -240,11 +240,11 @@ window.renderMenuLateral = function () {
         '        </div>',
 
         // --- RODAPÉ ---
-        '        <div class="menu-item" style="margin-top:20px; border-top:1px solid #f0f0f0; padding-top:15px;" onclick="avaliarApp()">',
+        '        <div class="menu-item" style="margin-top:20px; border-top:1px solid #f0f0f0; padding-top:15px;" onclick="navigateTo(\'avaliacao\')">',
         '            <i class="fas fa-star" style="color:#ffc107;"></i>',
         '            <div>',
-        '                <span style="display:block; font-weight:600; font-size:0.9rem; color:#333;">Gostou do App?</span>',
-        '                <span style="display:block; font-size:0.7rem; color:#888;">Faça sua avaliação</span>',
+        '                <span style="display:block; font-weight:600; font-size:0.9rem; color:#333;">Avalie o Comandas</span>',
+        '                <span style="display:block; font-size:0.7rem; color:#888;">Conte o que achou, direto ao desenvolvedor</span>',
         '            </div>',
         '        </div>',
 
@@ -294,6 +294,4 @@ window.toggleSecao = function (id) {
     }
 };
 
-window.avaliarApp = function () {
-    window.open('https://play.google.com/store', '_blank');
-};
+window.avaliarApp = function () { window.navigateTo('avaliacao'); };   // o app não está em loja: a avaliação vai direto ao desenvolvedor

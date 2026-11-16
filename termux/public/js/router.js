@@ -64,6 +64,7 @@ window.ROTAS = {
     'tipo-dispositivo':         'renderTipodeDispositivo',
     'rede':                     'renderRede',
     'assinatura':               'renderAssinatura',
+    'avaliacao':                'renderAvaliacao',
     'suporte':                  'renderSuporte'
 };
 
