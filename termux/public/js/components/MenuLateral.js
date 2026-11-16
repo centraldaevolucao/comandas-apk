@@ -10,13 +10,13 @@ console.log('✔ MenuLateral.js carregado');
 // ------------------------------------------------------------
 const MENU_SECOES = [
     { id: 'sec-cadastros', titulo: 'Cadastros', grupos: [
-        { id: 'grp-cardapio', titulo: 'Cardápio', itens: [
+        { id: 'grp-cardapio', icone: 'fa-utensils', titulo: 'Cardápio', itens: [
             ['adicionais', 'fa-plus-circle', 'Adicionais'], ['grupos', 'fa-layer-group', 'Grupos de Produtos'],
             ['precificacao', 'fa-tags', 'Precificação'], ['produtos', 'fa-box', 'Produtos'] ] },
-        { id: 'grp-estoque', titulo: 'Estoque e compras', itens: [
+        { id: 'grp-estoque', icone: 'fa-boxes-stacked', titulo: 'Estoque e compras', itens: [
             ['compras', 'fa-cart-shopping', 'Compras'], ['controle-perdas', 'fa-ban', 'Controle de Perdas'],
             ['fornecedores', 'fa-truck', 'Fornecedores'], ['movimentacao-estoque', 'fa-arrow-up', 'Movimentação de Estoque'] ] },
-        { id: 'grp-equipe', titulo: 'Salão e equipe', itens: [
+        { id: 'grp-equipe', icone: 'fa-concierge-bell', titulo: 'Salão e equipe', itens: [
             ['clientes', 'fa-users', 'Clientes'], ['colaboradores', 'fa-id-badge', 'Colaboradores'], ['funcoes', 'fa-briefcase', 'Funções'],
             ['mesas', 'fa-chair', 'Mesas'], ['niveis-acesso', 'fa-shield-alt', 'Níveis de Acesso'], ['usuarios', 'fa-user-cog', 'Usuários'] ] }
     ] },
@@ -44,7 +44,7 @@ function secoesMenuHtml(isAtivo, hash) {
         const corpo = grupos ? grupos.map(function (g) {
             const ab = tem(g.itens);
             return '<div class="menu-subgroup">' +
-                '<div class="menu-subgroup-header" onclick="toggleSecao(\'' + g.id + '\')"><span>' + g.titulo + '</span><i class="fas fa-chevron-down" id="icon-' + g.id + '"' + (ab ? ' style="transform:rotate(180deg)"' : '') + '></i></div>' +
+                '<div class="menu-subgroup-header" onclick="toggleSecao(\'' + g.id + '\')"><span class="menu-subgroup-titulo"><i class="fas ' + g.icone + ' menu-subgroup-ico"></i>' + g.titulo + '</span><i class="fas fa-chevron-down" id="icon-' + g.id + '"' + (ab ? ' style="transform:rotate(180deg)"' : '') + '></i></div>' +
                 '<div class="menu-subgroup-content' + (ab ? ' open' : '') + '" id="' + g.id + '">' + g.itens.map(item).join('') + '</div></div>';
         }).join('') : sec.itens.map(item).join('');
         return '<div class="menu-section"><div class="menu-section-header" onclick="toggleSecao(\'' + sec.id + '\')"><span>' + sec.titulo + '</span>' +

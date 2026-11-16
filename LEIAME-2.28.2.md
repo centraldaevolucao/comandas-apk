@@ -1,4 +1,4 @@
-> **Versão atual do sistema: 2.28.1** — este arquivo é renomeado e atualizado a cada versão (seções numeradas abaixo, da mais antiga à mais nova).
+> **Versão atual do sistema: 2.28.2** — este arquivo é renomeado e atualizado a cada versão (seções numeradas abaixo, da mais antiga à mais nova).
 
 # Comandas 2.3.0 — guia, relatório de correções, testes e pendências
 
@@ -414,3 +414,6 @@ Um app só, três edições com a mesma base de dados. Quem libera cada edição
 - **Cadastros em submenus**, em ordem alfabética: **Cardápio** (Adicionais, Grupos de Produtos, Precificação, Produtos), **Estoque e compras** (Compras, Controle de Perdas, Fornecedores, Movimentação de Estoque) e **Salão e equipe** (Clientes, Colaboradores, Funções, Mesas, Níveis de Acesso, Usuários).
 - Itens de Relatórios e Configurações também em ordem alfabética.
 - A seção e o submenu da tela atual já abrem abertos. Submenus sem nenhum item visível (por edição da licença ou nível de acesso) somem.
+
+## 58. Submenus do Cadastros mais legíveis (v2.28.2)
+- Os submenus **Cardápio**, **Estoque e compras** e **Salão e equipe** agora têm **ícone**, letra maior e em negrito, e os itens de dentro também ficaram com letra maior.
