@@ -4,6 +4,55 @@
 
 console.log('✔ MenuLateral.js carregado');
 
+// ------------------------------------------------------------
+// Seções do menu (dados → HTML). Itens e grupos em ordem alfabética.
+// Os itens ficam sempre visíveis: a seção abre do tamanho do conteúdo e o menu rola.
+// ------------------------------------------------------------
+const MENU_SECOES = [
+    { id: 'sec-cadastros', titulo: 'Cadastros', grupos: [
+        { id: 'grp-cardapio', titulo: 'Cardápio', itens: [
+            ['adicionais', 'fa-plus-circle', 'Adicionais'], ['grupos', 'fa-layer-group', 'Grupos de Produtos'],
+            ['precificacao', 'fa-tags', 'Precificação'], ['produtos', 'fa-box', 'Produtos'] ] },
+        { id: 'grp-estoque', titulo: 'Estoque e compras', itens: [
+            ['compras', 'fa-cart-shopping', 'Compras'], ['controle-perdas', 'fa-ban', 'Controle de Perdas'],
+            ['fornecedores', 'fa-truck', 'Fornecedores'], ['movimentacao-estoque', 'fa-arrow-up', 'Movimentação de Estoque'] ] },
+        { id: 'grp-equipe', titulo: 'Salão e equipe', itens: [
+            ['clientes', 'fa-users', 'Clientes'], ['colaboradores', 'fa-id-badge', 'Colaboradores'], ['funcoes', 'fa-briefcase', 'Funções'],
+            ['mesas', 'fa-chair', 'Mesas'], ['niveis-acesso', 'fa-shield-alt', 'Níveis de Acesso'], ['usuarios', 'fa-user-cog', 'Usuários'] ] }
+    ] },
+    { id: 'sec-relatorios', titulo: 'Relatórios', itens: [
+        ['comandas-arquivadas', 'fa-calendar', 'Comandas Arquivadas'], ['relatorio-estoque', 'fa-clipboard-check', 'Estoque'],
+        ['financeiro', 'fa-scale-balanced', 'Financeiro (DRE)'], ['produtos-vendidos', 'fa-chart-bar', 'Produtos Vendidos'],
+        ['totais-especie', 'fa-coins', 'Totais por Espécie'], ['relatorios', 'fa-chart-line', 'Visão Geral'] ] },
+    { divisor: true },
+    { id: 'sec-config', titulo: 'Configurações', itens: [
+        ['configuracoes', 'fa-cogs', 'Ajustes Gerais'], ['backup', 'fa-cloud-upload-alt', 'Backup'],
+        ['grupos-trabalho', 'fa-users-cog', 'Grupos de Trabalho'], ['impressoras', 'fa-print', 'Impressoras'],
+        ['assinatura', 'fa-crown', 'Minha Assinatura'], ['parcelas', 'fa-credit-card', 'Parcelas'], ['suporte', 'fa-headset', 'Suporte'] ] }
+];
+
+function secoesMenuHtml(isAtivo, hash) {
+    const item = function (i) {
+        return '<div class="menu-item sub-item" onclick="navigateTo(\'' + i[0] + '\'); fecharMenuMobile();" style="' + isAtivo(i[0]) + '"><i class="fas ' + i[1] + '"></i> <span>' + i[2] + '</span></div>';
+    };
+    const tem = function (itens) { return itens.some(function (i) { return i[0] === hash; }); };
+    return MENU_SECOES.map(function (sec) {
+        if (sec.divisor) return '<hr class="menu-divider">';
+        const grupos = sec.grupos || null;
+        const todos = grupos ? grupos.reduce(function (a, g) { return a.concat(g.itens); }, []) : sec.itens;
+        const aberta = tem(todos);
+        const corpo = grupos ? grupos.map(function (g) {
+            const ab = tem(g.itens);
+            return '<div class="menu-subgroup">' +
+                '<div class="menu-subgroup-header" onclick="toggleSecao(\'' + g.id + '\')"><span>' + g.titulo + '</span><i class="fas fa-chevron-down" id="icon-' + g.id + '"' + (ab ? ' style="transform:rotate(180deg)"' : '') + '></i></div>' +
+                '<div class="menu-subgroup-content' + (ab ? ' open' : '') + '" id="' + g.id + '">' + g.itens.map(item).join('') + '</div></div>';
+        }).join('') : sec.itens.map(item).join('');
+        return '<div class="menu-section"><div class="menu-section-header" onclick="toggleSecao(\'' + sec.id + '\')"><span>' + sec.titulo + '</span>' +
+            '<i class="fas fa-chevron-down" id="icon-' + sec.id + '"' + (aberta ? ' style="transform:rotate(180deg)"' : '') + '></i></div>' +
+            '<div class="menu-section-content' + (aberta ? ' open' : '') + '" id="' + sec.id + '">' + corpo + '</div></div>';
+    }).join('\n');
+}
+
 window.renderMenuLateral = function () {
     const hash = window.location.hash.substring(1) || 'pdv';
     const isAtivo = (rota) => hash === rota
@@ -96,148 +145,8 @@ window.renderMenuLateral = function () {
 
         '        <hr class="menu-divider">',
 
-        // --- SEÇÃO: CADASTROS ---
-        '        <div class="menu-section">',
-        '            <div class="menu-section-header" onclick="toggleSecao(\'sec-cadastros\')">',
-        '                <span>Cadastros</span>',
-        '                <i class="fas fa-chevron-down" id="icon-sec-cadastros"></i>',
-        '            </div>',
-        '            <div class="menu-section-content" id="sec-cadastros">',
-
-        '                <div class="menu-item sub-item" onclick="navigateTo(\'produtos\'); fecharMenuMobile();" style="' + isAtivo('produtos') + '">',
-        '                    <i class="fas fa-box"></i> <span>Produtos</span>',
-        '                </div>',
-
-        '                <div class="menu-item sub-item" onclick="navigateTo(\'precificacao\'); fecharMenuMobile();" style="' + isAtivo('precificacao') + '">',
-        '                    <i class="fas fa-tags"></i> <span>Precificação</span>',
-        '                </div>',
-
-        '                <div class="menu-item sub-item" onclick="navigateTo(\'grupos\'); fecharMenuMobile();" style="' + isAtivo('grupos') + '">',
-        '                    <i class="fas fa-layer-group"></i> <span>Grupos de Produtos</span>',
-        '                </div>',
-
-        '                <div class="menu-item sub-item" onclick="navigateTo(\'adicionais\'); fecharMenuMobile();" style="' + isAtivo('adicionais') + '">',
-        '                    <i class="fas fa-plus-circle"></i> <span>Adicionais</span>',
-        '                </div>',
-
-        '                <div class="menu-item sub-item" onclick="navigateTo(\'clientes\'); fecharMenuMobile();" style="' + isAtivo('clientes') + '">',
-        '                    <i class="fas fa-users"></i> <span>Clientes</span>',
-        '                </div>',
-
-        '                <div class="menu-item sub-item" onclick="navigateTo(\'mesas\'); fecharMenuMobile();" style="' + isAtivo('mesas') + '">',
-        '                    <i class="fas fa-chair"></i> <span>Mesas</span>',
-        '                </div>',
-
-        '                <div class="menu-item sub-item" onclick="navigateTo(\'colaboradores\'); fecharMenuMobile();" style="' + isAtivo('colaboradores') + '">',
-        '                    <i class="fas fa-id-badge"></i> <span>Colaboradores</span>',
-        '                </div>',
-
-        '                <div class="menu-item sub-item" onclick="navigateTo(\'funcoes\'); fecharMenuMobile();" style="' + isAtivo('funcoes') + '">',
-        '                    <i class="fas fa-briefcase"></i> <span>Funções</span>',
-        '                </div>',
-
-        '                <div class="menu-item sub-item" onclick="navigateTo(\'niveis-acesso\'); fecharMenuMobile();" style="' + isAtivo('niveis-acesso') + '">',
-        '                    <i class="fas fa-shield-alt"></i> <span>Níveis de Acesso</span>',
-        '                </div>',
-
-        '                <div class="menu-item sub-item" onclick="navigateTo(\'usuarios\'); fecharMenuMobile();" style="' + isAtivo('usuarios') + '">',
-        '                    <i class="fas fa-user-cog"></i> <span>Usuários</span>',
-        '                </div>',
-
-        '                <div class="menu-item sub-item" onclick="navigateTo(\'controle-perdas\'); fecharMenuMobile();" style="' + isAtivo('controle-perdas') + '">',
-        '                    <i class="fas fa-ban"></i> <span>Controle de Perdas</span>',
-        '                </div>',
-
-        '                <div class="menu-item sub-item" onclick="navigateTo(\'movimentacao-estoque\'); fecharMenuMobile();" style="' + isAtivo('movimentacao-estoque') + '">',
-        '                    <i class="fas fa-arrow-up"></i> <span>Movimentação de Estoque</span>',
-        '                </div>',
-
-        '                <div class="menu-item sub-item" onclick="navigateTo(\'compras\'); fecharMenuMobile();" style="' + isAtivo('compras') + '">',
-        '                    <i class="fas fa-cart-shopping"></i> <span>Compras</span>',
-        '                </div>',
-
-        '                <div class="menu-item sub-item" onclick="navigateTo(\'fornecedores\'); fecharMenuMobile();" style="' + isAtivo('fornecedores') + '">',
-        '                    <i class="fas fa-truck"></i> <span>Fornecedores</span>',
-        '                </div>',
-
-        '            </div>',
-        '        </div>',
-
-        // --- SEÇÃO: RELATÓRIOS ---
-        '        <div class="menu-section">',
-        '            <div class="menu-section-header" onclick="toggleSecao(\'sec-relatorios\')">',
-        '                <span>Relatórios</span>',
-        '                <i class="fas fa-chevron-down" id="icon-sec-relatorios"></i>',
-        '            </div>',
-        '            <div class="menu-section-content" id="sec-relatorios">',
-
-        '                <div class="menu-item sub-item" onclick="navigateTo(\'relatorios\'); fecharMenuMobile();" style="' + isAtivo('relatorios') + '">',
-        '                    <i class="fas fa-chart-line"></i> <span>Visão Geral</span>',
-        '                </div>',
-
-        '                <div class="menu-item sub-item" onclick="navigateTo(\'financeiro\'); fecharMenuMobile();" style="' + isAtivo('financeiro') + '">',
-        '                    <i class="fas fa-scale-balanced"></i> <span>Financeiro (DRE)</span>',
-        '                </div>',
-
-        '                <div class="menu-item sub-item" onclick="navigateTo(\'comandas-arquivadas\'); fecharMenuMobile();" style="' + isAtivo('comandas-arquivadas') + '">',
-        '                    <i class="fas fa-calendar"></i> <span>Comandas Arquivadas</span>',
-        '                </div>',
-
-        '                <div class="menu-item sub-item" onclick="navigateTo(\'produtos-vendidos\'); fecharMenuMobile();" style="' + isAtivo('produtos-vendidos') + '">',
-        '                    <i class="fas fa-chart-bar"></i> <span>Produtos Vendidos</span>',
-        '                </div>',
-
-        '                <div class="menu-item sub-item" onclick="navigateTo(\'totais-especie\'); fecharMenuMobile();" style="' + isAtivo('totais-especie') + '">',
-        '                    <i class="fas fa-coins"></i> <span>Totais por Espécie</span>',
-        '                </div>',
-
-        '                <div class="menu-item sub-item" onclick="navigateTo(\'relatorio-estoque\'); fecharMenuMobile();" style="' + isAtivo('relatorio-estoque') + '">',
-        '                    <i class="fas fa-clipboard-check"></i> <span>Estoque</span>',
-        '                </div>',
-
-        '            </div>',
-        '        </div>',
-
-        '        <hr class="menu-divider">',
-
-        // --- SEÇÃO: CONFIGURAÇÕES ---
-        '        <div class="menu-section">',
-        '            <div class="menu-section-header" onclick="toggleSecao(\'sec-config\')">',
-        '                <span>Configurações</span>',
-        '                <i class="fas fa-chevron-down" id="icon-sec-config"></i>',
-        '            </div>',
-        '            <div class="menu-section-content" id="sec-config">',
-
-        '                <div class="menu-item sub-item" onclick="navigateTo(\'configuracoes\'); fecharMenuMobile();" style="' + isAtivo('configuracoes') + '">',
-        '                    <i class="fas fa-cogs"></i> <span>Ajustes Gerais</span>',
-        '                </div>',
-
-        '                <div class="menu-item sub-item" onclick="navigateTo(\'grupos-trabalho\'); fecharMenuMobile();" style="' + isAtivo('grupos-trabalho') + '">',
-        '                    <i class="fas fa-users-cog"></i> <span>Grupos de Trabalho</span>',
-        '                </div>',
-
-        '                <div class="menu-item sub-item" onclick="navigateTo(\'impressoras\'); fecharMenuMobile();" style="' + isAtivo('impressoras') + '">',
-        '                    <i class="fas fa-print"></i> <span>Impressoras</span>',
-        '                </div>',
-
-        '                <div class="menu-item sub-item" onclick="navigateTo(\'parcelas\'); fecharMenuMobile();" style="' + isAtivo('parcelas') + '">',
-        '                    <i class="fas fa-credit-card"></i> <span>Parcelas</span>',
-        '                </div>',
-
-        '                <div class="menu-item sub-item" onclick="navigateTo(\'backup\'); fecharMenuMobile();" style="' + isAtivo('backup') + '">',
-        '                    <i class="fas fa-cloud-upload-alt"></i> <span>Backup</span>',
-        '                </div>',
-
-        '                <div class="menu-item sub-item" onclick="navigateTo(\'assinatura\'); fecharMenuMobile();" style="' + isAtivo('assinatura') + '">',
-        '                    <i class="fas fa-crown"></i> <span>Minha Assinatura</span>',
-        '                </div>',
-
-        '                <div class="menu-item sub-item" onclick="navigateTo(\'suporte\'); fecharMenuMobile();" style="' + isAtivo('suporte') + '">',
-        '                    <i class="fas fa-headset"></i> <span>Suporte</span>',
-        '                </div>',
-
-        '            </div>',
-        '        </div>',
+        // --- SEÇÕES (Cadastros em submenus; tudo em ordem alfabética) ---
+        secoesMenuHtml(isAtivo, hash),
 
         // --- RODAPÉ ---
         '        <div class="menu-item" style="margin-top:20px; border-top:1px solid #f0f0f0; padding-top:15px;" onclick="navigateTo(\'avaliacao\')">',

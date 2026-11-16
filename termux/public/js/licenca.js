@@ -61,6 +61,10 @@
             const ocultar = !window.licencaTemEdicao(ed);
             if (ocultar !== (el.style.display === 'none')) el.style.display = ocultar ? 'none' : '';
         });
+        document.querySelectorAll('.menu-subgroup').forEach(function (g) {
+            const vazio = !Array.prototype.some.call(g.querySelectorAll('.menu-item'), function (i) { return i.style.display !== 'none'; });
+            if (vazio !== (g.style.display === 'none')) g.style.display = vazio ? 'none' : '';
+        });
     }
     window.licencaAplicarMenu = aplicarMenu;
     let timerMenu = null;

@@ -163,6 +163,9 @@ console.log('✔ perfil.js carregado');
             if (ok === false) el.remove();
             else if (ok === null && /avaliarApp/.test(el.getAttribute('onclick') || '')) el.remove();
         });
+        app.querySelectorAll('#menu-lateral .menu-subgroup').forEach(function (g) {
+            if (!g.querySelector('.menu-item')) g.remove();
+        });
         app.querySelectorAll('#menu-lateral .menu-section').forEach(function (sec) {
             if (!sec.querySelector('.menu-item')) sec.remove();
         });

@@ -1,4 +1,4 @@
-> **Versão atual do sistema: 2.17.0** — este arquivo é renomeado e atualizado a cada versão (seções numeradas abaixo, da mais antiga à mais nova).
+> **Versão atual do sistema: 2.28.1** — este arquivo é renomeado e atualizado a cada versão (seções numeradas abaixo, da mais antiga à mais nova).
 
 # Comandas 2.3.0 — guia, relatório de correções, testes e pendências
 
@@ -408,3 +408,9 @@ Um app só, três edições com a mesma base de dados. Quem libera cada edição
 - Nova tela de avaliação: nota de 1 a 5 estrelas, "o que você mais gostou" (opções para marcar), "o que podemos melhorar", nome do estabelecimento (opcional) e se pode responder pelo WhatsApp.
 - **Enviar pelo WhatsApp ou por e-mail** direto ao desenvolvedor. A mensagem leva a versão, a edição e o ID do equipamento, mais um código CMDA1 que o app Licenças lê. Depois do envio aparece o modal de agradecimento. A última avaliação fica guardada no aparelho.
 - No app Licenças (1.7.0): aba **Avaliações** com as estrelas contadas por edição (Essencial, Gestão, Completo e Grátis), média, distribuição, o que mais gostaram, comentários e a edição **mais bem avaliada** em destaque.
+
+## 57. Menu lateral sem itens escondidos (v2.28.1)
+- **Correção:** as seções do menu tinham altura máxima fixa e cortavam itens no fim (no Cadastros ficavam escondidos Compras e Fornecedores). Agora a seção abre do tamanho do conteúdo e o menu rola.
+- **Cadastros em submenus**, em ordem alfabética: **Cardápio** (Adicionais, Grupos de Produtos, Precificação, Produtos), **Estoque e compras** (Compras, Controle de Perdas, Fornecedores, Movimentação de Estoque) e **Salão e equipe** (Clientes, Colaboradores, Funções, Mesas, Níveis de Acesso, Usuários).
+- Itens de Relatórios e Configurações também em ordem alfabética.
+- A seção e o submenu da tela atual já abrem abertos. Submenus sem nenhum item visível (por edição da licença ou nível de acesso) somem.
