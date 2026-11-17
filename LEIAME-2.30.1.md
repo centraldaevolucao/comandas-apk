@@ -1,4 +1,4 @@
-> **Versão atual do sistema: 2.30.0** — este arquivo é renomeado e atualizado a cada versão (seções numeradas abaixo, da mais antiga à mais nova).
+> **Versão atual do sistema: 2.30.1** — este arquivo é renomeado e atualizado a cada versão (seções numeradas abaixo, da mais antiga à mais nova).
 
 # Comandas 2.3.0 — guia, relatório de correções, testes e pendências
 
@@ -429,3 +429,9 @@ Um app só, três edições com a mesma base de dados. Quem libera cada edição
 - Se a térmica falhar, aparece a opção de imprimir pelo diálogo do sistema.
 - O cartão de "Impressora de Rede" antigo, que só simulava o teste, não aparece mais no computador.
 - No Android nada muda (continua Bluetooth).
+
+## 61. Cardápio digital (QR Code) para todos (v2.30.1)
+- O **Cardápio do Dia e os QR Codes** agora são **bônus de todos**, inclusive do **plano grátis** (e de assinatura vencida). Antes só valiam com licença.
+- A licença ainda pode **remover** o bônus (no app Licenças) de quem tem assinatura; o plano grátis sempre o tem.
+- O link externo (túnel) do cardápio também funciona no plano grátis.
+- Textos de edições/planos atualizados: o cardápio por QR aparece como bônus no Essencial; o Completo destaca o delivery pelo cardápio digital.

@@ -1,14 +1,14 @@
 /* Assinatura / licença — telas e bloqueios do plano gratuito.
    O status vem do servidor (GET /api/licenca); a verificação do código é feita lá (assinatura digital).
-   Plano gratuito (ou assinatura vencida): até 30 comandas por dia e SEM Caixa (histórico/fechamento), Relatórios e Cardápio digital. */
+   Plano gratuito (ou assinatura vencida): até 30 comandas por dia e SEM Caixa (histórico/fechamento) e Relatórios. O Cardápio digital por QR é bônus para todos. */
 (function () {
     'use strict';
     const COR = '#C2185B';
     // Número do WhatsApp que recebe o comprovante (com 55 + DDD). Troque pelo SEU número.
     const EDICOES = {
-        essencial: { nome: 'Essencial', rank: 1, lema: 'Para vender e fechar o dia sem dor de cabeça.', inclui: ['PDV e comandas ilimitadas', 'Caixa e fechamento', 'Clientes e fiado', 'Impressão e Pix QR', 'Relatórios', 'Estoque e movimentações'] },
+        essencial: { nome: 'Essencial', rank: 1, lema: 'Para vender e fechar o dia sem dor de cabeça.', inclui: ['PDV e comandas ilimitadas', 'Caixa e fechamento', 'Clientes e fiado', 'Impressão e Pix QR', 'Relatórios', 'Estoque e movimentações', 'Cardápio digital por QR (bônus)'] },
         gestao: { nome: 'Gestão', rank: 2, lema: 'Para saber quanto você realmente lucra.', inclui: ['Compras e fornecedores', 'Ficha técnica e precificação', 'Financeiro: DRE, fluxo de caixa, contas a pagar e a receber', 'Metas e dicas de margem', 'Pacote para o contador'], base: 'Tudo do Essencial, mais:' },
-        completo: { nome: 'Completo', rank: 3, lema: 'Para crescer, com vários canais e lojas.', inclui: ['Cardápio digital por QR e delivery', 'Nuvem, várias lojas e backup', 'Usuários e permissões', 'NFC-e por emissor parceiro', 'Integrações'], base: 'Tudo do Gestão, mais:', nota: 'Os módulos do Completo são liberados conforme ficam prontos, sem custo extra durante a assinatura.' }
+        completo: { nome: 'Completo', rank: 3, lema: 'Para crescer, com vários canais e lojas.', inclui: ['Delivery pelo cardápio digital', 'Nuvem, várias lojas e backup', 'Usuários e permissões', 'NFC-e por emissor parceiro', 'Integrações'], base: 'Tudo do Gestão, mais:', nota: 'Os módulos do Completo são liberados conforme ficam prontos, sem custo extra durante a assinatura.' }
     };
     // Tabela de preços (mesma regra para as três edições: ~10% no trimestral, ~16% no semestral e ~23% no anual, terminando em ,90)
     const PRECOS = { essencial: { 1: 25.90, 3: 69.90, 6: 129.90, 12: 238.90 }, gestao: { 1: 35.90, 3: 96.90, 6: 179.90, 12: 330.90 }, completo: { 1: 45.90, 3: 123.90, 6: 229.90, 12: 423.90 } };
@@ -48,7 +48,7 @@
         if (ed && !window.licencaTemEdicao(ed)) return 'ed:' + ed;
         const k = Object.keys(GRUPOS).find(function (g) { return GRUPOS[g].rotas.indexOf(rota) >= 0; });
         if (!k) return null;
-        if (k === 'cardapio' && !s.cardapio) return 'cardapio';     // cardápio QR: bônus da licença (Essencial/Gestão) ou edição Completo; o plano grátis não tem
+        if (k === 'cardapio' && !s.cardapio) return 'cardapio';     // cardápio QR: bônus de todos (inclusive grátis); só falta se a licença o removeu
         return null;
     };
 
@@ -169,7 +169,7 @@
         else if (s.estado === 'carencia') cartao = ['#fff3e0', '#e65100', 'fa-triangle-exclamation', 'Assinatura vencida', 'Venceu em <b>' + dataBR(s.validade) + '</b>. Tudo segue liberado por poucos dias — renove para não perder o acesso.<div id="lic-contador" data-fim="' + esc(s.validade) + '" data-carencia="' + (s.carenciaDias || 0) + '" style="margin-top:10px;font-size:1.3rem;font-weight:700;font-family:monospace;color:#e65100;"></div><div style="font-size:.72rem;color:#777;">tempo até o bloqueio</div>'];
         else if (s.estado === 'vencida' && !s.cancelada) cartao = ['#ffebee', '#c62828', 'fa-lock', 'Assinatura vencida', 'Venceu em <b>' + dataBR(s.validade) + '</b>. Você está no plano gratuito.'];
         else if (s.estado === 'testeapp') cartao = ['#e3f2fd', '#1565c0', 'fa-flask', 'Teste gratuito da edição ' + EDICOES[s.edicao].nome, 'Vai até <b>' + dataBR(s.validade) + '</b>. Depois volta ao plano gratuito (ou à sua licença).<div id="lic-contador" data-fim="' + esc(s.validade) + '" style="margin-top:10px;font-size:1.5rem;font-weight:700;font-family:monospace;color:#1565c0;"></div><div style="font-size:.72rem;color:#777;">tempo restante (dias · hh:mm:ss)</div>'];
-        else cartao = ['#f3f3f3', '#555', 'fa-gift', 'Plano gratuito', 'Comandas hoje: <b>' + s.comandasDia + ' de ' + s.limiteComandas + '</b><br>Tudo do Essencial, com limite de ' + s.limiteComandas + ' comandas por dia. Cardápio digital por QR só com assinatura.'];
+        else cartao = ['#f3f3f3', '#555', 'fa-gift', 'Plano gratuito', 'Comandas hoje: <b>' + s.comandasDia + ' de ' + s.limiteComandas + '</b><br>Tudo do Essencial, com limite de ' + s.limiteComandas + ' comandas por dia. Cardápio digital por QR incluso como bônus.'];
         if (s.cancelada && s.estado === 'vencida') cartao = ['#ffebee', '#c62828', 'fa-rotate-left', 'Assinatura cancelada (reembolso)', 'Você voltou ao plano gratuito. Pode assinar de novo quando quiser.'];
         const ta = s.testeApp || {};
         if (s.testeAppAtivo && s.estado !== 'testeapp') cartao[4] += '<br><b>Teste da edição ' + EDICOES[s.edicao].nome + '</b> até ' + dataBR(ta.fim);

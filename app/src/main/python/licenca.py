@@ -273,7 +273,7 @@ class Licenca:
         usadas = len(self.e.get("contadas", {}).get(dia, []))
         s = {"instalacaoId": self.instalacao_id, "equipamentoVinculado": self.vinculado, "hoje": h.isoformat(), "limiteComandas": LIMITE_COMANDAS_DIA,
              "comandasDia": usadas, "comandasMes": usadas, "teste": False, "estado": "gratis", "limitado": True, "cliente": "", "validade": None, "diasRestantes": None, "plano": "gratis",
-             "edicao": "gratis", "extras": [], "cardapio": False}
+             "edicao": "gratis", "extras": [], "cardapio": True}   # cardápio QR: bônus de todos (inclusive plano grátis); a licença pode remover
         d = self._licenca_valida()
         if d:
             fim = date.fromisoformat(d["fim"]); g = int(d.get("g", CARENCIA_PADRAO_DIAS))
