@@ -1,4 +1,4 @@
-> **Versão atual do sistema: 2.30.1** — este arquivo é renomeado e atualizado a cada versão (seções numeradas abaixo, da mais antiga à mais nova).
+> **Versão atual do sistema: 2.30.2** — este arquivo é renomeado e atualizado a cada versão (seções numeradas abaixo, da mais antiga à mais nova).
 
 # Comandas 2.3.0 — guia, relatório de correções, testes e pendências
 
@@ -435,3 +435,7 @@ Um app só, três edições com a mesma base de dados. Quem libera cada edição
 - A licença ainda pode **remover** o bônus (no app Licenças) de quem tem assinatura; o plano grátis sempre o tem.
 - O link externo (túnel) do cardápio também funciona no plano grátis.
 - Textos de edições/planos atualizados: o cardápio por QR aparece como bônus no Essencial; o Completo destaca o delivery pelo cardápio digital.
+
+## 62. Correção: compartilhar o backup (v2.30.2)
+- **App Android:** o botão de compartilhar da lista de backups agora abre o **menu nativo de compartilhar** (WhatsApp, Drive, e-mail…) com o arquivo. Antes só tentava baixar e nada era compartilhado.
+- **Desktop/navegador:** usa o compartilhamento do sistema quando existe (Windows, celular); no Linux e onde não existe, baixa o arquivo e avisa que ele foi salvo na pasta Downloads.

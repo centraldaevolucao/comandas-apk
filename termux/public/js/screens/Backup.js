@@ -112,17 +112,37 @@ if (!window.renderBackup) {
         const r = await fetch(base() + '/api/backup/arquivo/' + encodeURIComponent(nome), { credentials: 'include' });
         if (!r.ok) throw new Error('Não foi possível ler o arquivo (' + r.status + ')');
         const blob = new Blob([await r.arrayBuffer()], { type: 'application/octet-stream' });
-        if (compartilhar && !window.__noApp && navigator.canShare && typeof File === 'function') {
-            try {
-                const f = new File([blob], nome, { type: 'application/octet-stream' });
-                if (navigator.canShare({ files: [f] })) { await navigator.share({ files: [f], title: 'Backup Comandas' }); return; }
-            } catch (e) { if (e && e.name === 'AbortError') return; }
+        if (compartilhar) {
+            // App Android: menu nativo de compartilhar (WhatsApp, Drive, e-mail…) com o arquivo
+            if (window.Plataforma.tem('compartilharArquivo')) {
+                try {
+                    const b64 = await new Promise(function (ok, erro) {
+                        const fr = new FileReader();
+                        fr.onload = function () { ok(String(fr.result).split(',')[1] || ''); };
+                        fr.onerror = function () { erro(new Error('Não foi possível preparar o arquivo.')); };
+                        fr.readAsDataURL(blob);
+                    });
+                    window.Plataforma.compartilharArquivo(nome, 'application/octet-stream', b64);
+                    return;
+                } catch (e) { /* cai para o download */ }
+            }
+            // Navegador/Desktop: Web Share quando o sistema oferece (Windows, celular); senão baixa o arquivo
+            else if (navigator.canShare && typeof File === 'function') {
+                try {
+                    const f = new File([blob], nome, { type: 'application/octet-stream' });
+                    if (navigator.canShare({ files: [f] })) { await navigator.share({ files: [f], title: 'Backup Comandas' }); return; }
+                } catch (e) { if (e && e.name === 'AbortError') return; }
+            }
         }
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url; a.download = nome;
         document.body.appendChild(a); a.click(); document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+        setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+        if (compartilhar && !window.Plataforma.tem('compartilharArquivo')) {
+            const msg = '✅ Backup salvo na pasta Downloads: ' + nome;
+            if (typeof window.mostrarToast === 'function') window.mostrarToast(msg); else alert(msg);
+        }
     }
 
     window.gerarBackup = async function () {
