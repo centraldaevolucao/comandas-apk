@@ -633,7 +633,7 @@ window.pixLerPayload = function (txt) {
 
 // Lê o QR Code de uma imagem escolhida no aparelho; devolve o texto (ou '' se não achou).
 window.lerQrDeImagem = async function (dataUrl) {
-    try { if (window.AndroidApp && window.AndroidApp.lerQr) { const r = String(window.AndroidApp.lerQr(dataUrl) || ''); if (r) return r; } } catch (e) {}
+    try { if (window.Plataforma.tem('lerQr')) { const r = String(window.Plataforma.lerQr(dataUrl) || ''); if (r) return r; } } catch (e) {}
     try {
         if ('BarcodeDetector' in window) {
             const img = new Image(); img.src = dataUrl; await img.decode();
@@ -680,14 +680,14 @@ window.elementoParaPng = async function (el) {
 /** Compartilha uma imagem (data URL PNG). No app abre o WhatsApp/lista de apps; no navegador usa o compartilhar do sistema ou baixa o arquivo. */
 window.compartilharImagem = async function (dataUrl, nome, texto, telefone, modo) {
     const b64 = dataUrl.substring(dataUrl.indexOf(',') + 1);
-    if (modo === 'outros' && window.AndroidApp && window.AndroidApp.compartilharImagemOutros) {
-        window.AndroidApp.compartilharImagemOutros(nome, b64, texto || '');
+    if (modo === 'outros' && window.Plataforma.tem('compartilharImagemOutros')) {
+        window.Plataforma.compartilharImagemOutros(nome, b64, texto || '');
         return true;
     }
-    if (window.AndroidApp && window.AndroidApp.compartilharImagem) {
+    if (window.Plataforma.tem('compartilharImagem')) {
         // com telefone: abre direto a conversa desse número no WhatsApp (mesmo que não esteja na agenda)
-        try { window.AndroidApp.compartilharImagem(nome, b64, texto || '', telefone || ''); }
-        catch (e) { window.AndroidApp.compartilharImagem(nome, b64, texto || ''); }
+        try { window.Plataforma.compartilharImagem(nome, b64, texto || '', telefone || ''); }
+        catch (e) { window.Plataforma.compartilharImagem(nome, b64, texto || ''); }
         return true;
     }
     try {

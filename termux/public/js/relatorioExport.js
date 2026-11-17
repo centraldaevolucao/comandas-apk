@@ -45,8 +45,8 @@ console.log('✔ relatorioExport.js carregado');
     async function baixar(blob, nome) {
         const mime = blob.type || 'application/octet-stream';
         try {
-            if (window.AndroidApp && window.AndroidApp.compartilharArquivo) {
-                window.AndroidApp.compartilharArquivo(nome, mime, await blobB64(blob));
+            if (window.Plataforma.tem('compartilharArquivo')) {
+                window.Plataforma.compartilharArquivo(nome, mime, await blobB64(blob));
                 return;
             }
             if (navigator.canShare && typeof File === 'function') {

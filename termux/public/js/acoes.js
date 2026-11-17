@@ -575,7 +575,7 @@ console.log('✔ acoes.js carregado');
     // PONTE COM O APP ANDROID / NAVEGADOR DO CELULAR E TABLET
     // (impressão, download, links externos, endereço na rede)
     // ========================================================
-    const noApp = !!(window.AndroidApp && typeof window.AndroidApp.imprimir === 'function');
+    const noApp = !!(window.Plataforma.tem('imprimir'));
     window.__noApp = noApp;
 
     // Endereço que OUTROS aparelhos conseguem acessar (QR Code das mesas, links)
@@ -592,7 +592,7 @@ console.log('✔ acoes.js carregado');
     };
     (function descobrirIp() {
         let ip = '';
-        try { if (noApp && window.AndroidApp.ipLocal) ip = String(window.AndroidApp.ipLocal() || ''); } catch (e) {}
+        try { if (noApp && window.Plataforma.tem('ipLocal')) ip = String(window.Plataforma.ipLocal() || ''); } catch (e) {}
         if (ip && ip !== '?') { window.__ipServidor = ip; return; }
         fetch('/api/info-servidor').then(function (r) { return r.json(); }).then(function (d) {
             if (d && d.ip) window.__ipServidor = d.ip;
@@ -631,7 +631,7 @@ console.log('✔ acoes.js carregado');
             const b = e.target.closest && e.target.closest('[data-acao]');
             if (!b) return;
             if (b.getAttribute('data-acao') === 'fechar') { ov.remove(); return; }
-            if (noApp) { try { window.AndroidApp.imprimir(html, titulo); } catch (err) { alert('Erro ao imprimir: ' + err.message); } return; }
+            if (noApp) { try { window.Plataforma.imprimir(html, titulo); } catch (err) { alert('Erro ao imprimir: ' + err.message); } return; }
             try { fr.contentWindow.focus(); fr.contentWindow.print(); } catch (err) { window.print(); }
         });
     }
@@ -659,7 +659,7 @@ console.log('✔ acoes.js carregado');
             }
             return janelaVirtual();
         }
-        if (noApp && window.AndroidApp.abrirUrl) { window.AndroidApp.abrirUrl(u); return null; }
+        if (noApp && window.Plataforma.tem('abrirUrl')) { window.Plataforma.abrirUrl(u); return null; }
         return abrirNativo ? abrirNativo(u, alvo || '_blank', recursos) : null;
     };
 
@@ -675,10 +675,10 @@ console.log('✔ acoes.js carregado');
     const cliqueOriginal = HTMLAnchorElement.prototype.click;
     HTMLAnchorElement.prototype.click = function () {
         const a = this;
-        if (noApp && a.download && /^blob:/.test(a.href) && window.AndroidApp.salvarArquivo) {
+        if (noApp && a.download && /^blob:/.test(a.href) && window.Plataforma.tem('salvarArquivo')) {
             fetch(a.href).then(function (r) { return r.blob(); }).then(function (b) {
                 return blobParaBase64(b).then(function (b64) {
-                    window.AndroidApp.salvarArquivo(a.download, b.type || 'application/octet-stream', b64);
+                    window.Plataforma.salvarArquivo(a.download, b.type || 'application/octet-stream', b64);
                 });
             }).catch(function (e) { alert('Não foi possível salvar o arquivo: ' + e.message); });
             return;
@@ -690,7 +690,7 @@ console.log('✔ acoes.js carregado');
     URL.revokeObjectURL = function (u) { setTimeout(function () { try { revogar(u); } catch (e) {} }, 15000); };
 
     // Compartilhar: no app usa o menu "Compartilhar" do Android
-    if (noApp && window.AndroidApp.compartilhar) {
-        try { navigator.share = function (d) { window.AndroidApp.compartilhar((d && d.title) || '', ((d && d.text) || '') + ((d && d.url) ? '\n' + d.url : '')); return Promise.resolve(); }; } catch (e) {}
+    if (noApp && window.Plataforma.tem('compartilhar')) {
+        try { navigator.share = function (d) { window.Plataforma.compartilhar((d && d.title) || '', ((d && d.text) || '') + ((d && d.url) ? '\n' + d.url : '')); return Promise.resolve(); }; } catch (e) {}
     }
 })();

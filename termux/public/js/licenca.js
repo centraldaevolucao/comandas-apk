@@ -341,8 +341,8 @@
         m.querySelector('#lp-c').onclick = function () { m.remove(); };
         m.querySelector('#lp-a').onclick = function () {
             m.remove();
-            if (window.AndroidApp && window.AndroidApp.compartilharArquivo) {
-                window.AndroidApp.compartilharArquivo(nome, 'application/octet-stream', btoa(unescape(encodeURIComponent(conteudo))));
+            if (window.Plataforma.tem('compartilharArquivo')) {
+                window.Plataforma.compartilharArquivo(nome, 'application/octet-stream', btoa(unescape(encodeURIComponent(conteudo))));
             } else {
                 const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([conteudo], { type: 'application/octet-stream' })); a.download = nome;
                 document.body.appendChild(a); a.click(); a.remove();

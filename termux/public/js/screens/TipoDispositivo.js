@@ -181,7 +181,7 @@ async function carregarTipoDispositivo() {
             const sel = document.getElementById('mt-funcao');
             if (sel) { const atual = window.MT.funcaoDispositivo || 'garcom'; sel.innerHTML = opcoesFuncaoCliente(atual).map(function (o) { return '<option value="' + o[0] + '"' + (o[0] === atual ? ' selected' : '') + '>' + o[1] + '</option>'; }).join(''); }
         });
-        if (window.AndroidApp && window.AndroidApp.hotspotInfo) { const i = JSON.parse(window.AndroidApp.hotspotInfo()); const h = document.getElementById('mt-hotspot'); if (h) h.checked = !!i.ligado; hotspotInfoRender(i); }
+        if (window.Plataforma.tem('hotspotInfo')) { const i = JSON.parse(window.Plataforma.hotspotInfo()); const h = document.getElementById('mt-hotspot'); if (h) h.checked = !!i.ligado; hotspotInfoRender(i); }
     } catch (e) {}
     obterIPServidor();
 }
@@ -204,7 +204,7 @@ async function obterIPServidor() {
         if (data.ok) {
             // No app Android, o IP vem do próprio aparelho (certo também quando ele é o hotspot).
             let ipApp = '';
-            try { if (window.AndroidApp && window.AndroidApp.ipLocal) ipApp = String(window.AndroidApp.ipLocal() || ''); } catch (e) {}
+            try { if (window.Plataforma.tem('ipLocal')) ipApp = String(window.Plataforma.ipLocal() || ''); } catch (e) {}
             elIP.textContent = (ipApp && ipApp !== '?') ? ipApp : (data.ip || location.hostname || 'localhost');
             document.querySelectorAll('.mt-ip-link').forEach(function (e) { e.textContent = elIP.textContent; });
 
@@ -294,10 +294,10 @@ window.mtTrocarModo = async function (tipo) {
     if (gravado !== tipo) { mostrarStatus('❌ Não foi possível gravar o modo (leitura voltou "' + gravado + '"). Nada foi alterado.', 'error'); return; }
     mostrarStatus('✅ Modo ' + nomes[tipo] + ' gravado. Reiniciando...', 'success');
     // No app Android, o servidor só aceita outros aparelhos se escutar em 0.0.0.0: liga em Único e Servidor (QR do cardápio precisa), desliga só no Cliente.
-    if (window.AndroidApp && window.AndroidApp.definirRede && window.AndroidApp.reiniciarApp) {
+    if (window.Plataforma.tem('definirRede') && window.Plataforma.tem('reiniciarApp')) {
         try {
-            window.AndroidApp.definirRede(tipo !== 'cliente');
-            setTimeout(function () { window.AndroidApp.reiniciarApp(); }, 900);
+            window.Plataforma.definirRede(tipo !== 'cliente');
+            setTimeout(function () { window.Plataforma.reiniciarApp(); }, 900);
             return;
         } catch (e) { console.warn('reiniciarApp falhou', e); }
     }
@@ -439,7 +439,7 @@ function hotspotInfoRender(i) {
     else box.textContent = i.msg || '';
 }
 window.mtHotspot = function (on) {
-    const A = window.AndroidApp;
+    const A = window.Plataforma.nativo();
     const sw = document.getElementById('mt-hotspot');
     if (!A || !A.hotspotLigar) { if (sw) sw.checked = false; mostrarStatus('Disponível só no aplicativo Android.', 'error'); return; }
     if (on) A.hotspotLigar(); else A.hotspotDesligar();
@@ -453,7 +453,7 @@ window.mtHotspot = function (on) {
     }, 1000);
 };
 window.mtAbrirHotspotSistema = function () {
-    if (window.AndroidApp && window.AndroidApp.abrirConfigHotspot) window.AndroidApp.abrirConfigHotspot();
+    if (window.Plataforma.tem('abrirConfigHotspot')) window.Plataforma.abrirConfigHotspot();
     else mostrarStatus('Disponível só no aplicativo Android.', 'error');
 };
 

@@ -1,7 +1,7 @@
 // Dados da empresa (um só lugar): contato do suporte, pedidos de licença e rodapé.
 (function () {
     'use strict';
-    window.APP_VERSAO='2.28.2';                      // atualizar a cada versão (rodapé do Suporte e do menu)
+    window.APP_VERSAO='2.29.0';                      // atualizar a cada versão (rodapé do Suporte e do menu)
     window.CONTATO = {
         empresa: 'Central da Evolução',
         whatsapp: '5591981385331',                     // com 55 + DDD (wa.me)
@@ -11,7 +11,7 @@
     };
     window.LICENCA_WHATSAPP = window.CONTATO.whatsapp;
     window.abrirLinkExterno = function (url) {
-        try { if (window.AndroidApp && window.AndroidApp.abrirUrl) { window.AndroidApp.abrirUrl(url); return; } } catch (e) {}
+        try { if (window.Plataforma.tem('abrirUrl')) { window.Plataforma.abrirUrl(url); return; } } catch (e) {}
         if (/^mailto:/i.test(url)) { location.href = url; } else { window.open(url, '_blank'); }
     };
     window.contatoWhatsAppUrl = function (texto) { return 'https://wa.me/' + window.CONTATO.whatsapp + (texto ? '?text=' + encodeURIComponent(texto) : ''); };

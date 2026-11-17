@@ -65,17 +65,17 @@ if (!window.renderBackup) {
         h += '</div>';
 
         // Cópia automática fora do app (Android)
-        if (window.AndroidApp && window.AndroidApp.backupInfo) {
+        if (window.Plataforma.tem('backupInfo')) {
             let info = {};
-            try { info = JSON.parse(window.AndroidApp.backupInfo()); } catch (e) {}
+            try { info = JSON.parse(window.Plataforma.backupInfo()); } catch (e) {}
             h += '<div style="background:#fff;border:1px solid #e0e0e0;border-radius:12px;padding:12px;margin-bottom:22px;font-size:0.82rem;line-height:1.5;">';
             h += '<div style="font-weight:700;margin-bottom:4px;"><i class="fas fa-shield-halved" style="color:#2e7d32;"></i> Cópia automática (sobrevive a reinstalar o app)</div>';
             if (info.permissao) {
                 h += 'Ativa. Salva a cada poucos minutos em <b>' + esc(info.pasta) + '</b>. Ao reinstalar, o app traz os dados de volta sozinho.';
-                h += '<div style="margin-top:8px;">' + botao('fa-rotate', '#2e7d32', 'Salvar cópia agora', 'window.AndroidApp.backupAgora()') + '</div>';
+                h += '<div style="margin-top:8px;">' + botao('fa-rotate', '#2e7d32', 'Salvar cópia agora', 'window.Plataforma.backupAgora()') + '</div>';
             } else {
                 h += '<span style="color:#c62828;">Desativada: falta liberar o acesso aos arquivos.</span>';
-                h += '<div style="margin-top:8px;">' + botao('fa-unlock', '#c62828', 'Liberar acesso', 'window.AndroidApp.pedirAcessoArquivos()') + '</div>';
+                h += '<div style="margin-top:8px;">' + botao('fa-unlock', '#c62828', 'Liberar acesso', 'window.Plataforma.pedirAcessoArquivos()') + '</div>';
             }
             h += '</div>';
         }

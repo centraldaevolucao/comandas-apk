@@ -7,7 +7,7 @@ console.log('✔ bluetooth.js carregado');
 (function () {
     'use strict';
     let COLS = 32;
-    const A = function () { return window.AndroidApp && typeof window.AndroidApp.btListar === 'function' ? window.AndroidApp : null; };
+    const A = function () { return window.Plataforma.tem('btListar') ? window.Plataforma.nativo() : null; };
     window.btDisponivel = function () { return !!A(); };
 
     // ---------- resposta assíncrona do app ----------

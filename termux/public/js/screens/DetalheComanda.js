@@ -2113,7 +2113,7 @@ if (!window.renderDetalheComanda) {
         }
 
         if (outros) {
-            if (window.AndroidApp && window.AndroidApp.compartilhar) window.AndroidApp.compartilhar((tipo === 'comanda' ? 'Comanda ' : 'Recibo ') + (c.numero || ''), texto);
+            if (window.Plataforma.tem('compartilhar')) window.Plataforma.compartilhar((tipo === 'comanda' ? 'Comanda ' : 'Recibo ') + (c.numero || ''), texto);
             else if (navigator.share) { try { await navigator.share({ text: texto }); } catch (e) {} }
             else { try { await navigator.clipboard.writeText(texto); if (window.mostrarToast) window.mostrarToast('📋 Texto copiado'); } catch (e) {} }
             return;

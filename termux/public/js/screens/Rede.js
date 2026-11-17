@@ -58,7 +58,7 @@ window.redeAtualizar = async function () {
         if (d.urlTunel) h += _linha('Link Cloudflare', _esc(d.urlTunel));
         h += '<div style="margin-top:10px;font-weight:600;font-size:.85rem;">Endereços para os outros aparelhos:</div>';
         let ips = (d.ips || []).slice();
-        try { if (window.AndroidApp && window.AndroidApp.ipLocal) { const a = String(window.AndroidApp.ipLocal() || ''); if (a && a !== '?' && !ips.some(function (i) { return i.ip === a; })) ips.unshift({ ip: a, interface: 'app' }); } } catch (e) {}
+        try { if (window.Plataforma.tem('ipLocal')) { const a = String(window.Plataforma.ipLocal() || ''); if (a && a !== '?' && !ips.some(function (i) { return i.ip === a; })) ips.unshift({ ip: a, interface: 'app' }); } } catch (e) {}
         if (!ips.length) h += '<div style="color:#c62828;font-size:.85rem;">Nenhum IP de rede encontrado. Conecte ao Wi-Fi ou ligue o Hotspot.</div>';
         ips.forEach(function (i) {
             const u = 'http://' + i.ip + ':' + d.porta;

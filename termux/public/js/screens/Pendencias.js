@@ -456,7 +456,7 @@
 
     async function enviarTexto(texto, tel, modo, titulo) {
         if (modo === 'outros') {
-            if (window.AndroidApp && window.AndroidApp.compartilhar) { window.AndroidApp.compartilhar(titulo, texto); return; }
+            if (window.Plataforma.tem('compartilhar')) { window.Plataforma.compartilhar(titulo, texto); return; }
             if (navigator.share) { try { await navigator.share({ title: titulo, text: texto }); } catch (e) {} return; }
             try { await navigator.clipboard.writeText(texto); if (window.mostrarToast) window.mostrarToast('📋 Texto copiado'); } catch (e) {}
             return;

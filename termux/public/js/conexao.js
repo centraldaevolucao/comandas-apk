@@ -200,7 +200,7 @@ console.log('✔ conexao.js carregado');
             CX.estado = 'local'; emitir();
             // App Android em modo Servidor mas ainda escutando só em 127.0.0.1: corrige e reinicia (uma vez).
             try {
-                const A = window.AndroidApp;
+                const A = window.Plataforma.nativo();
                 if (A && A.redeInfo && !window.__semConfigLocal) {
                     const aberta = !!JSON.parse(A.redeInfo()).aberta, quer = mt.tipoDispositivo !== 'cliente';
                     if (quer !== aberta && !sessionStorage.getItem('cx-reinicio')) {

@@ -178,7 +178,7 @@
 
     function cobrarDeeplink(prov, p, parcelas, m) {
         return new Promise(async function (resolve) {
-            if (!window.AndroidApp || !window.AndroidApp.abrirDeeplinkPagamento) {
+            if (!window.Plataforma.tem('abrirDeeplinkPagamento')) {
                 const fb = await window.confirmar('Este provedor só funciona no aplicativo Android instalado na maquininha/celular.\nRegistrar manualmente?', { perigo: false, ok: 'Registrar manual' });
                 return resolve(fb ? await formManual(p) : null);
             }
@@ -187,7 +187,7 @@
             pendente = { prov: prov, p: p, parcelas: parcelas, fim: fim };
             h.onCancel = async function () { const man = h.manual; pendente = null; h.fechar(); resolve(man ? await formManual(p) : null); };
             let r = '';
-            try { r = window.AndroidApp.abrirDeeplinkPagamento(montarDeeplink(prov, p, parcelas, m)); } catch (e) { r = 'ERRO ' + e; }
+            try { r = window.Plataforma.abrirDeeplinkPagamento(montarDeeplink(prov, p, parcelas, m)); } catch (e) { r = 'ERRO ' + e; }
             if (r && String(r).indexOf('ERRO') === 0) {
                 pendente = null; h.fechar();
                 const fb = await window.confirmar('Não foi possível abrir o app da maquininha (' + prov + '). Ele está instalado?\n\nRegistrar manualmente?', { perigo: false, ok: 'Registrar manual' });
@@ -317,7 +317,7 @@
                 try { const j = await mp('POST', 'testar', { token: val('mq-mptoken'), deviceId: val('mq-mpdev') }); pintar(box, j.passos || []); if (j.ok) box.insertAdjacentHTML('beforeend', '<div style="color:#2e7d32;margin-top:4px;"><b>Tudo certo. Salve a maquininha.</b></div>'); } catch (e) { box.textContent = 'Erro: ' + e.message; }
             };
             ov.querySelector('#mq-lio-ver').onclick = function () {
-                const p = [], cid = val('mq-lioclient'), tk = val('mq-liotoken'), ok = !!(window.AndroidApp && window.AndroidApp.abrirDeeplinkPagamento);
+                const p = [], cid = val('mq-lioclient'), tk = val('mq-liotoken'), ok = window.Plataforma.tem('abrirDeeplinkPagamento');
                 p.push({ ok: !!cid, t: 'Client ID', d: cid ? 'Preenchido.' : 'Falta preencher.' }); p.push({ ok: !!tk, t: 'Access Token', d: tk ? 'Preenchido.' : 'Falta preencher.' });
                 p.push({ ok: ok, t: 'Aparelho', d: ok ? 'Aplicativo Android: pode abrir a tela de pagamento da LIO.' : 'Aqui não é o aplicativo Android. Faça isto no app instalado na LIO.' });
                 pintar(ov.querySelector('#mq-lio-diag'), p);

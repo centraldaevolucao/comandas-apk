@@ -246,7 +246,7 @@ function escHtml(t) { return String(t == null ? '' : t).replace(/&/g, '&amp;').r
 
 window.statusTunel = function () {
     try {
-        if (window.AndroidApp && window.AndroidApp.statusTunel) return JSON.parse(window.AndroidApp.statusTunel());
+        if (window.Plataforma.tem('statusTunel')) return JSON.parse(window.Plataforma.statusTunel());
     } catch (e) {}
     return null;
 };
@@ -265,7 +265,7 @@ async function atualizarCardLinkExterno() {
     const box = document.getElementById('qr-link-externo');
     if (!box) return;
     const st = await descobrirUrlTunel();
-    const noApp = !!(window.AndroidApp && window.AndroidApp.iniciarTunel);
+    const noApp = window.Plataforma.tem('iniciarTunel');
     if (st.estado === 'ativo' && st.url) window.__urlExterna = st.url;
     else if (st.estado !== 'iniciando') window.__urlExterna = window.__urlExternaManual || '';
     const base = window.urlBaseRede ? window.urlBaseRede() : location.origin;
@@ -304,12 +304,12 @@ async function atualizarCardLinkExterno() {
 window.atualizarCardLinkExterno = atualizarCardLinkExterno;
 
 window.gerarLinkExterno = function () {
-    try { window.AndroidApp.iniciarTunel(); } catch (e) { alert('Não foi possível iniciar: ' + e.message); return; }
+    try { window.Plataforma.iniciarTunel(); } catch (e) { alert('Não foi possível iniciar: ' + e.message); return; }
     setTimeout(atualizarCardLinkExterno, 400);
 };
 window.pararLinkExterno = async function () {
     if (!await window.confirmar('Parar o link externo? Os QR Codes impressos com ele deixam de funcionar.')) return;
-    try { window.AndroidApp.pararTunel(); } catch (e) {}
+    try { window.Plataforma.pararTunel(); } catch (e) {}
     window.__urlExterna = '';
     setTimeout(atualizarCardLinkExterno, 400);
 };

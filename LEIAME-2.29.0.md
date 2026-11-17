@@ -1,4 +1,4 @@
-> **Versão atual do sistema: 2.28.2** — este arquivo é renomeado e atualizado a cada versão (seções numeradas abaixo, da mais antiga à mais nova).
+> **Versão atual do sistema: 2.29.0** — este arquivo é renomeado e atualizado a cada versão (seções numeradas abaixo, da mais antiga à mais nova).
 
 # Comandas 2.3.0 — guia, relatório de correções, testes e pendências
 
@@ -417,3 +417,8 @@ Um app só, três edições com a mesma base de dados. Quem libera cada edição
 
 ## 58. Submenus do Cadastros mais legíveis (v2.28.2)
 - Os submenus **Cardápio**, **Estoque e compras** e **Salão e equipe** agora têm **ícone**, letra maior e em negrito, e os itens de dentro também ficaram com letra maior.
+
+## 59. Camada Plataforma — base para o Desktop (v2.29.0)
+- Nova `js/plataforma.js`: **única porta** entre o sistema e o aparelho/computador. No Android ela repassa tudo para a ponte nativa (`AndroidApp`); no navegador/desktop usa funções registradas (`Plataforma.registrar`) e, quando não houver, as telas continuam usando os recursos web que já tinham.
+- Todas as telas que chamavam `window.AndroidApp.*` (impressão, compartilhar, backup, rede/hotspot, túnel, Bluetooth, maquininha, leitura de QR, abrir links) agora usam `Plataforma.tem('função')` e `Plataforma.função(...)`. **Nenhuma mudança de comportamento no Android.**
+- Serve de base para a versão Restaurante Desktop (Windows e Linux), que usa o mesmo código.
