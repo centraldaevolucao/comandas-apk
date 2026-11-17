@@ -176,7 +176,7 @@ console.log('✔ bluetooth.js carregado');
                 '<div style="margin-top:12px;font-weight:600;">Enviar o comprovante de outra forma:</div>' +
                 '<button class="btn-primary" id="bf-w" style="background:#25d366;width:100%;margin-top:8px;"><i class="fab fa-whatsapp"></i> WhatsApp</button>' +
                 '<button class="btn-outline" id="bf-o" style="width:100%;margin-top:8px;"><i class="fas fa-share-nodes"></i> Compartilhar (e-mail, Drive, outros)</button>' +
-                '<button class="btn-outline" id="bf-c" style="width:100%;margin-top:8px;"><i class="fas fa-mobile-screen"></i> Imprimir pelo celular</button>' +
+                '<button class="btn-outline" id="bf-c" style="width:100%;margin-top:8px;"><i class="fas fa-print"></i> Imprimir pelo ' + (window.Plataforma.ehAndroid ? 'celular' : 'sistema') + '</button>' +
                 '<button class="btn-outline" id="bf-x" style="width:100%;margin-top:8px;border-color:#c62828;color:#c62828;">Fechar</button></div></div>';
             document.body.appendChild(m);
             const fim = function (v, fn) { m.remove(); if (fn) { try { fn(); } catch (e) {} } resolve(v); };
@@ -219,16 +219,18 @@ console.log('✔ bluetooth.js carregado');
         let r = {};
         try { r = JSON.parse(ap.btListar()); } catch (e) { r = { erro: 'Falha ao ler os dispositivos', lista: [] }; }
         const sel = cfg.btImpressora ? cfg.btImpressora.mac : '';
-        let h = '<div style="text-align:center;font-weight:600;margin-bottom:10px;">Impressoras Bluetooth</div>';
+        const desk = !window.Plataforma.ehAndroid;
+        let h = '<div style="text-align:center;font-weight:600;margin-bottom:10px;">' + (desk ? 'Impressoras térmicas deste computador' : 'Impressoras Bluetooth') + '</div>';
+        if (desk) h += '<button class="btn-outline" style="width:100%;margin-bottom:10px;" onclick="impAdicionarRede()"><i class="fas fa-network-wired"></i> Adicionar impressora de rede (IP)</button>';
         h += '<div style="display:flex;gap:10px;justify-content:center;margin-bottom:12px;">' +
              '<button class="btn-outline" style="flex:1;" onclick="btResetar()">Resetar</button>' +
              '<button class="btn-outline" style="flex:1;" onclick="btDesenhar()">Atualizar dispositivos</button></div>';
         if (r.erro) h += '<div style="color:#c62828;font-size:.85rem;padding:8px 0;text-align:center;">' + r.erro + '</div>';
-        if (!r.erro && !(r.lista || []).length) h += '<div style="color:#666;font-size:.85rem;text-align:center;padding:8px;">Nenhum aparelho pareado. Pareie a impressora em Configurações do celular › Bluetooth e toque em Atualizar.</div>';
+        if (!r.erro && !(r.lista || []).length) h += '<div style="color:#666;font-size:.85rem;text-align:center;padding:8px;">' + (desk ? 'Nenhuma impressora encontrada. Ligue a impressora, instale-a no sistema ou toque em “Adicionar impressora de rede (IP)”.' : 'Nenhum aparelho pareado. Pareie a impressora em Configurações do celular › Bluetooth e toque em Atualizar.') + '</div>';
         (r.lista || []).forEach(function (d) {
             const on = d.mac === sel;
             h += '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 4px;border-bottom:1px solid #eee;">' +
-                 '<div><div style="font-weight:600;">' + d.nome + (d.impressora ? ' 🖨️' : '') + '</div><div style="font-size:.78rem;color:#555;">' + d.mac + '</div></div>' +
+                 '<div><div style="font-weight:600;">' + d.nome + (d.impressora ? ' 🖨️' : '') + '</div><div style="font-size:.78rem;color:#555;">' + d.mac + (desk && /^tcp:/.test(d.mac) ? ' · <a href="#" onclick="impRemoverRede(\'' + d.mac + '\');return false;" style="color:#c62828;">remover</a>' : '') + '</div></div>' +
                  '<label style="position:relative;width:54px;height:30px;display:inline-block;">' +
                  '<input type="checkbox" ' + (on ? 'checked' : '') + ' onchange="btEscolher(this,\'' + d.mac + '\',\'' + String(d.nome).replace(/'/g, '') + '\')" style="opacity:0;width:100%;height:100%;position:absolute;margin:0;z-index:2;">' +
                  '<span style="position:absolute;inset:0;border-radius:15px;background:' + (on ? '#C2185B' : '#ccc') + ';"></span>' +
@@ -246,7 +248,7 @@ console.log('✔ bluetooth.js carregado');
         const r = await window.btEnviar(mac, [{ t: 'TESTE DE CONEXAO', b: 1, c: 1 }, { t: nome, c: 1 }, { t: 'Acentos: ação, é, ç, ú', c: 1 }, { t: LINHA }, { t: 'Impressora conectada!', c: 1 }], !cfg.btSemAcentos);
         window.btAguardeFechar();
         if (r.ok) alert('✅ Impressora conectada e teste enviado.');
-        else { await salvarCfg({ btImpressora: null }); alert('❌ Não foi possível conectar: ' + r.msg + '\n\nConfira se está ligada, pareada e perto do celular.'); }
+        else { await salvarCfg({ btImpressora: null }); alert('❌ Não foi possível conectar: ' + r.msg + (window.Plataforma.ehAndroid ? '\n\nConfira se está ligada, pareada e perto do celular.' : '\n\nConfira se está ligada, conectada e com o IP/porta corretos.')); }
         window.btDesenhar();
     };
     window.btResetar = async function () { if (!await window.confirmar('Esquecer a impressora Bluetooth escolhida?')) return; await salvarCfg({ btImpressora: null }); window.btDesenhar(); };

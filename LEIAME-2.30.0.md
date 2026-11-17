@@ -1,4 +1,4 @@
-> **Versão atual do sistema: 2.29.0** — este arquivo é renomeado e atualizado a cada versão (seções numeradas abaixo, da mais antiga à mais nova).
+> **Versão atual do sistema: 2.30.0** — este arquivo é renomeado e atualizado a cada versão (seções numeradas abaixo, da mais antiga à mais nova).
 
 # Comandas 2.3.0 — guia, relatório de correções, testes e pendências
 
@@ -422,3 +422,10 @@ Um app só, três edições com a mesma base de dados. Quem libera cada edição
 - Nova `js/plataforma.js`: **única porta** entre o sistema e o aparelho/computador. No Android ela repassa tudo para a ponte nativa (`AndroidApp`); no navegador/desktop usa funções registradas (`Plataforma.registrar`) e, quando não houver, as telas continuam usando os recursos web que já tinham.
 - Todas as telas que chamavam `window.AndroidApp.*` (impressão, compartilhar, backup, rede/hotspot, túnel, Bluetooth, maquininha, leitura de QR, abrir links) agora usam `Plataforma.tem('função')` e `Plataforma.função(...)`. **Nenhuma mudança de comportamento no Android.**
 - Serve de base para a versão Restaurante Desktop (Windows e Linux), que usa o mesmo código.
+
+## 60. Impressora térmica direta no computador (v2.30.0)
+- **Desktop (Windows/Linux):** a seção de impressoras térmicas da tela Impressoras agora lista, no próprio PC, as impressoras de **rede (IP:porta, padrão 9100)**, **USB**, **serial** e as **instaladas no sistema** (Windows ou CUPS no Linux). Reaproveita o mesmo fluxo da Bluetooth: escolher a impressora, testar e imprimir comanda/recibo em ESC/POS (acentos, QR, logo).
+- Novo `impressao.py` e rotas `/api/impressoras` e `/api/imprimir-raw` (só rede local, nunca pelo link externo; só aceita destinos conhecidos e IPs da rede privada).
+- Se a térmica falhar, aparece a opção de imprimir pelo diálogo do sistema.
+- O cartão de "Impressora de Rede" antigo, que só simulava o teste, não aparece mais no computador.
+- No Android nada muda (continua Bluetooth).

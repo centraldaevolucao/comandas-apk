@@ -14,7 +14,7 @@ DB_PATH = DATA_DIR / "database.sqlite"
 HOST, PORT = os.getenv("HOST", "0.0.0.0"), int(os.getenv("PORT", "3000"))
 MAX_BODY = 10 * 1024 * 1024
 DB_LOCK = threading.RLock()
-VERSAO_SERVIDOR = "2.29.0"
+VERSAO_SERVIDOR = "2.30.0"
 INICIO = time.time()
 # Tempo real: cada gravação aumenta REV e acorda quem está ouvindo /api/eventos (SSE)
 REV = {"n": 0, "ultimo": ""}
@@ -601,6 +601,30 @@ class Handler(BaseHTTPRequestHandler):
 
         if route == "eventos" and self.command == "GET":
             return self.sse()
+
+        # Impressora térmica direta (Desktop): lista/adiciona/remove destinos e envia bytes ESC/POS. Nunca pelo link externo.
+        if route in ("impressoras", "imprimir-raw"):
+            if self.externo(): return self.send_json(403, {"error": "Somente na rede local"})
+            try:
+                import impressao
+                if route == "impressoras" and self.command == "GET":
+                    return self.send_json(200, impressao.listar(DATA_DIR))
+                if route == "impressoras" and self.command == "POST":
+                    b = self.read_json()
+                    impressao.adicionar_rede(DATA_DIR, b.get("nome"), b.get("host"), b.get("porta"))
+                    return self.send_json(200, dict(impressao.listar(DATA_DIR), ok=True))
+                if route == "impressoras" and self.command == "DELETE":
+                    impressao.remover_rede(DATA_DIR, parse_qs(query).get("destino", [""])[0])
+                    return self.send_json(200, dict(impressao.listar(DATA_DIR), ok=True))
+                if route == "imprimir-raw" and self.command == "POST":
+                    b = self.read_json()
+                    impressao.enviar(DATA_DIR, str(b.get("destino", "")), base64.b64decode(b.get("dados", "")))
+                    return self.send_json(200, {"ok": True})
+            except ValueError as e:
+                return self.send_json(400, {"ok": False, "msg": str(e)})
+            except Exception as e:
+                return self.send_json(502, {"ok": False, "msg": "Não foi possível imprimir: %s" % e})
+            return self.send_json(405, {"error": "Método não permitido"})
 
         if route == "info-servidor" and self.command == "GET":
             return self.send_json(200, {"ok": True, "ip": local_ip(), "ips": todos_ips(), "porta": PORT, "modo": "local", "urlTunel": tunnel_url(), "versao": VERSAO_SERVIDOR})

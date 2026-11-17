@@ -82,6 +82,8 @@ if (!window.renderImpressoras) {
             // ==========================================
             // OPÇÃO 3: IMPRESSORA DE REDE (PC / QZ TRAY)
             // ==========================================
+            const termicaPC = !window.Plataforma.ehAndroid && window.Plataforma.tem('btListar');   // desktop: a térmica direta está na seção do topo
+            if (!termicaPC) {
             html += '<div class="card" style="background:#FCE4EC;border-radius:12px;padding:16px;margin-bottom:16px;">';
             html += '    <div style="font-weight:700;font-size:1.1rem;margin-bottom:8px;color:#C2185B;"><i class="fas fa-network-wired"></i> Impressora de Rede (IP/Windows)</div>';
             html += '    <div style="font-size:0.85rem;color:#666;margin-bottom:16px;">Ideal para Computadores (Windows/Mac). O sistema envia os dados para a impressora térmica na rede local.</div>';
@@ -97,6 +99,7 @@ if (!window.renderImpressoras) {
             html += '    </div>';
             html += '    <div id="status-rede" style="margin-top:10px;font-size:0.85rem;text-align:center;color:#666;"></div>';
             html += '</div>';
+            }
 
             // ==========================================
             // CONFIGURAÇÕES SALVAS
