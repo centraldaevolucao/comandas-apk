@@ -282,7 +282,7 @@ async function atualizarCardLinkExterno() {
         if (noApp) h += '<button class="btn-danger" style="flex:1 1 120px;" onclick="pararLinkExterno()"><i class="fas fa-stop"></i> Parar link</button>';
         h += '</div>';
     } else if (st.estado === 'iniciando') {
-        h += '<div style="font-size:0.85rem;color:#e65100;"><i class="fas fa-spinner fa-spin"></i> Criando o link externo... aguarde alguns segundos.</div>';
+        h += '<div style="font-size:0.85rem;color:#e65100;"><i class="fas fa-spinner fa-spin"></i> ' + escHtml(st.msg || 'Criando o link externo... aguarde alguns segundos.') + '</div>';
     } else {
         if (st.estado === 'erro') h += '<div style="font-size:0.8rem;color:#c62828;margin-bottom:8px;">' + escHtml(st.msg || 'Não foi possível criar o link.') + '</div>';
         if (noApp) {

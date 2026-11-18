@@ -14,7 +14,7 @@ DB_PATH = DATA_DIR / "database.sqlite"
 HOST, PORT = os.getenv("HOST", "0.0.0.0"), int(os.getenv("PORT", "3000"))
 MAX_BODY = 10 * 1024 * 1024
 DB_LOCK = threading.RLock()
-VERSAO_SERVIDOR = "2.30.2"
+VERSAO_SERVIDOR = "2.31.0"
 INICIO = time.time()
 # Tempo real: cada gravação aumenta REV e acorda quem está ouvindo /api/eventos (SSE)
 REV = {"n": 0, "ultimo": ""}
@@ -601,6 +601,20 @@ class Handler(BaseHTTPRequestHandler):
 
         if route == "eventos" and self.command == "GET":
             return self.sse()
+
+        # Link externo (Desktop): baixa o cloudflared sozinho e gera o túnel. Só pelo próprio computador.
+        if route in ("tunel", "tunel/iniciar", "tunel/parar"):
+            if self.externo() or self.client_address[0] not in ("127.0.0.1", "::1"):
+                return self.send_json(403, {"error": "Somente no próprio computador"})
+            try:
+                import tunel
+                tunel.init(ROOT, PORT)
+                if route == "tunel/iniciar" and self.command == "POST": return self.send_json(200, tunel.iniciar())
+                if route == "tunel/parar" and self.command == "POST": return self.send_json(200, tunel.parar())
+                if route == "tunel" and self.command == "GET": return self.send_json(200, tunel.status())
+            except ImportError:
+                return self.send_json(404, {"error": "Indisponível nesta versão"})
+            return self.send_json(405, {"error": "Método não permitido"})
 
         # Impressora térmica direta (Desktop): lista/adiciona/remove destinos e envia bytes ESC/POS. Nunca pelo link externo.
         if route in ("impressoras", "imprimir-raw"):

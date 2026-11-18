@@ -34,6 +34,16 @@
             .then(function (r) { if (window.__btRes) window.__btRes(id, r.ok, r.msg || (r.ok ? 'ok' : 'Falha ao imprimir')); });
     });
 
+    // Link externo (Cloudflare): o próprio computador baixa o cloudflared e gera o túnel — nada para instalar
+    function tunelJson(r) {
+        const j = r.json || {};
+        if (r.status !== 200) return JSON.stringify({ estado: 'erro', url: '', msg: j.error || 'Não foi possível consultar o link externo.' });
+        return JSON.stringify({ estado: j.estado === 'baixando' ? 'iniciando' : j.estado, url: j.url || '', msg: j.msg || '' });
+    }
+    P.registrar('statusTunel', function () { try { return tunelJson(api('GET', '/api/tunel')); } catch (e) { return JSON.stringify({ estado: 'parado', url: '' }); } });
+    P.registrar('iniciarTunel', function () { try { return tunelJson(api('POST', '/api/tunel/iniciar', {})); } catch (e) { return ''; } });
+    P.registrar('pararTunel', function () { try { return tunelJson(api('POST', '/api/tunel/parar', {})); } catch (e) { return ''; } });
+
     // Impressora de rede: IP + porta (padrão 9100)
     window.impAdicionarRede = async function () {
         const host = window.prompt('IP da impressora na rede (ex.: 192.168.0.50)');
