@@ -90,7 +90,7 @@ console.log('✔ relatorioExport.js carregado');
             return '<tr>' + l.map(function (v, i) {
                 return '<td style="text-align:' + (d.alinhar && d.alinhar[i] === 'r' ? 'right' : 'left') + '">' + esc(v) + '</td>';
             }).join('') + '</tr>';
-        }).join('') || '<tr><td colspan="' + d.colunas.length + '" style="text-align:center;color:#888;padding:16px;">Nenhum registro</td></tr>';
+        }).join('') || '<tr><td colspan="' + d.colunas.length + '" style="text-align:center;color:#6b6b6b;padding:16px;">Nenhum registro</td></tr>';
         const filtros = (d.filtros || []).map(function (f) {
             return '<span class="chip"><b>' + esc(f[0]) + ':</b> ' + esc(f[1]) + '</span>';
         }).join(' ');
@@ -105,7 +105,7 @@ console.log('✔ relatorioExport.js carregado');
             'table{width:100%;border-collapse:collapse;margin-top:8px}th{background:#C2185B;color:#fff;padding:7px 8px;font-size:12px}' +
             'td{padding:6px 8px;border-bottom:1px solid #e5e5e5}tr:nth-child(even) td{background:#fafafa}' +
             '.tot{width:auto;min-width:260px;margin:14px 0 0 auto}.tot td{border:0;padding:4px 8px;font-size:14px}' +
-            '.rod{margin-top:18px;color:#888;font-size:11px}@media print{body{margin:0}th{-webkit-print-color-adjust:exact;print-color-adjust:exact}}' +
+            '.rod{margin-top:18px;color:#6b6b6b;font-size:11px}@media print{body{margin:0}th{-webkit-print-color-adjust:exact;print-color-adjust:exact}}' +
             '</style></head><body><h1>' + esc(d.titulo) + '</h1>' +
             (d.subtitulo ? '<div class="sub">' + esc(d.subtitulo) + '</div>' : '') +
             '<div>' + filtros + '</div>' +

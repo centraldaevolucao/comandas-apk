@@ -39,7 +39,7 @@ window.renderCadastroGrupo = function() {
         '        <div class="field">',
         '            <label>Descrição</label>',
         '            <input type="text" id="g-desc" maxlength="50" placeholder="Ex: Refrigerantes, sucos e água" value="' + (g.descricao || '') + '">',
-        '            <small style="color:#888;font-size:0.75rem;">Aparece no cardápio do cliente</small>',
+        '            <small style="color:#6b6b6b;font-size:0.75rem;">Aparece no cardápio do cliente</small>',
         '        </div>',
 
         // Sugestões

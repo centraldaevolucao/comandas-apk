@@ -110,14 +110,14 @@
                 '<span style="font-size:.75rem;font-weight:700;color:' + cor + ';">' + (tem ? 'margem ' : '') + rot + '</span></div>' +
                 '<div style="display:flex;justify-content:space-between;font-size:.8rem;color:#666;margin-top:3px;"><span>Custo ' + (x.custo > 0 ? R(x.custo) : '—') + ' · Venda ' + R(x.preco) + '</span>' +
                 (x.c.sugerido ? '<span>Sugerido <b style="color:#2B1A22;">' + R(x.c.redondo) + '</b></span>' : '') + '</div>' +
-                (lista(x.p.ficha).length ? '<div style="font-size:.7rem;color:#888;margin-top:2px;"><i class="fas fa-list-check"></i> ficha técnica com ' + lista(x.p.ficha).length + ' item(ns)</div>' : '') + '</div>';
+                (lista(x.p.ficha).length ? '<div style="font-size:.7rem;color:#6b6b6b;margin-top:2px;"><i class="fas fa-list-check"></i> ficha técnica com ' + lista(x.p.ficha).length + ' item(ns)</div>' : '') + '</div>';
         }).join('');
     }
 
     // ===================== PARÂMETROS =====================
     window.precParametros = function () {
         const c = window.precState.cfg;
-        const campo = function (id, rot, v, dica) { return '<label style="font-size:.8rem;color:#555;">' + rot + '</label><input type="number" step="0.1" min="0" id="' + id + '" value="' + num(v) + '" style="margin-bottom:' + (dica ? '2px' : '10px') + ';">' + (dica ? '<div style="font-size:.7rem;color:#888;margin-bottom:10px;">' + dica + '</div>' : ''); };
+        const campo = function (id, rot, v, dica) { return '<label style="font-size:.8rem;color:#555;">' + rot + '</label><input type="number" step="0.1" min="0" id="' + id + '" value="' + num(v) + '" style="margin-bottom:' + (dica ? '2px' : '10px') + ';">' + (dica ? '<div style="font-size:.7rem;color:#6b6b6b;margin-bottom:10px;">' + dica + '</div>' : ''); };
         modal('modal-prec-cfg', 'Parâmetros de preço',
             campo('pc-imp', 'Impostos sobre a venda (%)', c.imposto, 'Ex.: Simples Nacional. Confirme a alíquota com seu contador.') +
             campo('pc-taxa', 'Taxa média de cartão/Pix (%)', c.taxa) +
@@ -167,14 +167,14 @@
                     '<div style="flex:1;"><label style="font-size:.7rem;color:#777;">Quantidade</label><input type="number" min="0" step="0.001" id="pf-q' + i + '" value="' + (it.quantidade || '') + '" oninput="precRecalc()"></div>' +
                     '<div style="flex:1;"><label style="font-size:.7rem;color:#777;">Custo unitário</label><input type="number" min="0" step="0.01" id="pf-c' + i + '" value="' + (it.custoUnit || '') + '" oninput="precRecalc()"></div>' +
                     '<div style="flex:1;text-align:right;"><div style="font-size:.7rem;color:#777;">Subtotal</div><b id="pf-s' + i + '">' + R(num(it.quantidade) * num(it.custoUnit)) + '</b></div></div></div>';
-            }).join('') : '<div style="color:#888;font-size:.82rem;margin-bottom:8px;">Sem ficha técnica: o custo é o valor informado abaixo. Adicione ingredientes para calcular o custo automaticamente.</div>' +
+            }).join('') : '<div style="color:#6b6b6b;font-size:.82rem;margin-bottom:8px;">Sem ficha técnica: o custo é o valor informado abaixo. Adicione ingredientes para calcular o custo automaticamente.</div>' +
                 '<label style="font-size:.78rem;color:#555;">Custo do produto (R$)</label><input type="number" min="0" step="0.01" id="pf-cm" value="' + (ed.custoManual || '') + '" oninput="precRecalc()" style="margin-bottom:8px;">') +
             '<div class="row-add" style="display:flex;gap:8px;margin:6px 0 12px;"><select id="pf-add" style="flex:1;"><option value="">Adicionar produto da lista…</option>' +
             outros.map(function (p) { return '<option value="' + esc(p.id) + '">' + esc(p.nome) + (num(p.valorCusto) > 0 ? ' (' + R(p.valorCusto) + ')' : '') + '</option>'; }).join('') + '</select>' +
             '<button class="btn-primary" onclick="precItemAdd()">Adicionar</button></div>' +
             '<button class="btn-outline" style="width:100%;margin-bottom:12px;" onclick="precItemAvulso()">+ Item avulso (embalagem, gás, mão de obra…)</button>' +
             '<div style="background:#f5f5f5;border-radius:10px;padding:10px 12px;font-size:.88rem;margin-bottom:10px;">' +
-            '<div style="display:flex;justify-content:space-between;"><span>Custo (CMV) <small style="color:#888;">' + (ed.itens.length ? 'pela ficha' : 'informado') + '</small></span><b id="pf-custo">' + R(custo) + '</b></div></div>' +
+            '<div style="display:flex;justify-content:space-between;"><span>Custo (CMV) <small style="color:#6b6b6b;">' + (ed.itens.length ? 'pela ficha' : 'informado') + '</small></span><b id="pf-custo">' + R(custo) + '</b></div></div>' +
             '<label style="font-size:.8rem;color:#555;">Preço de venda atual (R$)</label><input type="number" min="0" step="0.01" id="pf-preco" value="' + (ed.preco || '') + '" oninput="precRecalc()" style="margin-bottom:10px;">' +
             '<div id="pf-res"></div>';
         precResultado();

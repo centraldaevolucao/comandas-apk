@@ -32,11 +32,11 @@ window.renderHistoricoCaixa = function() {
         '    <div id="historico-custom" style="display:none;margin-top:10px;">',
         '        <div style="display:flex;gap:8px;">',
         '            <div style="flex:1;">',
-        '                <label style="font-size:0.7rem;color:#888;">Inicial</label>',
+        '                <label style="font-size:0.7rem;color:#6b6b6b;">Inicial</label>',
         '                <input type="date" id="hist-data-ini" onchange="aplicarFiltroHistorico()" style="width:100%;padding:8px;border:1.5px solid #ccc;border-radius:6px;font-size:0.85rem;">',
         '            </div>',
         '            <div style="flex:1;">',
-        '                <label style="font-size:0.7rem;color:#888;">Final</label>',
+        '                <label style="font-size:0.7rem;color:#6b6b6b;">Final</label>',
         '                <input type="date" id="hist-data-fim" onchange="aplicarFiltroHistorico()" style="width:100%;padding:8px;border:1.5px solid #ccc;border-radius:6px;font-size:0.85rem;">',
         '            </div>',
         '        </div>',
@@ -174,7 +174,7 @@ function renderConteudoHistorico() {
         container.innerHTML =
             '<div class="card" style="text-align:center;padding:30px;">' +
             '    <i class="fas fa-history" style="font-size:3rem;color:#ccc;"></i>' +
-            '    <p style="margin-top:15px;color:#888;">Nenhum caixa fechado neste período</p>' +
+            '    <p style="margin-top:15px;color:#6b6b6b;">Nenhum caixa fechado neste período</p>' +
             '</div>';
         return;
     }
@@ -223,24 +223,24 @@ function renderConteudoHistorico() {
         html += '    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">';
         html += '        <div>';
         html += '            <div style="font-weight:700;font-size:1.05rem;color:' + corHex + ';">' + (cor ? cor.label : '—') + '</div>';
-        html += '            <div style="font-size:0.75rem;color:#888;margin-top:2px;">';
+        html += '            <div style="font-size:0.75rem;color:#6b6b6b;margin-top:2px;">';
         html += '                <i class="fas fa-unlock"></i> ' + (c.dataAbertura || '—');
         html += '            </div>';
-        html += '            <div style="font-size:0.75rem;color:#888;">';
+        html += '            <div style="font-size:0.75rem;color:#6b6b6b;">';
         html += '                <i class="fas fa-lock"></i> ' + (c.dataFechamento || '—');
         html += '            </div>';
         html += '        </div>';
         html += '        <div style="text-align:right;">';
-        html += '            <div style="font-size:0.7rem;color:#888;">Diferença</div>';
+        html += '            <div style="font-size:0.7rem;color:#6b6b6b;">Diferença</div>';
         html += '            <div style="font-weight:700;font-size:1rem;color:' + difCor + ';">' + difTexto + '</div>';
         html += '        </div>';
         html += '    </div>';
 
         html += '    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:10px 0;border-top:1px solid #f0f0f0;font-size:0.8rem;">';
-        html += '        <div><span style="color:#888;">Fundo:</span> ' + formatMoney(c.valorInicial || 0) + '</div>';
-        html += '        <div><span style="color:#888;">Esperado:</span> ' + formatMoney(c.valorEsperado || 0) + '</div>';
-        html += '        <div><span style="color:#888;">Contado:</span> ' + formatMoney(c.valorContado || 0) + '</div>';
-        html += '        <div><span style="color:#888;">Operador:</span> ' + (c.usuario || '—') + '</div>';
+        html += '        <div><span style="color:#6b6b6b;">Fundo:</span> ' + formatMoney(c.valorInicial || 0) + '</div>';
+        html += '        <div><span style="color:#6b6b6b;">Esperado:</span> ' + formatMoney(c.valorEsperado || 0) + '</div>';
+        html += '        <div><span style="color:#6b6b6b;">Contado:</span> ' + formatMoney(c.valorContado || 0) + '</div>';
+        html += '        <div><span style="color:#6b6b6b;">Operador:</span> ' + (c.usuario || '—') + '</div>';
         html += '    </div>';
 
         // Comandas do caixa
@@ -262,7 +262,7 @@ function renderConteudoHistorico() {
                         ? '<span style="font-weight:600;color:#880E4F;">👤 ' + nomeCliente + '</span>'
                         : '<span style="color:#666;">' + nomeCliente + '</span>';
                 } else {
-                    clienteHTML = '<span style="color:#aaa;">Sem cliente</span>';
+                    clienteHTML = '<span style="color:#767676;">Sem cliente</span>';
                 }
 
                 html += '<div style="padding:6px 0;border-bottom:1px dashed #eee;font-size:0.8rem;">' +

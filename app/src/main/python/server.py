@@ -14,7 +14,7 @@ DB_PATH = DATA_DIR / "database.sqlite"
 HOST, PORT = os.getenv("HOST", "0.0.0.0"), int(os.getenv("PORT", "3000"))
 MAX_BODY = 10 * 1024 * 1024
 DB_LOCK = threading.RLock()
-VERSAO_SERVIDOR = "2.31.0"
+VERSAO_SERVIDOR = "2.32.0"
 INICIO = time.time()
 # Tempo real: cada gravação aumenta REV e acorda quem está ouvindo /api/eventos (SSE)
 REV = {"n": 0, "ultimo": ""}
@@ -120,6 +120,7 @@ def init_db():
         con.execute("UPDATE OR IGNORE recursos SET cliente_id='' WHERE cliente_id<>'' AND recurso<>'device'")
         con.commit()
     print(f"[DB] Banco pronto: {DB_PATH}", flush=True)
+    iniciar_retencao()
 
 def local_ip():
     candidates = []
@@ -213,6 +214,7 @@ def _write_resource_locked(con, resource, client_id, data):
     items = data if isinstance(data, list) else [data]
     usados = set()
     for item in items:
+        _proteger_segredos(resource, item)
         if isinstance(item, dict):
             item_id = str(item.get("id") or "")
             if not item_id or item_id in usados:
@@ -270,8 +272,185 @@ def append_only(resource, client_id, body):
         con.commit()
 
 def password_hash(value):
-    # Mantém compatibilidade com o formato Base64 utilizado pelo server.js original.
+    # Formato LEGADO (Base64). Só é usado para reconhecer senhas antigas e migrá-las.
     return base64.b64encode(str(value or "").encode("utf-8")).decode("ascii")
+
+PBKDF2_ITER = 120000
+
+def hash_senha(valor):
+    """Hash seguro (PBKDF2-HMAC-SHA256 + sal aleatório). Formato: pbkdf2$iter$sal$hash (LGPD art. 46)."""
+    import hashlib
+    b = valor if isinstance(valor, bytes) else str(valor or "").encode("utf-8")
+    sal = secrets.token_hex(16)
+    h = hashlib.pbkdf2_hmac("sha256", b, bytes.fromhex(sal), PBKDF2_ITER).hex()
+    return "pbkdf2$%d$%s$%s" % (PBKDF2_ITER, sal, h)
+
+def _eh_hash(v):
+    return isinstance(v, str) and v.startswith("pbkdf2$") and v.count("$") == 3
+
+def senha_confere(digitada, guardado):
+    """True se a senha digitada confere com o valor guardado (hash novo ou Base64 legado)."""
+    import hashlib, hmac
+    guardado = str(guardado or "")
+    if not guardado: return False
+    if _eh_hash(guardado):
+        _, it, sal, h = guardado.split("$")
+        for enc in ("utf-8", "latin-1"):
+            try: b = str(digitada or "").encode(enc)
+            except UnicodeEncodeError: continue
+            c = hashlib.pbkdf2_hmac("sha256", b, bytes.fromhex(sal), int(it)).hex()
+            if hmac.compare_digest(c, h): return True
+        return False
+    return hmac.compare_digest(password_hash(digitada), guardado)
+
+def _legado_para_bytes(v):
+    """Base64 antigo (btoa do navegador) -> bytes da senha original."""
+    try: return base64.b64decode(v, validate=True)
+    except Exception: return str(v).encode("utf-8")
+
+def _proteger_segredos(resource, item):
+    """Nunca guarda senha, resposta de segurança ou senha mestre em texto/Base64 (LGPD art. 46)."""
+    if not isinstance(item, dict): return
+    campos = {"usuarios": ("senha", "respostaSeguranca"), "configuracoes": ("senhaMestre",)}.get(resource, ())
+    for c in campos:
+        v = item.get(c)
+        if not v or _eh_hash(v): continue
+        # usuarios: o app envia Base64 (btoa). configuracoes: texto puro.
+        item[c] = hash_senha(_legado_para_bytes(v) if resource == "usuarios" else v)
+
+# ---------------------------------------------------------------------------
+# LGPD: aceite dos termos, direitos do titular (art. 18) e prazos de retenção
+# ---------------------------------------------------------------------------
+VERSAO_TERMOS = "2026-11-18"          # mude quando os Termos/Privacidade mudarem: todos precisam aceitar de novo
+RETENCAO_DIAS = {"chamados": 30, "auditoria": 365, "avaliacoes": 730}   # apagados quando vencem
+RETENCAO_ANONIMIZA_ANOS = 5           # comandas: após 5 anos, some o dado pessoal; ficam só os valores (obrigação fiscal/contábil)
+CAMPOS_PESSOAIS_COMANDA = ("cliente", "clienteCpf", "clienteTelefone", "clienteId", "clienteIdentificado", "enderecoEntrega", "endereco")
+
+def agora_iso():
+    from datetime import datetime
+    return datetime.now().astimezone().isoformat(timespec="seconds")
+
+def registrar_aceite(quem, dados):
+    """Guarda a prova do aceite (LGPD art. 8º §2º): data/hora do servidor, versão dos termos e o que foi aceito."""
+    reg = {
+        "id": novo_id(), "quem": str(quem or "")[:120], "versao": str(dados.get("versao") or VERSAO_TERMOS)[:20],
+        "dataHora": agora_iso(), "termosEPrivacidade": bool(dados.get("termos")), "maior18": bool(dados.get("maior18")),
+        "marketing": bool(dados.get("marketing")), "origem": str(dados.get("origem") or "app")[:30]
+    }
+    with DB_LOCK, db() as con:
+        rows = con.execute("SELECT dados FROM recursos WHERE recurso='aceites' AND cliente_id=''").fetchall()
+        atual = [json.loads(r["dados"]) for r in rows]
+        atual.append(reg)
+        _write_resource_locked(con, "aceites", "", atual)
+        con.commit()
+    return reg
+
+def ultimo_aceite(quem):
+    regs = [r for r in read_resource("aceites", "") if isinstance(r, dict) and r.get("quem") == str(quem or "")]
+    regs.sort(key=lambda r: r.get("dataHora", ""))
+    return regs[-1] if regs else None
+
+def exportar_dados_pessoais():
+    """Cópia legível dos dados pessoais guardados (LGPD art. 18, II e V). Sem senhas."""
+    def limpo(lista, tirar=()):
+        return [{k: v for k, v in it.items() if k not in tirar} for it in lista if isinstance(it, dict)]
+    pacote = {
+        "geradoEm": agora_iso(), "versaoApp": VERSAO_SERVIDOR, "formato": "JSON (UTF-8)",
+        "usuarios": limpo(read_resource("usuarios", ""), ("senha", "respostaSeguranca")),
+        "colaboradores": limpo(read_resource("colaboradores", ""), ("senha", "respostaSeguranca")),
+        "clientes": limpo(read_resource("clientes", "")),
+        "avaliacoes": limpo(read_resource("avaliacoes", "")),
+        "aceites": limpo(read_resource("aceites", "")),
+        "comandas_com_dados_de_clientes": [
+            {k: it.get(k) for k in ("id", "numero", "dataAbertura", "dataFechamento", "total") + CAMPOS_PESSOAIS_COMANDA if k in it}
+            for it in read_resource("comandas", "") if isinstance(it, dict) and (it.get("cliente") or it.get("clienteCpf") or it.get("clienteTelefone"))
+        ],
+    }
+    return pacote
+
+def _anonimiza_comanda(c):
+    for k in CAMPOS_PESSOAIS_COMANDA:
+        if k in c:
+            c[k] = "" if k not in ("clienteId", "clienteIdentificado") else None
+    if c.get("cliente") == "" : c["cliente"] = "Cliente removido"
+
+def anonimizar_cliente(cliente_id):
+    """Atende o pedido de exclusão de UM cliente: apaga o cadastro e tira nome/CPF/telefone das comandas,
+    mantendo só os valores da venda (obrigação fiscal/contábil, LGPD art. 16, I)."""
+    cid = str(cliente_id)
+    with DB_LOCK, db() as con:
+        cli = [json.loads(r["dados"]) for r in con.execute("SELECT dados FROM recursos WHERE recurso='clientes' AND cliente_id=''").fetchall()]
+        nome = ""
+        for c in cli:
+            if str(c.get("id")) == cid: nome = str(c.get("nome") or "").strip().lower()
+        _write_resource_locked(con, "clientes", "", [c for c in cli if str(c.get("id")) != cid])
+        rows = [json.loads(r["dados"]) for r in con.execute("SELECT dados FROM recursos WHERE recurso='comandas' AND cliente_id=''").fetchall()]
+        n = 0
+        for c in rows:
+            if str(c.get("clienteId") or "") == cid or (nome and str(c.get("cliente") or "").strip().lower() == nome):
+                _anonimiza_comanda(c); n += 1
+        _write_resource_locked(con, "comandas", "", rows)
+        con.commit()
+    return n
+
+def apagar_dados_pessoais():
+    """Apaga TODOS os dados pessoais (clientes, avaliações, colaboradores sem acesso, nomes nas comandas).
+    Ficam: usuários com acesso ao sistema (para não trancar o app), registros de aceite (prova legal) e valores das vendas."""
+    with DB_LOCK, db() as con:
+        _write_resource_locked(con, "clientes", "", [])
+        _write_resource_locked(con, "avaliacoes", "", [])
+        _write_resource_locked(con, "chamados", "", [])
+        rows = [json.loads(r["dados"]) for r in con.execute("SELECT dados FROM recursos WHERE recurso='comandas' AND cliente_id=''").fetchall()]
+        for c in rows: _anonimiza_comanda(c)
+        _write_resource_locked(con, "comandas", "", rows)
+        con.commit()
+
+def _data_br(txt):
+    import re
+    m = re.match(r"\s*(\d{2})/(\d{2})/(\d{4})", str(txt or ""))
+    return (int(m.group(3)), int(m.group(2)), int(m.group(1))) if m else None
+
+def aplicar_retencao():
+    """Apaga o que passou do prazo (ver a Política de Privacidade). Roda ao abrir o app e a cada 12 horas."""
+    from datetime import datetime
+    agora_ms = int(time.time() * 1000)
+    apagados = 0
+    try:
+        with DB_LOCK, db() as con:
+            for rec, dias in RETENCAO_DIAS.items():
+                limite = agora_ms - dias * 86400 * 1000
+                rows = [json.loads(r["dados"]) for r in con.execute("SELECT dados FROM recursos WHERE recurso=? AND cliente_id=''", (rec,)).fetchall()]
+                mantidos = []
+                for it in rows:
+                    try: ms = int(str(it.get("id")))
+                    except (ValueError, TypeError): ms = None
+                    if ms and ms > 10**12 and ms < limite: apagados += 1
+                    else: mantidos.append(it)
+                if len(mantidos) != len(rows): _write_resource_locked(con, rec, "", mantidos)
+            corte = datetime.now().year - RETENCAO_ANONIMIZA_ANOS
+            rows = [json.loads(r["dados"]) for r in con.execute("SELECT dados FROM recursos WHERE recurso='comandas' AND cliente_id=''").fetchall()]
+            mudou = False
+            for c in rows:
+                d = _data_br(c.get("dataFechamento") or c.get("dataAbertura"))
+                if d and d < (corte, datetime.now().month, datetime.now().day) and any(c.get(k) for k in CAMPOS_PESSOAIS_COMANDA):
+                    _anonimiza_comanda(c); mudou = True; apagados += 1
+            if mudou: _write_resource_locked(con, "comandas", "", rows)
+            con.commit()
+    except Exception as e:
+        print("retencao:", e, flush=True)
+    return apagados
+
+_retencao_ativa = [False]
+
+def iniciar_retencao():
+    if _retencao_ativa[0]: return
+    _retencao_ativa[0] = True
+    threading.Thread(target=_loop_retencao, daemon=True).start()
+
+def _loop_retencao():
+    while True:
+        aplicar_retencao()
+        time.sleep(12 * 3600)
 
 class Handler(BaseHTTPRequestHandler):
     server_version = "AppRestaurantePython/1.0"
@@ -531,8 +710,15 @@ class Handler(BaseHTTPRequestHandler):
                     ).fetchall()
                 user = next((json.loads(r["dados"]) for r in rows
                             if str(json.loads(r["dados"]).get("email", "")).lower() == email), None)
-                if not user or user.get("ativo") is False or password_hash(senha) != str(user.get("senha", "")):
+                if not user or user.get("ativo") is False or not senha_confere(senha, user.get("senha", "")):
                     return self.send_json(401, {"ok": False, "msg": "E-mail ou senha inválidos."})
+                if not _eh_hash(user.get("senha", "")):
+                    # migra a senha antiga (Base64) para hash seguro no primeiro login
+                    user["senha"] = hash_senha(senha)
+                    with DB_LOCK, db() as con:
+                        con.execute("UPDATE recursos SET dados=? WHERE recurso='usuarios' AND item_id=?",
+                                    (json.dumps(user, ensure_ascii=False), str(user.get("id"))))
+                        con.commit()
                 token = secrets.token_hex(24)
                 session_user = {
                     "id": user.get("id"), "nome": user.get("nome"), "email": user.get("email"),
@@ -556,6 +742,46 @@ class Handler(BaseHTTPRequestHandler):
                     con.execute("DELETE FROM sessoes WHERE token=?", (token,))
                     con.commit()
             return self.send_json(200, {"ok": True}, {"Set-Cookie": "session_token=; Max-Age=0; Path=/"})
+
+        if route == "aceite":
+            quem = (self.session_user() or {}).get("email") or "_dispositivo"
+            if self.command == "GET":
+                reg = ultimo_aceite(quem)
+                ok = bool(reg and reg.get("versao") == VERSAO_TERMOS and reg.get("termosEPrivacidade") and reg.get("maior18"))
+                return self.send_json(200, {"ok": True, "aceito": ok, "versao": VERSAO_TERMOS, "registro": reg})
+            if self.command == "POST":
+                try: body = self.read_json()
+                except (ValueError, TypeError): return self.send_json(400, {"ok": False, "msg": "Requisição inválida."})
+                if body.get("revogarMarketing") and not body.get("termos"):
+                    ant = ultimo_aceite(quem) or {}
+                    body = {"termos": ant.get("termosEPrivacidade"), "maior18": ant.get("maior18"), "versao": ant.get("versao"),
+                            "marketing": bool(body.get("marketing")), "origem": "central-privacidade"}
+                elif not (body.get("termos") and body.get("maior18")):
+                    return self.send_json(400, {"ok": False, "msg": "É preciso aceitar os Termos e a Política e confirmar ter 18 anos ou mais."})
+                return self.send_json(200, {"ok": True, "registro": registrar_aceite(quem, body)})
+
+        if parts and parts[0] == "privacidade":
+            if self.externo():
+                return self.send_json(403, {"error": "Somente no aparelho servidor"})
+            acao = parts[1] if len(parts) > 1 else ""
+            if acao == "exportar" and self.command == "GET":
+                dados = json.dumps(exportar_dados_pessoais(), ensure_ascii=False, indent=2).encode("utf-8")
+                return self.send_file_bytes("meus-dados-restaurante.json", dados, "application/json")
+            if acao == "anonimizar" and self.command == "POST":
+                try: body = self.read_json()
+                except (ValueError, TypeError): return self.send_json(400, {"ok": False})
+                if not body.get("clienteId"): return self.send_json(400, {"ok": False, "msg": "Informe o cliente."})
+                return self.send_json(200, {"ok": True, "comandasAnonimizadas": anonimizar_cliente(body["clienteId"])})
+            if acao == "apagar-pessoais" and self.command == "POST":
+                try: body = self.read_json()
+                except (ValueError, TypeError): return self.send_json(400, {"ok": False})
+                if str(body.get("confirmar", "")).strip().upper() != "APAGAR":
+                    return self.send_json(400, {"ok": False, "msg": "Digite APAGAR para confirmar."})
+                apagar_dados_pessoais()
+                return self.send_json(200, {"ok": True})
+            if acao == "retencao" and self.command == "POST":
+                return self.send_json(200, {"ok": True, "tratados": aplicar_retencao()})
+            return self.send_json(404, {"error": "rota"})
 
         if route == "sessao" and self.command == "GET":
             user = self.session_user()

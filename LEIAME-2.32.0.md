@@ -1,4 +1,4 @@
-> **Versão atual do sistema: 2.31.0** — este arquivo é renomeado e atualizado a cada versão (seções numeradas abaixo, da mais antiga à mais nova).
+> **Versão atual do sistema: 2.32.0** — este arquivo é renomeado e atualizado a cada versão (seções numeradas abaixo, da mais antiga à mais nova).
 
 # Comandas 2.3.0 — guia, relatório de correções, testes e pendências
 
@@ -446,3 +446,27 @@ Um app só, três edições com a mesma base de dados. Quem libera cada edição
 - Novo `tunel.py` e rotas `/api/tunel`, `/api/tunel/iniciar` e `/api/tunel/parar` (somente no próprio computador, nunca pelo link externo).
 - Se estiver sem internet, o card mostra o motivo.
 - No Android nada muda (continua o túnel do app).
+
+## 64. Impressora na comanda e no recibo: Cupom ou A4 (v2.32.0)
+- Na pré-visualização da **comanda** e do **recibo** há o campo **"Imprimir em"**: **Cupom (térmica)** — padrão em toda impressão — ou **A4 — <nome da impressora>**.
+- Em **Impressoras > Impressoras A4 (folha)** você cadastra (e remove) as impressoras A4. A impressora física é escolhida na janela de impressão do aparelho; o nome cadastrado aparece como lembrete.
+- Escolhendo A4, a térmica não é acionada e a página sai em A4. A via da cozinha continua sempre no cupom.
+
+## 65. Recibo A4 em formato de nota (v2.32.0)
+- Novo modelo (`js/impA4.js`): cabeçalho com logo e dados da empresa, quadros de cliente e atendimento, tabela de itens, forma de pagamento, totais, observações e assinaturas.
+- **Sempre traz o aviso "DOCUMENTO SEM VALOR FISCAL — NÃO SUBSTITUI NOTA FISCAL"** (não é NF-e/NFC-e).
+- **QR Code Pix** no quadro de pagamento enquanto o recibo estiver **aguardando pagamento** ou **pendente** (valor = Pix escolhido ou o que falta pagar).
+- **Várias páginas** automaticamente quando os itens não cabem em uma (cabeçalho de continuação, "Página x de y", fechamento só na última).
+- Novos campos em **Configurações**: razão social, CNPJ/CPF, endereço, telefone e observação padrão do recibo A4 (linhas vazias não aparecem).
+
+## 66. Revisão jurídica LGPD / CDC (v2.32.0) — não substitui um advogado
+Veja **CONFORMIDADE-LGPD-CDC.md** (item a item, o que mudou, fornecedores, roteiro de vazamento, prazos de retenção e o que depende de você). Resumo do que mudou no app:
+- **Termos de Uso, Política de Privacidade, Política de Reembolso e Créditos/licenças** em português, com links no rodapé do menu, login, Suporte e cardápio QR (abrem sem login em `/#privacidade` etc.).
+- **Aceite obrigatório** antes do uso (Termos + Política, declaração de 18+), com **data, hora e versão** gravadas pelo servidor; **marketing** em caixa separada e **desmarcada**.
+- **Privacidade e meus dados** (menu Configurações): baixar dados (JSON), apagar dados pessoais, revogar marketing, contato de privacidade.
+- Excluir um cliente agora também tira nome/CPF/telefone das comandas (ficam só os valores).
+- **Senhas com hash PBKDF2** (sal por usuário); senhas antigas migram sozinhas no primeiro login; resposta de segurança e senha mestre também protegidas.
+- **Retenção automática**: chamados 30 dias, auditoria 12 meses, avaliações 24 meses, dados pessoais de comandas anonimizados após 5 anos.
+- Tela Assinatura: sem promessas não entregues, sem selos não comprováveis, aviso de **sem renovação automática**, total a pagar, arrependimento de 7 dias.
+- Avaliação: autorização de contato vem **desmarcada**. Zoom da tela liberado, contraste de textos secundários, `alt` em imagens, foco visível e teclado em itens clicáveis.
+- Assinatura do APK: o `build.gradle` agora lê a chave de **GitHub Secrets** (ver CONFORMIDADE, item 11).

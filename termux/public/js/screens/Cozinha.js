@@ -75,7 +75,7 @@ window.renderCozinha = function() {
                     Desative o que <b>acabou</b>.
                 </div>
                 <div id="cozinha-lista-produtos" style="flex:1; overflow-y:auto; padding:10px;">
-                    <p style="text-align:center; color:#999;">🔄 Buscando produtos...</p>
+                    <p style="text-align:center; color:#767676;">🔄 Buscando produtos...</p>
                 </div>
             </div>
 
@@ -111,7 +111,7 @@ async function carregarListaCardapioLateral() {
         });
 
         if (produtosDoDia.length === 0) {
-            container.innerHTML = '<div style="padding:20px; text-align:center; color:#888;"><i class="fas fa-box-open" style="font-size:2rem; margin-bottom:10px; opacity:0.5;"></i><p style="font-size:0.85rem;">Nenhum produto ativo no cardápio hoje.</p></div>';
+            container.innerHTML = '<div style="padding:20px; text-align:center; color:#6b6b6b;"><i class="fas fa-box-open" style="font-size:2rem; margin-bottom:10px; opacity:0.5;"></i><p style="font-size:0.85rem;">Nenhum produto ativo no cardápio hoje.</p></div>';
             return;
         }
 
@@ -327,7 +327,7 @@ function renderCardCozinha(entry) {
             '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">' +
             '<div style="flex:1;">' +
             '    <div style="font-weight:600;font-size:0.95rem; text-decoration: ' + (isCancelada ? 'line-through' : 'none') + '; color: ' + (acabou || semEstoque ? '#c62828' : '#333') + ';">' + item.quantidade + 'x ' + item.nome + '</div>' +
-            '    <div style="font-size:0.75rem;color:#888;margin-top:3px;"><i class="fas fa-utensils"></i> ' + (item.localProducao || 'cozinha') + ' · <span style="color:' + st2.cor + ';">' + st2.label + '</span></div>' +
+            '    <div style="font-size:0.75rem;color:#6b6b6b;margin-top:3px;"><i class="fas fa-utensils"></i> ' + (item.localProducao || 'cozinha') + ' · <span style="color:' + st2.cor + ';">' + st2.label + '</span></div>' +
             alertaEstoque +
             '</div>' +
             '<div>' + botoesAcao + '</div>' +
@@ -344,7 +344,7 @@ function renderCardCozinha(entry) {
         '        <div style="font-size:0.8rem; color:#880E4F; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:250px;">' + itensResumo + '</div>' +
         '    </div>' +
         '    <div style="display:flex; align-items:center; gap:10px;">' +
-        '        <i class="fas ' + (aberto ? 'fa-chevron-up' : 'fa-chevron-down') + '" style="color:#999;"></i>' +
+        '        <i class="fas ' + (aberto ? 'fa-chevron-up' : 'fa-chevron-down') + '" style="color:#767676;"></i>' +
         '        <button class="btn-limpar" onclick="event.stopPropagation(); excluirCozinha(' + c.id + ')" style="color:#c62828; padding:5px;"><i class="fas fa-times"></i></button>' +
         '    </div>' +
         '</div>' +

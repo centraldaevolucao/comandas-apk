@@ -62,7 +62,7 @@ if (window.renderPIX) {
             html += '    <div class="card-row" style="border-top:1px solid #e0c8e8; padding-top:12px;">';
             html += '        <div>';
             html += '            <strong style="font-size:0.9rem;">Exibir QR Code no Recibo</strong>';
-            html += '            <small style="color:#888;font-size:0.75rem;display:block;">Se ativo, imprime o QR Code PIX com o valor no final do recibo do cliente.</small>';
+            html += '            <small style="color:#6b6b6b;font-size:0.75rem;display:block;">Se ativo, imprime o QR Code PIX com o valor no final do recibo do cliente.</small>';
             html += '        </div>';
             html += '        <label class="toggle"><input type="checkbox" id="pix-exibir-recibo" ' + (exibirRecibo ? 'checked' : '') + ' onchange="salvarConfigPixSimples()"><span class="slider"></span></label>';
             html += '    </div>';

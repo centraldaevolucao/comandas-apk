@@ -102,7 +102,7 @@ function renderCards() {
     }
 
     if (lista.length === 0) {
-        return '<p class="empty-state">Sem comandas ' + tituloAba().toLowerCase() + '.<br><span style="font-size:0.8rem;color:#999;margin-top:10px;display:block;">Para criar uma nova, acesse o PDV.</span></p>';
+        return '<p class="empty-state">Sem comandas ' + tituloAba().toLowerCase() + '.<br><span style="font-size:0.8rem;color:#767676;margin-top:10px;display:block;">Para criar uma nova, acesse o PDV.</span></p>';
     }
 
     return lista.map(function (c) {

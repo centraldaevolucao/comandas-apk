@@ -157,7 +157,7 @@
                     '<div style="flex:1;"><label style="font-size:.7rem;color:#777;">Quantidade</label><input type="number" min="1" id="ce-q' + i + '" value="' + (it.quantidade || '') + '" oninput="compraRecalc()"></div>' +
                     '<div style="flex:1;"><label style="font-size:.7rem;color:#777;">Custo unitário</label><input type="number" min="0" step="0.01" id="ce-c' + i + '" value="' + (it.custo || '') + '" oninput="compraRecalc()"></div>' +
                     '<div style="flex:1;text-align:right;"><div style="font-size:.7rem;color:#777;">Subtotal</div><b id="ce-s' + i + '">' + R(Number(it.quantidade || 0) * Number(it.custo || 0)) + '</b></div></div></div>';
-            }).join('') : '<div style="color:#888;font-size:.85rem;padding:8px 0;">Nenhum item. Adicione abaixo ou use a sugestão.</div>') +
+            }).join('') : '<div style="color:#6b6b6b;font-size:.85rem;padding:8px 0;">Nenhum item. Adicione abaixo ou use a sugestão.</div>') +
             '<div class="row-add" style="display:flex;gap:8px;margin:8px 0;"><select id="ce-add" style="flex:1;"><option value="">Adicionar produto…</option>' +
             livres.map(function (p) { return '<option value="' + esc(p.id) + '">' + esc(p.nome) + ' (estoque ' + Number(p.estoque || 0) + ')</option>'; }).join('') + '</select>' +
             '<button class="btn-primary" onclick="compraItemAdd()">Adicionar</button></div>' +
@@ -206,7 +206,7 @@
         const c = window.comprasState.compras.find(function (x) { return String(x.id) === String(id); }); if (!c) return;
         const st = STATUS[c.status] || STATUS.pedido;
         const itens = lista(c.itens).map(function (i) {
-            return '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f0f0f0;font-size:.88rem;"><span>' + esc(i.quantidade) + ' × ' + esc(i.nome) + '<br><small style="color:#888;">' + R(i.custo) + ' cada</small></span><b>' + R(Number(i.quantidade) * Number(i.custo)) + '</b></div>';
+            return '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f0f0f0;font-size:.88rem;"><span>' + esc(i.quantidade) + ' × ' + esc(i.nome) + '<br><small style="color:#6b6b6b;">' + R(i.custo) + ' cada</small></span><b>' + R(Number(i.quantidade) * Number(i.custo)) + '</b></div>';
         }).join('');
         const btn = function (txt, fn, estilo) { return '<button class="btn-primary" style="width:100%;margin-top:8px;' + (estilo || '') + '" onclick="' + fn + '">' + txt + '</button>'; };
         const out = function (txt, fn) { return '<button class="btn-outline" style="width:100%;margin-top:8px;" onclick="' + fn + '">' + txt + '</button>'; };

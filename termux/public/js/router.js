@@ -65,7 +65,12 @@ window.ROTAS = {
     'rede':                     'renderRede',
     'assinatura':               'renderAssinatura',
     'avaliacao':                'renderAvaliacao',
-    'suporte':                  'renderSuporte'
+    'suporte':                  'renderSuporte',
+    'termos':                   'renderTermos',
+    'privacidade':              'renderPrivacidade',
+    'reembolso':                'renderReembolso',
+    'creditos':                 'renderCreditos',
+    'meus-dados':               'renderMeusDados'
 };
 
 window.PERMISSOES_ROTA = {

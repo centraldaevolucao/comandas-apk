@@ -55,7 +55,7 @@ window.renderCardapioDia = function() {
         '        <div style="margin-top:10px;padding:10px;background:#f5f5f5;border-radius:8px;">',
         '            <label style="font-size:0.75rem;color:#666;display:block;margin-bottom:4px;">Nome deste grupo:</label>',
         '            <input type="text" id="cor-equipe-nome" placeholder="Ex: Almoço, Jantar, Promoções" style="width:100%;padding:8px 10px;border:1.5px solid #ccc;border-radius:6px;font-family:var(--font-family);font-size:0.85rem;" onchange="atualizarNomeGrupoEquipe()">',
-        '            <small style="color:#888;font-size:0.7rem;display:block;margin-top:4px;">Esse nome aparecerá no cardápio do cliente.</small>',
+        '            <small style="color:#6b6b6b;font-size:0.7rem;display:block;margin-top:4px;">Esse nome aparecerá no cardápio do cliente.</small>',
         '        </div>',
         '    </div>',
 
@@ -65,7 +65,7 @@ window.renderCardapioDia = function() {
         '    </div>',
 
         '    <div id="cardapio-dia-chips" style="padding:0 16px 10px;">',
-        '        <span style="color:#888;font-size:0.8rem;white-space:nowrap;">Carregando categorias...</span>',
+        '        <span style="color:#6b6b6b;font-size:0.8rem;white-space:nowrap;">Carregando categorias...</span>',
         '    </div>',
 
         '    <div style="padding:0 16px 10px;display:flex;gap:8px;">',
@@ -245,7 +245,7 @@ function renderListaCardapioDia() {
             '        <input type="checkbox" ' + (selecionado ? 'checked' : '') + (inativo ? ' disabled' : '') + ' onchange="toggleProdutoCardapioDia(' + p.id + ')" style="width:24px;height:24px;cursor:pointer;accent-color:#4caf50;flex-shrink:0;">' +
             '        <div style="flex:1;min-width:0;">' +
             '            <div style="font-weight:600;color:' + corTexto + ';font-size:0.95rem;">' + p.nome + (inativo ? ' <span style="background:#ccc;color:#666;font-size:0.6rem;padding:2px 6px;border-radius:6px;">INATIVO</span>' : '') + '</div>' +
-            (nomeGrupo ? '            <div style="font-size:0.75rem;color:#888;margin-top:2px;">' + nomeGrupo + '</div>' : '') +
+            (nomeGrupo ? '            <div style="font-size:0.75rem;color:#6b6b6b;margin-top:2px;">' + nomeGrupo + '</div>' : '') +
             '            <div style="font-size:0.8rem;color:var(--primary-color);font-weight:600;margin-top:4px;">' + formatMoney(preco) + '</div>' +
             '        </div>' +
             '        <div style="font-size:1.3rem;color:' + (selecionado ? '#4caf50' : '#ddd') + ';"><i class="fas ' + (selecionado ? 'fa-check-circle' : 'fa-circle') + '"></i></div>' +

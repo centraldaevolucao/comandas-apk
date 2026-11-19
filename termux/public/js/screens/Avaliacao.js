@@ -10,7 +10,7 @@
     const ROTULOS = ['', 'Ruim', 'Regular', 'Bom', 'Muito bom', 'Excelente'];
     const GOSTEI = ['Fácil de usar', 'Rápido', 'Impressão', 'Caixa e relatórios', 'Estoque', 'Suporte'];
     const EDNOME = { gratis: 'Grátis', essencial: 'Essencial', gestao: 'Gestão', completo: 'Completo' };
-    const ST = window.avaliacaoState = { nota: 0, gostou: [], melhorar: '', nome: '', contato: true, ultima: null };
+    const ST = window.avaliacaoState = { nota: 0, gostou: [], melhorar: '', nome: '', contato: false, ultima: null };
 
     function estrela(cheia, i) {
         return '<button type="button" onclick="avaliacaoNota(' + i + ')" aria-label="' + i + ' estrela' + (i > 1 ? 's' : '') + '" style="border:0;background:none;padding:2px;cursor:pointer;">' +
@@ -33,7 +33,7 @@
             '<textarea id="av-mel" rows="3" maxlength="600" placeholder="Conte o que faltou ou o que atrapalhou" oninput="avaliacaoTexto(\'melhorar\',this.value)" style="width:100%;box-sizing:border-box;padding:10px 12px;border:1.5px solid #EBD9E0;border-radius:10px;font:inherit;">' + esc(ST.melhorar) + '</textarea>' +
             '<label for="av-nome" style="display:block;font-size:.78rem;color:#6B5A62;margin:10px 0 4px;">Seu nome ou estabelecimento (opcional)</label>' +
             '<input id="av-nome" value="' + esc(ST.nome) + '" maxlength="80" oninput="avaliacaoTexto(\'nome\',this.value)" style="width:100%;box-sizing:border-box;padding:10px 12px;border:1.5px solid #EBD9E0;border-radius:10px;font:inherit;">' +
-            '<label style="display:flex;gap:8px;align-items:center;font-size:.85rem;margin-top:10px;cursor:pointer;"><input type="checkbox" ' + (ST.contato ? 'checked ' : '') + 'onchange="avaliacaoTexto(\'contato\',this.checked)" style="width:auto;"> Pode me responder pelo WhatsApp</label></div>';
+            '<label style="display:flex;gap:8px;align-items:center;font-size:.85rem;margin-top:10px;cursor:pointer;"><input type="checkbox" ' + (ST.contato ? 'checked ' : '') + 'onchange="avaliacaoTexto(\'contato\',this.checked)" style="width:auto;"> Autorizo a Central da Evolução a me responder por WhatsApp sobre esta avaliação <small style="color:#6b6b6b;">(opcional)</small></label></div>';
         h += '<div style="font-size:.78rem;color:#6B5A62;line-height:1.5;margin:0 4px 12px;">Vão junto com a mensagem a versão do app, a edição e o ID do equipamento, só para o suporte te ajudar melhor.' +
             (u ? '<br>Última avaliação enviada: ' + '★'.repeat(u.nota) + ' em ' + esc(u.data) + '.' : '') + '</div>';
         h += '<button class="btn-primary" style="width:100%;" onclick="avaliacaoEnviar(\'whats\')"><i class="fab fa-whatsapp"></i> Enviar pelo WhatsApp</button>' +
@@ -43,7 +43,7 @@
     function desenhar() { const b = document.getElementById('avaliacao-corpo'); if (b) b.innerHTML = corpo(); }
 
     window.renderAvaliacao = function () {
-        ST.nota = 0; ST.gostou = []; ST.melhorar = ''; ST.contato = true;
+        ST.nota = 0; ST.gostou = []; ST.melhorar = ''; ST.contato = false;
         setTimeout(async function () {
             try {
                 const cfg = window.normalizarArray(await window.apiGet('configuracoes'))[0] || {};

@@ -52,7 +52,7 @@ if (!window.renderPedidosPendentes) {
                 html += '            <div style="font-size:0.8rem; color:#666;"><i class="fas fa-user"></i> ' + (p.cliente || 'Sem nome') + '</div>';
                 html += '        </div>';
                 html += '        <div style="text-align:right;">';
-                html += '            <div style="font-size:0.75rem; color:#888;">' + dataStr + '</div>';
+                html += '            <div style="font-size:0.75rem; color:#6b6b6b;">' + dataStr + '</div>';
                 html += '            <div style="font-weight:700; color:#2e7d32; font-size:1.1rem;">' + formatMoney(p.total || 0) + '</div>';
                 html += '        </div>';
                 html += '    </div>';

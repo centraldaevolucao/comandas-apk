@@ -38,7 +38,7 @@ window.renderEditarComanda = function() {
         '        <div class="field" id="ec-campo-mesa">',
         '            <label id="ec-mesa-label">Mesa</label>',
         '            <select id="ec-mesa"><option value="">Carregando...</option></select>',
-        '            <small id="ec-mesa-info" style="color:#888;font-size:0.75rem;"></small>',
+        '            <small id="ec-mesa-info" style="color:#6b6b6b;font-size:0.75rem;"></small>',
         '        </div>',
 
         '        <div class="field">',
@@ -69,7 +69,7 @@ window.ajustarTipoComandaEdicao = function() {
     if (tipo === 'aberta') {
         if (label) label.innerHTML = 'Mesa *';
     } else {
-        if (label) label.innerHTML = 'Mesa <span style="color:#888;font-weight:400;">(opcional)</span>';
+        if (label) label.innerHTML = 'Mesa <span style="color:#6b6b6b;font-weight:400;">(opcional)</span>';
         // NÃO força para o tipo — deixa o usuário escolher ou vazio
         if (sel) sel.value = '';
     }
@@ -115,7 +115,7 @@ async function preencherFormularioEdicao() {
     if (tipo === 'aberta') {
         if (label) label.innerHTML = 'Mesa *';
     } else {
-        if (label) label.innerHTML = 'Mesa <span style="color:#888;font-weight:400;">(opcional)</span>';
+        if (label) label.innerHTML = 'Mesa <span style="color:#6b6b6b;font-weight:400;">(opcional)</span>';
     }
 }
 

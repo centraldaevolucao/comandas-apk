@@ -85,7 +85,7 @@
             const cred = p.forma === 'credito';
             const ov = overlay(topo('Registrar cartão') +
                 '<div style="padding:14px 16px;overflow-y:auto;"><div style="color:#333;">Valor: <b>' + dinheiro(p.valor) + '</b> — ' + (cred ? 'Crédito' : (p.forma === 'pix' ? 'PIX' : 'Débito')) + '</div>' +
-                '<div style="font-size:.8rem;color:#888;margin-top:4px;">Passe o cartão na maquininha. Preencher é <b>opcional</b>: informe só o que quiser guardar do comprovante.</div>' +
+                '<div style="font-size:.8rem;color:#6b6b6b;margin-top:4px;">Passe o cartão na maquininha. Preencher é <b>opcional</b>: informe só o que quiser guardar do comprovante.</div>' +
                 campo('mq-band', 'Bandeira (opcional)', '', 'text', 'Visa, Master, Elo…') + campo('mq-nsu', 'NSU / Nº do comprovante (opcional)', '', 'text') +
                 campo('mq-aut', 'Código de autorização (opcional)', '', 'text') + campo('mq-4', 'Últimos 4 dígitos (opcional)', '', 'text', '1234') +
                 (cred ? campo('mq-parc', 'Parcelas', 1, 'number') : '') + '</div>' +

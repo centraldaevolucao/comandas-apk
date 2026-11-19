@@ -34,11 +34,11 @@ window.renderTotaisEspecie = function() {
         '    <div id="te-custom-date" style="display:none;margin-top:10px;">',
         '        <div style="display:flex;gap:8px;">',
         '            <div style="flex:1;">',
-        '                <label style="font-size:0.7rem;color:#888;">Inicial</label>',
+        '                <label style="font-size:0.7rem;color:#6b6b6b;">Inicial</label>',
         '                <input type="date" id="te-data-ini" onchange="aplicarFiltrosTE()" style="width:100%;padding:8px;border:1.5px solid #ccc;border-radius:6px;font-size:0.85rem;">',
         '            </div>',
         '            <div style="flex:1;">',
-        '                <label style="font-size:0.7rem;color:#888;">Final</label>',
+        '                <label style="font-size:0.7rem;color:#6b6b6b;">Final</label>',
         '                <input type="date" id="te-data-fim" onchange="aplicarFiltrosTE()" style="width:100%;padding:8px;border:1.5px solid #ccc;border-radius:6px;font-size:0.85rem;">',
         '            </div>',
         '        </div>',
@@ -291,7 +291,7 @@ function renderVisaoTotalTE(container, comandas) {
         html += '    <div style="background:#eee;height:6px;border-radius:3px;overflow:hidden;">';
         html += '        <div style="height:100%;width:' + pct + '%;background:' + f.cor + ';"></div>';
         html += '    </div>';
-        html += '    <div style="font-size:0.7rem;color:#888;margin-top:2px;text-align:right;">' + pct.toFixed(1) + '%</div>';
+        html += '    <div style="font-size:0.7rem;color:#6b6b6b;margin-top:2px;text-align:right;">' + pct.toFixed(1) + '%</div>';
         html += '</div>';
     });
     html += '<div style="margin-top:12px;padding-top:10px;border-top:2px solid #eee;display:flex;justify-content:space-between;">';
@@ -327,7 +327,7 @@ function renderVisaoPorDiaTE(container, comandas) {
     if (arr.length === 0) {
         html += '<div class="card" style="text-align:center;padding:30px;">';
         html += '    <i class="fas fa-calendar-times" style="font-size:3rem;color:#ccc;"></i>';
-        html += '    <p style="margin-top:15px;color:#888;">Nenhum dado no período</p>';
+        html += '    <p style="margin-top:15px;color:#6b6b6b;">Nenhum dado no período</p>';
         html += '</div>';
         container.innerHTML = html;
         return;
@@ -353,7 +353,7 @@ function renderVisaoPorDiaTE(container, comandas) {
         html += '    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">';
         html += '        <div>';
         html += '            <div style="font-weight:700;font-size:1rem;"><i class="fas fa-calendar-day"></i> ' + dataFormatada + '</div>';
-        html += '            <div style="font-size:0.75rem;color:#888;">' + x.qtd + ' comanda(s)</div>';
+        html += '            <div style="font-size:0.75rem;color:#6b6b6b;">' + x.qtd + ' comanda(s)</div>';
         html += '        </div>';
         html += '        <div style="font-weight:700;color:var(--primary-color);font-size:1.1rem;">' + formatMoney(x.total) + '</div>';
         html += '    </div>';
@@ -362,7 +362,7 @@ function renderVisaoPorDiaTE(container, comandas) {
         if (x.debito > 0)   html += '<div><span style="color:#1976d2;">💳</span> Débito ' + formatMoney(x.debito) + '</div>';
         if (x.credito > 0)  html += '<div><span style="color:#C2185B;">💳</span> Crédito ' + formatMoney(x.credito) + '</div>';
         if (x.pix > 0)      html += '<div><span style="color:#ff9800;">📱</span> ' + formatMoney(x.pix) + '</div>';
-        if (x.outros > 0)   html += '<div><span style="color:#888;">Outros</span> ' + formatMoney(x.outros) + '</div>';
+        if (x.outros > 0)   html += '<div><span style="color:#6b6b6b;">Outros</span> ' + formatMoney(x.outros) + '</div>';
         html += '    </div>';
         html += '</div>';
     });

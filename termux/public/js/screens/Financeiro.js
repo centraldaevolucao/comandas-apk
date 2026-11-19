@@ -133,7 +133,7 @@
             lin('(−) CMV · custo das mercadorias', d.cmv, true) +
             '<div style="display:flex;justify-content:space-between;padding:10px 12px;background:#FBE4EC;border:1px solid #EBC4D3;border-radius:10px;margin:4px 0;font-size:.95rem;"><b>Lucro bruto</b><b style="color:#A5144B;">' + R(d.lucroBruto) + '</b></div>' +
             '<div style="font-size:.72rem;font-weight:700;color:#777;letter-spacing:.05em;padding:8px 12px 2px;">DESPESAS OPERACIONAIS (por vencimento)</div>' +
-            (cats.length ? cats.map(function (k) { return lin(esc(k), d.porCat[k], true); }).join('') : '<div style="padding:4px 12px;font-size:.82rem;color:#888;">Nenhuma despesa lançada neste mês. Cadastre em Contas.</div>') +
+            (cats.length ? cats.map(function (k) { return lin(esc(k), d.porCat[k], true); }).join('') : '<div style="padding:4px 12px;font-size:.82rem;color:#6b6b6b;">Nenhuma despesa lançada neste mês. Cadastre em Contas.</div>') +
             lin('Taxas de cartão e Pix (' + pct(num(s.cfg.taxa)) + ', estimado)', d.taxas, true) +
             '<div style="display:flex;justify-content:space-between;align-items:center;padding:14px;background:' + COR + ';color:#fff;border-radius:12px;margin-top:8px;"><div><div style="font-size:.75rem;opacity:.9;">Resultado do mês</div><div style="font-size:1.5rem;font-weight:800;">' + R(d.resultado) + '</div></div><div style="text-align:right;"><div style="font-size:.75rem;opacity:.9;">Margem</div><div style="font-size:1.2rem;font-weight:800;">' + pct(d.margem) + '</div></div></div>' +
             (d.pendente > 0 ? '<div style="font-size:.78rem;color:#6A4300;background:#FFF4E5;border-radius:10px;padding:8px 12px;margin-top:8px;">Inclui <b>' + R(d.pendente) + '</b> ainda pendentes (fiado) que não entraram no caixa.</div>' : '') +
@@ -198,7 +198,7 @@
                     '<div style="display:flex;justify-content:space-between;font-size:.76rem;color:#777;margin-top:2px;"><span>' + esc(x.sub) + '</span><span style="color:' + (atras ? '#c62828;font-weight:700' : '#777') + ';">' + (x.pago ? 'paga em ' + dataBR(x.pagoEm) : (x.venc ? (atras ? 'vencida em ' : 'vence ') + dataBR(x.venc) : 'sem vencimento')) + '</span></div></div>';
             }).join('') : '<p class="empty-state">' + (f === 'pagas' ? 'Nenhuma conta paga.' : 'Nenhuma conta a pagar.') + '</p>') +
             (fiado.length ? '<div style="font-size:.72rem;font-weight:700;color:#777;letter-spacing:.05em;margin:14px 4px 6px;">A RECEBER · PENDÊNCIAS (FIADO)</div>' +
-                fiado.slice(0, 8).map(function (x) { return '<div class="card" style="padding:10px 12px;margin-bottom:6px;display:flex;justify-content:space-between;font-size:.88rem;"><span>' + esc(x.nome) + ' <small style="color:#888;">· ' + x.q + ' comanda(s)</small></span><b style="color:#e65100;">' + R(x.v) + '</b></div>'; }).join('') +
+                fiado.slice(0, 8).map(function (x) { return '<div class="card" style="padding:10px 12px;margin-bottom:6px;display:flex;justify-content:space-between;font-size:.88rem;"><span>' + esc(x.nome) + ' <small style="color:#6b6b6b;">· ' + x.q + ' comanda(s)</small></span><b style="color:#e65100;">' + R(x.v) + '</b></div>'; }).join('') +
                 '<button class="btn-outline" style="width:100%;" onclick="navigateTo(\'pendencias\')">Abrir Pendências</button>' : '');
     }
     window.finFiltroContas = function (f) { window.finState.filtroContas = f; finDesenhar(); };

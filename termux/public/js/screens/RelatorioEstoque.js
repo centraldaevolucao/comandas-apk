@@ -120,7 +120,7 @@ function linhaProdutoEstoque(p, cor) {
     return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #eee;">' +
            '    <div style="flex:1;min-width:0;">' +
            '        <div style="font-weight:500;font-size:0.9rem;">' + p.nome + '</div>' +
-           '        <div style="font-size:0.72rem;color:#888;">Mín: ' + min + ' un</div>' +
+           '        <div style="font-size:0.72rem;color:#6b6b6b;">Mín: ' + min + ' un</div>' +
            '    </div>' +
            '    <div style="font-weight:700;color:' + cor + ';font-size:1rem;">' + estoque + '</div>' +
            '</div>';

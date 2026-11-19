@@ -66,13 +66,13 @@
                 '<div><div style="font-weight:700;color:#333;">' + esc(g.nome) + '</div>' +
                 '<div style="font-size:.75rem;color:#777;">' + g.comandas.length + ' comanda(s)' + (g.telefone ? ' · ' + esc(g.telefone) : '') + '</div></div>' +
                 '<div style="text-align:right;"><div style="font-weight:700;color:#e65100;font-size:1.05rem;">' + R(g.total) + '</div>' +
-                '<i class="fas fa-chevron-' + (exp ? 'up' : 'down') + '" style="color:#999;font-size:.8rem;"></i></div></div>';
+                '<i class="fas fa-chevron-' + (exp ? 'up' : 'down') + '" style="color:#767676;font-size:.8rem;"></i></div></div>';
             if (exp) {
                 h += '<div style="padding:0 14px 12px;border-top:1px dashed #eee;">';
                 g.comandas.slice().sort(function (a, b) { return String(a.dataFechamento || '').localeCompare(String(b.dataFechamento || '')); }).forEach(function (c) {
                     h += '<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #f3f3f3;">' +
                         '<div><div style="font-weight:600;font-size:.88rem;">Comanda ' + esc(c.numero) + '</div>' +
-                        '<div style="font-size:.72rem;color:#888;">' + esc(c.dataFechamento || c.dataAbertura || '') + '</div></div>' +
+                        '<div style="font-size:.72rem;color:#6b6b6b;">' + esc(c.dataFechamento || c.dataAbertura || '') + '</div></div>' +
                         '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end;"><b style="color:#e65100;">' + R(c.valorPendente) + '</b>' +
                         '<button class="btn-outline" style="padding:5px 9px;font-size:.75rem;border-color:#1976d2;color:#1976d2;" onclick="pendenciaVer(' + jq(c.id) + ')"><i class="fas fa-eye"></i> Ver</button>' +
                         '<button class="btn-outline" style="padding:5px 9px;font-size:.75rem;border-color:#6a1b9a;color:#6a1b9a;" onclick="reabrirPendencia(' + jq(c.id) + ')"><i class="fas fa-lock-open"></i> Reabrir</button>' +
@@ -195,12 +195,12 @@
         const lin = function (l, v, ex) { return '<div style="display:flex;justify-content:space-between;padding:3px 0;' + (ex || '') + '"><span>' + l + '</span><b>' + v + '</b></div>'; };
         box.innerHTML =
             '<div style="background:#fff3e0;border-radius:10px;padding:12px;text-align:center;margin-bottom:14px;"><div style="font-size:.75rem;color:#666;">' + esc(a.nome) + ' · ' + a.qtd + ' comanda(s)</div>' +
-            '<div style="font-size:1.5rem;font-weight:700;color:#e65100;">' + R(a.total) + '</div><div style="font-size:.72rem;color:#888;">pendente</div></div>' +
+            '<div style="font-size:1.5rem;font-weight:700;color:#e65100;">' + R(a.total) + '</div><div style="font-size:.72rem;color:#6b6b6b;">pendente</div></div>' +
             '<div>' + (a.pags.length ? a.pags.map(function (p, i) {
                 const f = FORMAS_P[p.forma] || [p.forma, 'fa-money-bill'];
                 return '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #eee;"><i class="fas ' + f[1] + '" style="color:#e65100;width:22px;text-align:center;"></i><span style="flex:1;font-weight:600;">' + f[0] + '</span><b>' + R(p.valor) + '</b>' +
                     '<button class="btn-limpar" onclick="pendAddPag(' + i + ')" style="color:#1976d2;"><i class="fas fa-pen-to-square"></i></button><button class="btn-limpar" onclick="pendDelPag(' + i + ')" style="color:#c62828;"><i class="fas fa-trash"></i></button></div>';
-            }).join('') : '<div style="color:#888;font-size:.85rem;padding:8px 0;">Nenhum pagamento adicionado.</div>') + '</div>' +
+            }).join('') : '<div style="color:#6b6b6b;font-size:.85rem;padding:8px 0;">Nenhum pagamento adicionado.</div>') + '</div>' +
             '<div style="background:#f5f5f5;border-radius:10px;padding:10px 12px;margin-top:12px;font-size:.88rem;">' + lin('Total pendente:', R(a.total)) + (desc > 0 ? lin('Desconto:', '- ' + R(desc), 'color:#2e7d32;') : '') + lin('Total recebido:', R(pago)) +
             (falta > 0.009 ? lin('Continua pendente:', R(falta), 'color:#e65100;') : '') + '</div>' +
             '<div style="font-size:.75rem;color:#666;margin:12px 0 8px;">Pode receber um valor <b>parcial</b> em qualquer forma. O restante continua pendente.</div>' +
@@ -440,9 +440,9 @@
     const btn = function (onclick, icone, txt, cor, cheio) { return '<button class="btn-outline" style="' + (cheio ? 'flex:1 1 100%;' : 'flex:1 1 45%;') + 'padding:9px;font-size:.82rem;border-color:' + cor + ';color:' + cor + ';" onclick="' + onclick + '"><i class="fas ' + icone + '"></i> ' + txt + '</button>'; };
     const linhasItens = function (c) {
         const its = window.normalizarArray(c.itens);
-        if (!its.length) return '<div style="color:#999;font-size:.85rem;padding:6px 0;">Sem itens.</div>';
+        if (!its.length) return '<div style="color:#767676;font-size:.85rem;padding:6px 0;">Sem itens.</div>';
         return its.map(function (i) {
-            return '<div style="display:flex;justify-content:space-between;gap:8px;padding:5px 0;border-bottom:1px dashed #eee;font-size:.88rem;"><span>' + esc(i.quantidade) + 'x ' + esc(i.nome) + (i.observacao ? '<div style="font-size:.7rem;color:#888;">' + esc(i.observacao) + '</div>' : '') + '</span><span>' + R(Number(i.preco || 0) * Number(i.quantidade || 0)) + '</span></div>';
+            return '<div style="display:flex;justify-content:space-between;gap:8px;padding:5px 0;border-bottom:1px dashed #eee;font-size:.88rem;"><span>' + esc(i.quantidade) + 'x ' + esc(i.nome) + (i.observacao ? '<div style="font-size:.7rem;color:#6b6b6b;">' + esc(i.observacao) + '</div>' : '') + '</span><span>' + R(Number(i.preco || 0) * Number(i.quantidade || 0)) + '</span></div>';
         }).join('');
     };
     const textoComanda = function (c) {
@@ -503,7 +503,7 @@
         const corpo = g.comandas.map(function (c) {
             return '<div style="border:1px solid #ffe0b2;border-radius:10px;padding:8px 10px;margin-bottom:8px;background:#fffaf0;">' +
                 '<div style="display:flex;justify-content:space-between;font-weight:700;"><span>Comanda ' + esc(c.numero) + '</span><span style="color:#e65100;">' + R(c.valorPendente) + '</span></div>' +
-                '<div style="font-size:.7rem;color:#888;margin-bottom:4px;">' + esc(c.dataFechamento || c.dataPendencia || c.dataAbertura || '') + '</div>' + linhasItens(c) + '</div>';
+                '<div style="font-size:.7rem;color:#6b6b6b;margin-bottom:4px;">' + esc(c.dataFechamento || c.dataPendencia || c.dataAbertura || '') + '</div>' + linhasItens(c) + '</div>';
         }).join('') + '<div style="display:flex;justify-content:space-between;font-size:1.1rem;font-weight:700;color:#e65100;margin-top:6px;"><span>TOTAL PENDENTE</span><span>' + R(g.total) + '</span></div>';
         const cq = jq(chave);
         moldura('modal-pend-cli', '<i class="fas fa-list"></i> ' + esc(g.nome), '#455a64', corpo,

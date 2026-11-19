@@ -80,7 +80,7 @@ function renderListaGruposTrabalho() {
             '    <div style="width:50px;height:50px;border-radius:50%;background:' + cor.hex + ';margin-right:14px;flex-shrink:0;box-shadow:0 2px 8px ' + cor.hex + '60;"></div>' +
             '    <div style="flex:1;min-width:0;">' +
             '        <div style="font-weight:700;font-size:1.05rem;color:#333;">' + cor.label + '</div>' +
-            '        <div style="font-size:0.75rem;color:#888;">ID: ' + cor.id + ' · ' + cor.hex + '</div>' +
+            '        <div style="font-size:0.75rem;color:#6b6b6b;">ID: ' + cor.id + ' · ' + cor.hex + '</div>' +
             '    </div>' +
             '    <button class="btn-limpar" onclick="editarGrupoTrabalho(' + idx + ')" title="Editar" style="margin-right:6px;">' +
             '        <i class="fas fa-pen" style="color:#1976d2;font-size:1rem;"></i>' +
@@ -137,7 +137,7 @@ function abrirModalGrupoTrabalho(idx) {
         '            </div>' +
         '        </div>' +
         '        <div style="padding:14px;background:#f5f5f5;border-radius:8px;text-align:center;">' +
-        '            <div style="font-size:0.75rem;color:#888;margin-bottom:8px;">PRÉVIA</div>' +
+        '            <div style="font-size:0.75rem;color:#6b6b6b;margin-bottom:8px;">PRÉVIA</div>' +
         '            <div id="gt-preview" style="display:inline-flex;align-items:center;gap:10px;background:#fff;padding:10px 16px;border-radius:10px;box-shadow:0 2px 6px rgba(0,0,0,0.08);">' +
         '                <div id="gt-preview-bola" style="width:32px;height:32px;border-radius:50%;background:' + cor.hex + ';"></div>' +
         '                <div id="gt-preview-nome" style="font-weight:600;">' + (cor.label || 'Nome') + '</div>' +

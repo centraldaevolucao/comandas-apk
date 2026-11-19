@@ -102,7 +102,7 @@ window.renderCadastroProduto = function() {
         '                    <label>Preço promocional (R$)</label>',
         '                    <input type="number" step="0.01" min="0" id="p-promo" placeholder="0,00" value="' + (p.precoPromocional || '') + '">',
         '                </div>',
-        '                <small style="color:#888;font-size:0.75rem;display:block;margin-top:6px;">',
+        '                <small style="color:#6b6b6b;font-size:0.75rem;display:block;margin-top:6px;">',
         '                    Enquanto estiver ativo, este preço será usado no lugar do valor de venda.',
         '                </small>',
         '            </div>',
@@ -126,7 +126,7 @@ window.renderCadastroProduto = function() {
         '            <div class="card-title">Adicionais vinculados</div>',
         '            <p style="font-size:0.8rem;color:#666;margin-bottom:10px;">Selecione os adicionais disponíveis para este produto.</p>',
         '            <div id="p-adicionais-lista" style="display:flex;flex-direction:column;gap:8px;">',
-        '                <small style="color:#888;">Carregando...</small>',
+        '                <small style="color:#6b6b6b;">Carregando...</small>',
         '            </div>',
         '        </div>',
 
@@ -197,7 +197,7 @@ async function carregarDadosAuxiliares(p) {
     if (!divAdic) return;
 
     if (window.adicionaisCacheCadastro.length === 0) {
-        divAdic.innerHTML = '<small style="color:#888;">Nenhum adicional cadastrado.</small>';
+        divAdic.innerHTML = '<small style="color:#6b6b6b;">Nenhum adicional cadastrado.</small>';
         return;
     }
 
@@ -207,7 +207,7 @@ async function carregarDadosAuxiliares(p) {
         const checked = vinculados.some(function(x) { return String(x) === String(a.id); });
         return '<label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:6px 0;">' +
                '    <input type="checkbox" class="p-adicional-check" value="' + a.id + '" ' + (checked ? 'checked' : '') + '>' +
-               '    <span>' + a.nome + ' <small style="color:#888;">(' + formatMoney(a.preco) + ')</small></span>' +
+               '    <span>' + a.nome + ' <small style="color:#6b6b6b;">(' + formatMoney(a.preco) + ')</small></span>' +
                '</label>';
     }).join('');
 }

@@ -307,7 +307,7 @@ if (!window.renderRelatorios) {
             const forte = !def(f[1]) && f[0] !== 'Período' && f[0] !== 'Tipo';
             return '<span style="display:inline-block;border-radius:14px;padding:4px 10px;margin:0 6px 6px 0;font-size:0.78rem;' +
                 (forte ? 'background:#C2185B;color:#fff;border:1px solid #C2185B;' : 'background:#fff;border:1px solid ' + (on ? '#f0c4d4' : '#e5e5e5') + ';' + (on ? '' : 'opacity:.7;')) + '">' +
-                '<span style="' + (forte ? 'opacity:.85;' : 'color:#888;') + '">' + f[0] + ':</span> <b style="' + (forte ? '' : 'color:#C2185B;') + '">' + String(f[1]).replace(/</g, '&lt;') + '</b></span>';
+                '<span style="' + (forte ? 'opacity:.85;' : 'color:#6b6b6b;') + '">' + f[0] + ':</span> <b style="' + (forte ? '' : 'color:#C2185B;') + '">' + String(f[1]).replace(/</g, '&lt;') + '</b></span>';
         };
         return filtros.map(chip).join('') + '';
     }
@@ -384,7 +384,7 @@ if (!window.renderRelatorios) {
                     <div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #eee; cursor:pointer;" onclick="abrirComandaRelatorio(${c.id})">
                         <div>
                             <div style="font-weight:bold;">#${c.numero} - ${c.cliente || 'Sem nome'}</div>
-                            <div style="font-size:0.75rem; color:#888;">${c.dataFechamento || c.dataAbertura}</div>
+                            <div style="font-size:0.75rem; color:#6b6b6b;">${c.dataFechamento || c.dataAbertura}</div>
                         </div>
                         <div style="font-weight:bold; color:var(--primary-color);">${formatMoney(totalDaComanda(c))}</div>
                     </div>
@@ -421,7 +421,7 @@ if (!window.renderRelatorios) {
                             <div style="width:24px; height:24px; background:#f0f0f0; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.75rem; font-weight:bold;">${idx+1}</div>
                             <div>
                                 <div style="font-weight:bold;">${p.nome}</div>
-                                <div style="font-size:0.75rem; color:#888;">${p.qtd} unidades</div>
+                                <div style="font-size:0.75rem; color:#6b6b6b;">${p.qtd} unidades</div>
                             </div>
                         </div>
                         <div style="font-weight:bold; color:#2e7d32;">${formatMoney(p.total)}</div>
@@ -454,7 +454,7 @@ if (!window.renderRelatorios) {
                     <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid #eee;">
                         <div>
                             <div style="font-weight:bold;">${cli.nome}</div>
-                            <div style="font-size:0.75rem; color:#888;">${cli.qtd} comanda(s)</div>
+                            <div style="font-size:0.75rem; color:#6b6b6b;">${cli.qtd} comanda(s)</div>
                         </div>
                         <div style="font-weight:bold; color:#2e7d32;">${formatMoney(cli.total)}</div>
                     </div>

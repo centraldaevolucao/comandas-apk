@@ -332,7 +332,7 @@ function renderCaixaAberto(container) {
     html += '        <div style="display:flex;align-items:center;gap:12px;flex:1;">';
     html += '            <div style="width:44px;height:44px;background:' + corHex + '20;border-radius:50%;display:flex;align-items:center;justify-content:center;"><i class="fas fa-chart-pie" style="color:' + corHex + ';font-size:1.2rem;"></i></div>';
     html += '            <div style="flex:1;"><div style="font-weight:700;font-size:1rem;color:var(--primary-color);"><i class="fas fa-calculator" style="font-size:0.85rem;"></i> Resumo do caixa</div>';
-    html += '                <div style="font-size:0.75rem;color:#888;margin-top:2px;">Vendas, formas de pagamento, saldo esperado</div>';
+    html += '                <div style="font-size:0.75rem;color:#6b6b6b;margin-top:2px;">Vendas, formas de pagamento, saldo esperado</div>';
     html += '                <div style="font-size:0.8rem;color:' + corHex + ';font-weight:600;margin-top:4px;">' + formatMoney(totalVendas) + ' em vendas · ' + comandasFechadas.length + ' fechada(s)</div></div></div>';
     html += '        <i class="fas fa-chevron-right" style="color:#ccc;font-size:1.2rem;"></i>';
     html += '    </div></div>';
@@ -370,8 +370,8 @@ function renderCaixaAberto(container) {
             const icone = isSangria ? 'fa-arrow-up' : 'fa-arrow-down';
             html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f0f0f0;">';
             html += '    <div style="flex:1;"><div style="font-weight:500;font-size:0.9rem;color:' + corTxt + ';"><i class="fas ' + icone + '"></i> ' + (isSangria ? 'Sangria' : 'Suprimento') + '</div>';
-            html += '        <div style="font-size:0.75rem;color:#888;">' + (s.motivo || 'Sem motivo') + '</div>';
-            html += '        <div style="font-size:0.7rem;color:#aaa;">' + (s.data || '') + '</div></div>';
+            html += '        <div style="font-size:0.75rem;color:#6b6b6b;">' + (s.motivo || 'Sem motivo') + '</div>';
+            html += '        <div style="font-size:0.7rem;color:#767676;">' + (s.data || '') + '</div></div>';
             html += '    <div style="font-weight:700;color:' + corTxt + ';">' + (isSangria ? '-' : '+') + formatMoney(s.valor) + '</div></div>';
         });
         html += '</div>';

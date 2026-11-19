@@ -48,7 +48,7 @@ window.renderComandasArquivadas = function() {
         '    <details id="arquivadas-filtros-details">',
         '        <summary style="padding:12px 16px;cursor:pointer;font-weight:600;color:var(--primary-color);font-size:0.9rem;">',
         '            <i class="fas fa-filter"></i> Filtros',
-        '            <span id="arquivadas-filtros-resumo" style="font-size:0.75rem;color:#888;font-weight:400;margin-left:6px;"></span>',
+        '            <span id="arquivadas-filtros-resumo" style="font-size:0.75rem;color:#6b6b6b;font-weight:400;margin-left:6px;"></span>',
         '        </summary>',
 
         // Período
@@ -58,11 +58,11 @@ window.renderComandasArquivadas = function() {
         '            <div id="arquivadas-custom-date" style="display:none;margin-top:10px;">',
         '                <div style="display:flex;gap:8px;">',
         '                    <div style="flex:1;">',
-        '                        <label style="font-size:0.7rem;color:#888;">Inicial</label>',
+        '                        <label style="font-size:0.7rem;color:#6b6b6b;">Inicial</label>',
         '                        <input type="date" id="arquivadas-data-ini" onchange="aplicarFiltrosArquivadas()" style="width:100%;padding:8px;border:1.5px solid #ccc;border-radius:6px;font-size:0.85rem;">',
         '                    </div>',
         '                    <div style="flex:1;">',
-        '                        <label style="font-size:0.7rem;color:#888;">Final</label>',
+        '                        <label style="font-size:0.7rem;color:#6b6b6b;">Final</label>',
         '                        <input type="date" id="arquivadas-data-fim" onchange="aplicarFiltrosArquivadas()" style="width:100%;padding:8px;border:1.5px solid #ccc;border-radius:6px;font-size:0.85rem;">',
         '                    </div>',
         '                </div>',
@@ -456,7 +456,7 @@ function renderConteudoArquivadas() {
         if (lista.length === 0) {
             html += '<div class="card" style="text-align:center;padding:30px;">';
             html += '    <i class="fas fa-archive" style="font-size:3rem;color:#ccc;"></i>';
-            html += '    <p style="margin-top:15px;color:#888;">Nenhuma comanda arquivada no período</p>';
+            html += '    <p style="margin-top:15px;color:#6b6b6b;">Nenhuma comanda arquivada no período</p>';
             html += '</div>';
         } else {
             html += '<div style="color:#666;font-size:0.8rem;margin-bottom:8px;">' + lista.length + ' comanda(s) encontrada(s)</div>';
@@ -496,7 +496,7 @@ function renderItemArquivada(c) {
         ? (temClienteCadastrado
             ? '<span style="color:#880E4F;font-weight:600;"><i class="fas fa-user-circle"></i> ' + nomeCliente + '</span>'
             : '<span style="color:#666;"><i class="fas fa-user"></i> ' + nomeCliente + '</span>')
-        : '<span style="color:#aaa;">Sem cliente</span>';
+        : '<span style="color:#767676;">Sem cliente</span>';
 
     // Fiado
     const temFiado = window.comandaTemFiado(c);
@@ -519,8 +519,8 @@ function renderItemArquivada(c) {
         '    <div style="font-size:0.8rem;color:#666;margin-top:4px;">' +
         '        <i class="fas fa-chair"></i> ' + (c.mesa || '—') + ' · ' + clienteHTML +
         '    </div>' +
-        (c.garcom ? '    <div style="font-size:0.75rem;color:#888;"><i class="fas fa-user-tie"></i> ' + c.garcom + '</div>' : '') +
-        '    <div style="font-size:0.72rem;color:#999;margin-top:2px;">' + dataTexto + origemLabel + '</div>' +
+        (c.garcom ? '    <div style="font-size:0.75rem;color:#6b6b6b;"><i class="fas fa-user-tie"></i> ' + c.garcom + '</div>' : '') +
+        '    <div style="font-size:0.72rem;color:#767676;margin-top:2px;">' + dataTexto + origemLabel + '</div>' +
         fiadoHTML +
         '    <div style="font-size:0.75rem;color:#666;margin-top:2px;">' + itens + ' item(ns)</div>' +
         '</div>' +

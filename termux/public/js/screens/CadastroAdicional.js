@@ -41,7 +41,7 @@ window.renderCadastroAdicional = function() {
         '        <div class="field">',
         '            <label>Preço (R$)</label>',
         '            <input type="number" step="0.01" min="0" id="a-preco" placeholder="0,00" value="' + (a.preco || '') + '">',
-        '            <small style="color:#888;font-size:0.75rem;">Valor cobrado quando o cliente adiciona este item</small>',
+        '            <small style="color:#6b6b6b;font-size:0.75rem;">Valor cobrado quando o cliente adiciona este item</small>',
         '        </div>',
 
         // Sugestões

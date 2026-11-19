@@ -67,7 +67,7 @@ async function carregarResumoCaixa() {
             container.innerHTML =
                 '<div class="card" style="text-align:center;padding:30px;">' +
                 '    <i class="fas fa-lock" style="font-size:3rem;color:#c62828;"></i>' +
-                '    <p style="margin-top:15px;color:#888;">Caixa não encontrado.</p>' +
+                '    <p style="margin-top:15px;color:#6b6b6b;">Caixa não encontrado.</p>' +
                 '    <button class="btn-outline" style="margin-top:15px;" onclick="voltarResumoCaixa()">' +
                 '        <i class="fas fa-arrow-left"></i> Voltar' +
                 '    </button>' +
@@ -263,8 +263,8 @@ async function carregarResumoCaixa() {
                 html += '        <div style="font-weight:500;font-size:0.9rem;color:' + corTxt + ';">';
                 html += '            <i class="fas ' + icone + '"></i> ' + (isSangria ? 'Sangria' : 'Suprimento');
                 html += '        </div>';
-                html += '        <div style="font-size:0.75rem;color:#888;">' + (s.motivo || 'Sem motivo') + '</div>';
-                html += '        <div style="font-size:0.7rem;color:#aaa;">' + (s.data || '') + '</div>';
+                html += '        <div style="font-size:0.75rem;color:#6b6b6b;">' + (s.motivo || 'Sem motivo') + '</div>';
+                html += '        <div style="font-size:0.7rem;color:#767676;">' + (s.data || '') + '</div>';
                 html += '    </div>';
                 html += '    <div style="font-weight:700;color:' + corTxt + ';">' + (isSangria ? '-' : '+') + formatMoney(s.valor) + '</div>';
                 html += '</div>';

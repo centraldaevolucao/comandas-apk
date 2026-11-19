@@ -37,11 +37,11 @@ window.renderProdutosVendidos = function() {
         '    <div id="pv-custom-date" style="display:none;margin-top:10px;">',
         '        <div style="display:flex;gap:8px;">',
         '            <div style="flex:1;">',
-        '                <label style="font-size:0.7rem;color:#888;">Inicial</label>',
+        '                <label style="font-size:0.7rem;color:#6b6b6b;">Inicial</label>',
         '                <input type="date" id="pv-data-ini" onchange="aplicarFiltrosPV()" style="width:100%;padding:8px;border:1.5px solid #ccc;border-radius:6px;font-size:0.85rem;">',
         '            </div>',
         '            <div style="flex:1;">',
-        '                <label style="font-size:0.7rem;color:#888;">Final</label>',
+        '                <label style="font-size:0.7rem;color:#6b6b6b;">Final</label>',
         '                <input type="date" id="pv-data-fim" onchange="aplicarFiltrosPV()" style="width:100%;padding:8px;border:1.5px solid #ccc;border-radius:6px;font-size:0.85rem;">',
         '            </div>',
         '        </div>',
@@ -317,7 +317,7 @@ function renderConteudoPV() {
         if (arr.length === 0) {
             html += '<div class="card" style="text-align:center;padding:30px;">';
             html += '    <i class="fas fa-chart-bar" style="font-size:3rem;color:#ccc;"></i>';
-            html += '    <p style="margin-top:15px;color:#888;">Nenhuma venda no período</p>';
+            html += '    <p style="margin-top:15px;color:#6b6b6b;">Nenhuma venda no período</p>';
             html += '</div>';
         } else {
             html += '<div class="card">';
@@ -338,12 +338,12 @@ function renderConteudoPV() {
                 html += '                <span style="color:#C2185B;margin-right:4px;">' + medalha + '</span>' + x.nome;
                 html += '            </div>';
                 if (grupoNome) {
-                    html += '            <div style="font-size:0.72rem;color:#888;margin-top:2px;"><i class="fas fa-layer-group"></i> ' + grupoNome + '</div>';
+                    html += '            <div style="font-size:0.72rem;color:#6b6b6b;margin-top:2px;"><i class="fas fa-layer-group"></i> ' + grupoNome + '</div>';
                 }
                 html += '        </div>';
                 html += '        <div style="text-align:right;">';
                 html += '            <div style="font-weight:700;color:#C2185B;font-size:1rem;">' + formatMoney(x.valor) + '</div>';
-                html += '            <div style="font-size:0.75rem;color:#888;">' + x.qtd + ' un</div>';
+                html += '            <div style="font-size:0.75rem;color:#6b6b6b;">' + x.qtd + ' un</div>';
                 html += '        </div>';
                 html += '    </div>';
                 html += '    <div style="background:#eee;height:8px;border-radius:4px;overflow:hidden;">';

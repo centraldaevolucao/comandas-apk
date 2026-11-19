@@ -172,7 +172,7 @@ console.log('✔ bluetooth.js carregado');
             m.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:400000;display:flex;align-items:center;justify-content:center;padding:16px;';
             m.innerHTML = '<div style="background:#fff;border-radius:16px;max-width:360px;width:100%;overflow:hidden;">' +
                 '<div style="background:#c62828;color:#fff;padding:14px 16px;font-weight:700;"><i class="fas fa-print"></i> Impressora não encontrada</div>' +
-                '<div style="padding:16px;font-size:.9rem;color:#444;line-height:1.45;">A impressão foi <b>cancelada</b>.<div style="font-size:.78rem;color:#888;margin-top:6px;">' + String(msg || '').replace(/</g, '&lt;') + '</div>' +
+                '<div style="padding:16px;font-size:.9rem;color:#444;line-height:1.45;">A impressão foi <b>cancelada</b>.<div style="font-size:.78rem;color:#6b6b6b;margin-top:6px;">' + String(msg || '').replace(/</g, '&lt;') + '</div>' +
                 '<div style="margin-top:12px;font-weight:600;">Enviar o comprovante de outra forma:</div>' +
                 '<button class="btn-primary" id="bf-w" style="background:#25d366;width:100%;margin-top:8px;"><i class="fab fa-whatsapp"></i> WhatsApp</button>' +
                 '<button class="btn-outline" id="bf-o" style="width:100%;margin-top:8px;"><i class="fas fa-share-nodes"></i> Compartilhar (e-mail, Drive, outros)</button>' +

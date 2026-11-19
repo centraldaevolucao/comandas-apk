@@ -42,7 +42,7 @@ async function carregarTipoDispositivo() {
 
     // Estado atual
     html += '<div class="card" style="background:#FCE4EC;text-align:center;">';
-    html += '    <div style="font-size:0.75rem;color:#888;">MODO ATUAL</div>';
+    html += '    <div style="font-size:0.75rem;color:#6b6b6b;">MODO ATUAL</div>';
     html += '    <div style="font-size:1.2rem;font-weight:700;color:var(--primary-color);margin-top:4px;">';
     html += '        ' + (tipo === 'unico' ? '📱 Único' : tipo === 'servidor' ? '🌐 Servidor' : '🔗 Cliente');
     html += '    </div>';

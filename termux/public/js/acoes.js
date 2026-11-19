@@ -150,7 +150,7 @@ console.log('✔ acoes.js carregado');
 
         const detalhe = function (rot, t, itens) {
             return '<details style="border-bottom:1px solid #f0f0f0;padding:6px 0;"><summary style="display:flex;justify-content:space-between;gap:10px;cursor:pointer;list-style:none;">' +
-                '<span>' + rot + ' <small style="color:#888;">(' + t.qtd + ' ' + (t.qtd === 1 ? 'transação' : 'transações') + ')</small></span><b>' + money(t.total) + '</b></summary>' +
+                '<span>' + rot + ' <small style="color:#6b6b6b;">(' + t.qtd + ' ' + (t.qtd === 1 ? 'transação' : 'transações') + ')</small></span><b>' + money(t.total) + '</b></summary>' +
                 '<div style="font-size:0.78rem;color:#666;padding:6px 0 2px 10px;line-height:1.6;">' + (itens.length ? itens.map(esc).join('<br>') : 'Nenhuma transação.') + '</div></details>';
         };
         const m = criarModal('modal-fechar-caixa', '🔒 Fechar caixa', '#c62828',
@@ -332,14 +332,14 @@ console.log('✔ acoes.js carregado');
         const termo = String((document.getElementById('filtro-texto-' + campo) || {}).value || '').trim().toLowerCase();
         const todas = (window.__opcoesFiltro || {})[campo] || [];
         const l = todas.filter(function (o) { return !termo || o.nome.toLowerCase().includes(termo); });
-        if (!todas.length) { box.innerHTML = '<div style="padding:14px;text-align:center;color:#999;">Nada encontrado com os filtros atuais.</div>'; return; }
-        if (!l.length) { box.innerHTML = '<div style="padding:14px;text-align:center;color:#999;">Nenhum resultado para "' + esc(termo) + '".</div>'; return; }
+        if (!todas.length) { box.innerHTML = '<div style="padding:14px;text-align:center;color:#767676;">Nada encontrado com os filtros atuais.</div>'; return; }
+        if (!l.length) { box.innerHTML = '<div style="padding:14px;text-align:center;color:#767676;">Nenhum resultado para "' + esc(termo) + '".</div>'; return; }
         const fm = function (v) { return 'R$ ' + Number(v).toFixed(2).replace('.', ','); };
         box.innerHTML = l.map(function (o, i) {
             const sel = o.nome.toLowerCase() === atual;
             return '<div class="drop-item' + (sel ? ' selecionado' : '') + '" role="button" tabindex="0" data-i="' + i + '" onclick="escolherOpcaoLista(\'' + campo + '\', ' + todas.indexOf(o) + ')">' +
                 '<span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;">' + esc(o.nome) + '</span>' +
-                '<span style="font-size:.72rem;color:#888;margin-left:8px;white-space:nowrap;">' + (campo === 'cliente' ? o.qtd + ' comanda(s)' : o.qtd + ' un.') + ' · ' + fm(o.total) + '</span>' + (sel ? '<i class="fas fa-check" style="margin-left:6px;"></i>' : '') + '</div>';
+                '<span style="font-size:.72rem;color:#6b6b6b;margin-left:8px;white-space:nowrap;">' + (campo === 'cliente' ? o.qtd + ' comanda(s)' : o.qtd + ' un.') + ' · ' + fm(o.total) + '</span>' + (sel ? '<i class="fas fa-check" style="margin-left:6px;"></i>' : '') + '</div>';
         }).join('');
     };
     window.escolherOpcaoLista = function (campo, idx) {
@@ -400,7 +400,7 @@ console.log('✔ acoes.js carregado');
             h = '<input type="search" class="search-input" id="filtro-texto-' + id + '" autocomplete="off" placeholder="' +
                 (id === 'cliente' ? 'Buscar cliente' : 'Buscar produto') + '" value="' + esc(atual) + '" ' +
                 'oninput="filtrarListaOpcoes(\'' + id + '\')" onkeydown="if(event.key===\'Enter\'){aplicarFiltroTexto(\'' + id + '\')}">' +
-                '<div id="lista-opcoes-' + id + '" style="max-height:42vh;overflow-y:auto;margin:8px 0;"><div style="padding:14px;text-align:center;color:#999;">Carregando...</div></div>' +
+                '<div id="lista-opcoes-' + id + '" style="max-height:42vh;overflow-y:auto;margin:8px 0;"><div style="padding:14px;text-align:center;color:#767676;">Carregando...</div></div>' +
                 '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">' +
                 '<button type="button" class="btn-outline" onclick="limparFiltroTexto(\'' + id + '\')">Todos (limpar)</button>' +
                 '<button type="button" class="btn-primary" onclick="aplicarFiltroTexto(\'' + id + '\')"><i class="fas fa-check"></i> Aplicar texto</button></div>';
@@ -428,7 +428,7 @@ console.log('✔ acoes.js carregado');
             const doDia = produtos.filter(function (p) { return p.inativo !== true && sel[p.id] === true; })
                 .sort(function (a, b) { return String(a.nome || '').localeCompare(String(b.nome || '')); });
             if (!doDia.length) {
-                lista.innerHTML = '<p style="text-align:center;padding:20px;color:#999;">Nenhum produto no cardápio de hoje.</p>';
+                lista.innerHTML = '<p style="text-align:center;padding:20px;color:#767676;">Nenhum produto no cardápio de hoje.</p>';
                 return;
             }
             lista.innerHTML = doDia.map(function (p) {

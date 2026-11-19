@@ -17,9 +17,9 @@ if (!window.renderAtalhos) {
                 const urlLogo = config.urlLogo || '';
 
                 if (urlLogo) {
-                    logoHTML = `<img src="${urlLogo}" style="max-width: 100%; max-height: 100%; object-fit: contain; padding: 8px; box-sizing: border-box;">`;
+                    logoHTML = `<img alt="Logo" src="${urlLogo}" style="max-width: 100%; max-height: 100%; object-fit: contain; padding: 8px; box-sizing: border-box;">`;
                 } else if (config.urlIcone) {
-                    logoHTML = `<img src="${config.urlIcone}" style="max-width: 100%; max-height: 100%; object-fit: contain; padding: 8px; box-sizing: border-box;">`;
+                    logoHTML = `<img alt="Logo" src="${config.urlIcone}" style="max-width: 100%; max-height: 100%; object-fit: contain; padding: 8px; box-sizing: border-box;">`;
                 } else {
                     logoHTML = `<i class="fas fa-utensils" style="font-size: 3rem; color: var(--primary-color);"></i>`;
                 }

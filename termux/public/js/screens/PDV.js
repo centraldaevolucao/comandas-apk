@@ -251,7 +251,7 @@ function renderCardComandaPDV(c) {
     const clienteHTML = nomeCliente ? '<div class="card-comanda-status" style="font-size:0.62rem;font-weight:600;color:#880E4F;background:rgba(255,255,255,0.5);padding:2px 4px;border-radius:6px;margin-top:2px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="' + nomeCliente + '">👤 ' + clienteCurto + '</div>' : '';
 
     const totalHTML = temFaltando
-        ? '<div class="card-comanda-status" style="margin-top:2px;font-weight:700;text-decoration:line-through;color:#888;font-size:0.65rem;">' + formatMoney(c.total) + '</div><div class="card-comanda-status" style="font-size:0.85rem;font-weight:700;color:#2e7d32;">' + formatMoney(totalReal) + '</div>'
+        ? '<div class="card-comanda-status" style="margin-top:2px;font-weight:700;text-decoration:line-through;color:#6b6b6b;font-size:0.65rem;">' + formatMoney(c.total) + '</div><div class="card-comanda-status" style="font-size:0.85rem;font-weight:700;color:#2e7d32;">' + formatMoney(totalReal) + '</div>'
         : '<div class="card-comanda-status" style="margin-top:2px;font-weight:700;">' + formatMoney(totalReal) + '</div>';
 
     return '<div class="card-comanda-wrapper">' +

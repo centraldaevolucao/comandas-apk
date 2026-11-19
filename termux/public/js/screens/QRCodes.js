@@ -115,7 +115,7 @@ function renderListaQRCodes() {
         html += '    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">';
         html += '        <div style="font-weight:700;font-size:1.1rem;color:' + (ativa ? '#2e7d32' : '#666') + ';">';
         html += '            ' + m.nome;
-        html += '            <div style="font-size:0.7rem;font-weight:400;color:#888;margin-top:2px;">Número: ' + m.numero + '</div>';
+        html += '            <div style="font-size:0.7rem;font-weight:400;color:#6b6b6b;margin-top:2px;">Número: ' + m.numero + '</div>';
         html += '        </div>';
         html += '        <label class="toggle">';
         html += '            <input type="checkbox" ' + (ativa ? 'checked' : '') + ' onchange="toggleMesaQRCode(\'' + m.id + '\')">';
@@ -124,7 +124,7 @@ function renderListaQRCodes() {
         html += '    </div>';
 
         html += '    <div style="text-align:center; background:#fff; border-radius:8px; padding:10px; margin-bottom:10px; border:1px solid #eee;">';
-        html += '        <img src="' + qrUrl + '" style="width:100%; max-width:150px; display:block; margin:0 auto; ' + (ativa ? '' : 'opacity:0.4;') + '">';
+        html += '        <img alt="QR Code" src="' + qrUrl + '" style="width:100%; max-width:150px; display:block; margin:0 auto; ' + (ativa ? '' : 'opacity:0.4;') + '">';
         html += '    </div>';
 
         html += '    <div class="qrcode-acoes" style="display:flex; flex-direction:column; gap:6px;">';
@@ -196,12 +196,12 @@ window.imprimirQRCodeMesa = function(mesaId) {
         'h1{font-size:22px;margin-bottom:5px;color:#333;}' +
         'h2{font-size:14px;color:#666;margin-bottom:20px;font-weight:normal;}' +
         'img{width:300px;height:300px;margin:10px 0;}' +
-        'p{font-size:12px;color:#999;word-break:break-all;}' +
+        'p{font-size:12px;color:#767676;word-break:break-all;}' +
         '.footer{margin-top:30px;font-size:10px;color:#ccc;}' +
         '</style></head><body>' +
         '<h1>' + mesa.nome + '</h1>' +
         '<h2>Aponte a câmera do celular para fazer seu pedido</h2>' +
-        '<img src="' + qrUrl + '">' +
+        '<img alt="QR Code" src="' + qrUrl + '">' +
         '<p>' + url + '</p>' +
         '<div class="footer">Sistema App Restaurante</div>' +
         '<script>window.onload=function(){setTimeout(function(){window.print();},500);}</script>' +

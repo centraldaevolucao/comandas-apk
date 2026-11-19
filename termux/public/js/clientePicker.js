@@ -84,8 +84,8 @@
             box.style.cssText = 'position:fixed;left:' + r.left + 'px;width:' + r.width + 'px;max-height:' + alt + 'px;overflow-y:auto;background:#fff;border:2px solid ' + COR + ';border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.3);z-index:300001;' + (abaixo > 180 ? 'top:' + (r.bottom + 4) + 'px;' : 'bottom:' + (window.innerHeight - r.top + 4) + 'px;');
             const item = function (html, extra) { return '<div class="cp-it" style="padding:11px 12px;border-bottom:1px solid #f0f0f0;cursor:pointer;font-size:.95rem;' + (extra || '') + '">' + html + '</div>'; };
             let h = item('<i class="fas fa-user-slash" style="margin-right:6px;"></i> Sem cadastro (digitar nome)', 'color:#666;');
-            h += lista.map(function (c) { return item('<b>' + esc(c.nome) + '</b>' + (c.telefone ? '<div style="font-size:.78rem;color:#888;">' + esc(c.telefone) + '</div>' : '')); }).join('');
-            if (!lista.length) h += '<div style="padding:10px 12px;color:#999;font-size:.85rem;">Nenhum cliente encontrado.</div>';
+            h += lista.map(function (c) { return item('<b>' + esc(c.nome) + '</b>' + (c.telefone ? '<div style="font-size:.78rem;color:#6b6b6b;">' + esc(c.telefone) + '</div>' : '')); }).join('');
+            if (!lista.length) h += '<div style="padding:10px 12px;color:#767676;font-size:.85rem;">Nenhum cliente encontrado.</div>';
             h += item('<i class="fas fa-plus"></i> Novo cliente', 'color:' + COR + ';font-weight:700;border-bottom:none;');
             box.innerHTML = h;
             const its = box.querySelectorAll('.cp-it');

@@ -6,17 +6,17 @@
     const COR = '#C2185B';
     // Número do WhatsApp que recebe o comprovante (com 55 + DDD). Troque pelo SEU número.
     const EDICOES = {
-        essencial: { nome: 'Essencial', rank: 1, lema: 'Para vender e fechar o dia sem dor de cabeça.', inclui: ['PDV e comandas ilimitadas', 'Caixa e fechamento', 'Clientes e fiado', 'Impressão e Pix QR', 'Relatórios', 'Estoque e movimentações', 'Cardápio digital por QR (bônus)'] },
-        gestao: { nome: 'Gestão', rank: 2, lema: 'Para saber quanto você realmente lucra.', inclui: ['Compras e fornecedores', 'Ficha técnica e precificação', 'Financeiro: DRE, fluxo de caixa, contas a pagar e a receber', 'Metas e dicas de margem', 'Pacote para o contador'], base: 'Tudo do Essencial, mais:' },
-        completo: { nome: 'Completo', rank: 3, lema: 'Para crescer, com vários canais e lojas.', inclui: ['Delivery pelo cardápio digital', 'Nuvem, várias lojas e backup', 'Usuários e permissões', 'NFC-e por emissor parceiro', 'Integrações'], base: 'Tudo do Gestão, mais:', nota: 'Os módulos do Completo são liberados conforme ficam prontos, sem custo extra durante a assinatura.' }
+        essencial: { nome: 'Essencial', rank: 1, lema: 'Para vender, imprimir e fechar o caixa do dia.', inclui: ['PDV e comandas ilimitadas', 'Caixa e fechamento', 'Clientes e fiado', 'Impressão e Pix QR', 'Relatórios', 'Estoque e movimentações', 'Cardápio digital por QR (bônus)'] },
+        gestao: { nome: 'Gestão', rank: 2, lema: 'Para acompanhar custos, margem e contas.', inclui: ['Compras e fornecedores', 'Ficha técnica e precificação', 'Financeiro: DRE, fluxo de caixa, contas a pagar e a receber', 'Metas de margem (produtos abaixo da meta)'], base: 'Tudo do Essencial, mais:' },
+        completo: { nome: 'Completo', rank: 3, lema: 'Para equipes com usuários, permissões e entregas.', inclui: ['Usuários, níveis de acesso e permissões', 'Delivery e entrega nas comandas', 'Maquininha Mercado Pago (integração)', 'Backup local e compartilhamento'], base: 'Tudo do Gestão, mais:', nota: 'Em desenvolvimento, sem data prometida: NFC-e por emissor parceiro, nuvem e várias lojas, outras integrações. Contrate pelo que o app faz hoje.' }
     };
     // Tabela de preços (mesma regra para as três edições: ~10% no trimestral, ~16% no semestral e ~23% no anual, terminando em ,90)
     const PRECOS = { essencial: { 1: 25.90, 3: 69.90, 6: 129.90, 12: 238.90 }, gestao: { 1: 35.90, 3: 96.90, 6: 179.90, 12: 330.90 }, completo: { 1: 45.90, 3: 123.90, 6: 229.90, 12: 423.90 } };
     const PERIODOS = [
-        { sufixo: 'mensal', nome: 'Mensal', meses: 1, selo: '', txt: 'Flexibilidade total. Renove quando quiser.' },
-        { sufixo: 'trimestral', nome: 'Trimestral', meses: 3, selo: '⭐ Mais popular', txt: 'O equilíbrio ideal entre economia e flexibilidade.' },
-        { sufixo: 'semestral', nome: 'Semestral', meses: 6, selo: '', txt: 'Compromisso médio, economia real.' },
-        { sufixo: 'anual', nome: 'Anual', meses: 12, selo: '🏆 Melhor preço', txt: 'O melhor custo-benefício do ano.' }
+        { sufixo: 'mensal', nome: 'Mensal', meses: 1, selo: '', txt: 'Pague 1 mês por vez e renove quando quiser.' },
+        { sufixo: 'trimestral', nome: 'Trimestral', meses: 3, selo: '⭐ Recomendado', txt: 'Pague 3 meses de uma vez com desconto.' },
+        { sufixo: 'semestral', nome: 'Semestral', meses: 6, selo: '', txt: 'Pague 6 meses de uma vez com desconto.' },
+        { sufixo: 'anual', nome: 'Anual', meses: 12, selo: '🏆 Menor valor por mês', txt: 'Menor valor mensal entre os planos.' }
     ];
     // Rotas por edição (a licença assinada libera; edição menor esconde as telas, os dados continuam salvos)
     const ROTAS_EDICAO = { gestao: ['compras', 'fornecedores', 'precificacao', 'financeiro'] };
@@ -210,7 +210,11 @@
             const sobe = EDICOES[aba].rank > EDICOES[edAtual].rank;
             h += '<div style="font-size:.78rem;color:#6B5A62;line-height:1.5;margin:-2px 4px 12px;">' + (sobe ? 'Vindo do ' + EDICOES[edAtual].nome + ', você paga só a diferença pelo tempo que falta: informe no pedido que é uma troca de edição.' : 'Voltando para o ' + E.nome + ', a mudança vale na próxima renovação e nada é apagado.') + '</div>';
         }
-        h += '<div style="background:#fff;border-radius:12px;padding:12px 14px;margin-bottom:12px;font-size:.8rem;color:#444;line-height:1.5;box-shadow:0 2px 8px rgba(0,0,0,.06);">🛡️ <b>Garantia de reembolso:</b> a licença comprada tem 30 dias de teste. Desistindo nos <b>35 primeiros dias</b> (para dar tempo de ver os relatórios do mês), você recebe o <b>valor integral</b> de volta. O reembolso vale <b>uma única vez</b> por cliente.</div><div style="text-align:center;font-size:.74rem;color:#777;margin:-2px 0 12px;">🔒 Pagamento seguro por Pix • Sem cobrança automática</div>';
+        h += '<div style="background:#fff;border-radius:12px;padding:12px 14px;margin-bottom:12px;font-size:.8rem;color:#444;line-height:1.55;box-shadow:0 2px 8px rgba(0,0,0,.06);">' +
+            '<b>🔁 Sem renovação automática:</b> o valor é pago uma vez, por Pix, e vale pelo período escolhido. Nada é cobrado depois sem você pedir e pagar de novo; ao vencer você volta ao plano gratuito e seus dados continuam salvos. Para cancelar, basta não renovar.' +
+            '<br><br><b>↩️ Arrependimento e reembolso:</b> você pode desistir em até <b>7 dias</b> após a compra e receber o valor integral (CDC, art. 49). Além disso, oferecemos uma <b>garantia extra de 35 dias</b> (uma vez por cliente). ' +
+            '<a href="#" onclick="navigateTo(\'reembolso\');return false;" style="color:' + COR + ';font-weight:700;">Ver política de reembolso</a></div>' +
+            '<div style="text-align:center;font-size:.74rem;color:#777;margin:-2px 0 12px;">Valor total mostrado, sem taxas adicionais • Pagamento por Pix • Sem cobrança automática</div>';
 
         h += '<div style="background:#fff;border-radius:12px;padding:14px;margin-bottom:14px;box-shadow:0 2px 8px rgba(0,0,0,.06);">' +
             '<div style="font-size:.78rem;color:#777;">ID DESTE EQUIPAMENTO (informe ao assinar)</div>' +
@@ -329,6 +333,7 @@
         m.innerHTML = '<div style="background:#fff;border-radius:16px;max-width:360px;width:100%;overflow:hidden;">' +
             '<div style="background:' + COR + ';color:#fff;padding:14px;font-weight:700;"><i class="fas fa-paper-plane"></i> ' + EDICOES[plano.edicao].nome + ' ' + plano.nome + ' — ' + R(plano.preco) + '</div>' +
             '<div style="padding:16px;font-size:.88rem;color:#444;line-height:1.5;">Enviaremos o pedido da <b>' + esc(dados.estabelecimento || 'sua loja') + '</b> (equipamento <b>' + esc(dados.equipamento) + '</b>) para a <b>' + esc(C.empresa || '') + '</b>. Mande também o comprovante do Pix.' +
+            '<div style="background:#f6f6f8;border-radius:10px;padding:8px 10px;margin-top:10px;font-size:.8rem;"><b>Total a pagar: ' + R(plano.preco) + '</b> (' + plano.meses + (plano.meses === 1 ? ' mês' : ' meses') + ', pagamento único, sem taxas adicionais).<br>Sem renovação automática. Arrependimento em até 7 dias com reembolso integral; garantia extra de 35 dias.</div>' +
             '<button class="btn-primary" id="lp-p" style="margin-top:12px;width:100%;background:#2e7d32;"><i class="fas fa-qrcode"></i> 1. Pagar com Pix (' + R(plano.preco) + ')</button><div style="margin-top:10px;"><b>2.</b> Depois de pagar, envie o pedido:</div>' +
             '<button class="btn-primary" id="lp-w" style="margin-top:12px;width:100%;background:#1b8f4a;"><i class="fab fa-whatsapp"></i> WhatsApp ' + esc(C.whatsappFmt || '') + '</button>' +
             '<button class="btn-primary" id="lp-e" style="margin-top:8px;width:100%;background:#1976d2;"><i class="fas fa-envelope"></i> E-mail ' + esc(C.email || '') + '</button>' +

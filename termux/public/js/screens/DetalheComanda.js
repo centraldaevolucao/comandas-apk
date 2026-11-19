@@ -275,19 +275,19 @@ if (!window.renderDetalheComanda) {
         let cabecalhoResumo = `
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
                 <div style="background:#fff; padding:12px; border-radius:8px; border-left:4px solid var(--primary-color); box-shadow:0 2px 5px rgba(0,0,0,0.05);">
-                    <div style="font-size:0.75rem; color:#888;">Comanda</div>
+                    <div style="font-size:0.75rem; color:#6b6b6b;">Comanda</div>
                     <div style="font-size:1.2rem; font-weight:800; color:#333;">#${c.numero}</div>
                 </div>
                 <div style="background:#fff; padding:12px; border-radius:8px; border-left:4px solid #1976d2; box-shadow:0 2px 5px rgba(0,0,0,0.05);">
-                    <div style="font-size:0.75rem; color:#888;">Cliente</div>
+                    <div style="font-size:0.75rem; color:#6b6b6b;">Cliente</div>
                     <div style="font-size:1rem; font-weight:700; color:#333; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${c.cliente || '—'}">${c.cliente || '—'}</div>
                 </div>
                 <div style="background:#fff; padding:12px; border-radius:8px; border-left:4px solid #ff9800; box-shadow:0 2px 5px rgba(0,0,0,0.05);">
-                    <div style="font-size:0.75rem; color:#888;">Qtd. Itens</div>
+                    <div style="font-size:0.75rem; color:#6b6b6b;">Qtd. Itens</div>
                     <div style="font-size:1.2rem; font-weight:800; color:#333;">${qtdTotalItens}</div>
                 </div>
                 <div style="background:#fff; padding:12px; border-radius:8px; border-left:4px solid #2e7d32; box-shadow:0 2px 5px rgba(0,0,0,0.05);">
-                    <div style="font-size:0.75rem; color:#888;">Total</div>
+                    <div style="font-size:0.75rem; color:#6b6b6b;">Total</div>
                     <div style="font-size:1.2rem; font-weight:800; color:#2e7d32;">${formatMoney(totais.total)}</div>
                 </div>
             </div>
@@ -393,7 +393,7 @@ if (!window.renderDetalheComanda) {
     };
 
     function renderizarItensProdutoModal(lista) {
-        if (lista.length === 0) return '<p style="text-align:center; padding:20px; color:#999;">Nenhum produto encontrado.</p>';
+        if (lista.length === 0) return '<p style="text-align:center; padding:20px; color:#767676;">Nenhum produto encontrado.</p>';
         // Sempre A-Z na lista de escolha (cópia: não mexe no cache nem nos itens da comanda, que seguem a ordem de inserção)
         lista = lista.slice().sort(function (a, b) { return String(a.nome || '').localeCompare(String(b.nome || ''), 'pt-BR', { sensitivity: 'base', numeric: true }); });
         return lista.map(function (p) {
@@ -1010,7 +1010,7 @@ if (!window.renderDetalheComanda) {
                         <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px dashed #eee;">
                             <div style="flex:1;">
                                 <div style="font-size:0.9rem; color:#333;">${item.nome}</div>
-                                <div style="font-size:0.75rem; color:#888;">${formatMoney(preco)} (Total Cmd: ${item.quantidade})</div>
+                                <div style="font-size:0.75rem; color:#6b6b6b;">${formatMoney(preco)} (Total Cmd: ${item.quantidade})</div>
                             </div>
                             <div style="display:flex; align-items:center; gap:6px;">
                                 <button class="btn-qtd" style="width:26px;height:26px;font-size:1rem;" onclick="alterarQtdItemParte(${parte.id}, ${idx}, -1)">−</button>
@@ -1048,7 +1048,7 @@ if (!window.renderDetalheComanda) {
                 `;
 
                 if (!parte.itens || parte.itens.length === 0) {
-                    html += `<div style="text-align:center; font-size:0.85rem; color:#999; padding:10px 0;">Nenhum item adicionado a esta parte.</div>`;
+                    html += `<div style="text-align:center; font-size:0.85rem; color:#767676; padding:10px 0;">Nenhum item adicionado a esta parte.</div>`;
                 } else {
                     parte.itens.forEach((linha, i) => {
                         let opcoesItens = '';
@@ -1316,7 +1316,7 @@ if (!window.renderDetalheComanda) {
                        '</div></div>';
             }).join('');
 
-            return '<div style="margin-bottom:15px;">' + (listaHTML || '<p style="text-align:center;color:#999;font-size:0.9rem;">Nenhum pagamento adicionado.</p>') + '</div>' +
+            return '<div style="margin-bottom:15px;">' + (listaHTML || '<p style="text-align:center;color:#767676;font-size:0.9rem;">Nenhum pagamento adicionado.</p>') + '</div>' +
                    '<div style="padding:12px; background:#f5f5f5; border-radius:8px;">' +
                    (totais.desconto > 0 ? '<div style="display:flex;justify-content:space-between;font-size:0.9rem;color:#666;margin-bottom:4px;"><span>Subtotal:</span><span>' + formatMoney(totais.subtotal) + '</span></div><div style="display:flex;justify-content:space-between;font-size:0.9rem;color:#2e7d32;margin-bottom:4px;"><span>Desconto' + (window.comandaAtual.desconto && window.comandaAtual.desconto.tipo === 'porcentagem' ? ' (' + window.comandaAtual.desconto.valor + '%)' : '') + ':</span><span>- ' + formatMoney(totais.desconto) + '</span></div>' : '') +
                    '<div style="display:flex;justify-content:space-between;font-size:0.9rem;color:#666;margin-bottom:4px;' + (totais.desconto > 0 ? 'font-weight:700;' : '') + '"><span>Total da Comanda:</span><span>' + formatMoney(totais.total) + '</span></div>' +
@@ -1727,7 +1727,7 @@ if (!window.renderDetalheComanda) {
         const l = (window.__vincClientes || []).filter(function (c) { return !q || String(c.nome || '').toLowerCase().indexOf(q) >= 0 || String(c.telefone || '').indexOf(q) >= 0; }).slice(0, 40);
         document.getElementById('vinc-lista').innerHTML = l.length ? l.map(function (c) {
             return '<button type="button" class="btn-outline" style="width:100%;text-align:left;margin-bottom:6px;" onclick="vincEscolher(' + JSON.stringify(String(c.id)).replace(/"/g, '&quot;') + ')"><b>' + String(c.nome || '').replace(/</g, '&lt;') + '</b>' + (c.telefone ? ' · ' + String(c.telefone).replace(/</g, '&lt;') : '') + '</button>';
-        }).join('') : '<div style="color:#999;font-size:.85rem;padding:6px;">Nenhum cliente encontrado.</div>';
+        }).join('') : '<div style="color:#767676;font-size:.85rem;padding:6px;">Nenhum cliente encontrado.</div>';
     };
     async function vincAplicar(cli) {
         window.comandaAtual.cliente = cli.nome; window.comandaAtual.clienteId = cli.id;
@@ -1931,7 +1931,7 @@ if (!window.renderDetalheComanda) {
         if (valor <= 0.004) return '';   // QR só existe se houver pagamento em PIX (e mostra só o valor do PIX)
         if (estilo === 'forcar') {
             const u = window.qrUrl(window.gerarPixComValor(config.pixRestaurante, valor), '150x150');
-            return '<div data-pix-qr="' + (tipo || '1') + '" style="text-align:center;margin-top:12px;"><hr style="border:none;border-top:1px dashed #000;margin:10px 0;"><div style="font-weight:bold;font-size:11px;">PAGUE COM PIX</div><img src="' + u + '" style="width:140px;height:140px;margin:5px auto;display:block;"><div style="font-size:10px;">Valor: ' + formatMoney(valor) + '</div>' + (config.pixChave ? '<div style="font-size:10px;">PIX: <b>' + window.pixFormatarChave(config.pixTipo, config.pixChave) + '</b></div>' : '') + '</div>';
+            return '<div data-pix-qr="' + (tipo || '1') + '" style="text-align:center;margin-top:12px;"><hr style="border:none;border-top:1px dashed #000;margin:10px 0;"><div style="font-weight:bold;font-size:11px;">PAGUE COM PIX</div><img alt="QR Code" src="' + u + '" style="width:140px;height:140px;margin:5px auto;display:block;"><div style="font-size:10px;">Valor: ' + formatMoney(valor) + '</div>' + (config.pixChave ? '<div style="font-size:10px;">PIX: <b>' + window.pixFormatarChave(config.pixTipo, config.pixChave) + '</b></div>' : '') + '</div>';
         }
         const imp = window.pixQrAtivo(config, 'impressao', tipo), wa = window.pixQrAtivo(config, 'whatsapp', tipo) || window.pixQrAtivo(config, 'compartilhar', tipo);
         if (!imp && !wa) return '';
@@ -1943,7 +1943,7 @@ if (!window.renderDetalheComanda) {
         return '<div data-pix-qr="' + (tipo || '1') + '" style="' + oculto + 'text-align:center;margin-top:12px;">' +
             '<hr style="border:none;border-top:1px dashed #000;margin:10px 0;">' +
             '<div style="font-weight:bold;font-size:11px;">PAGAMENTO VIA PIX</div>' +
-            '<img src="' + url + '" style="width:120px;height:120px;margin:5px auto;display:block;">' +
+            '<img alt="Logo" src="' + url + '" style="width:120px;height:120px;margin:5px auto;display:block;">' +
             '<div style="font-size:9px;">Valor: ' + formatMoney(valor) + '</div>' +
             (config.pixChave ? '<div style="font-size:9px;">PIX: <b>' + window.pixFormatarChave(config.pixTipo, config.pixChave) + '</b></div>' : '') +
             '</div>';
@@ -1965,7 +1965,7 @@ if (!window.renderDetalheComanda) {
         const faixaCorPreview = montarFaixaCorCaixa(corCaixa);
 
         const logoHTML = urlLogo 
-            ? `<img src="${urlLogo}" style="max-height: 50px; max-width: 100%; display: block; margin: 0 auto 5px auto;">` 
+            ? `<img alt="Logo" src="${urlLogo}" style="max-height: 50px; max-width: 100%; display: block; margin: 0 auto 5px auto;">` 
             : '';
 
         let tituloModal = tipo === 'comanda' ? 'Comanda' : 'Recibo';
@@ -1975,6 +1975,20 @@ if (!window.renderDetalheComanda) {
             const doc = await window.impDocumento(tipo === 'recibo' ? 'recibo' : 'comanda', c, config, { aberto: aberto, modoPix: aberto ? 'forcar' : 'preview', atualPend: atualPendPrev });
             htmlPreview = window.impHtml(doc, config);
         }
+
+        window.__impDestino = 'cupom';   // padrão: cupom
+        const a4Lista = (config.impressorasA4 || []).filter(function (x) { return x && x.id; });
+        const optA4 = a4Lista.map(function (x) { return '<option value="a4:' + x.id + '">' + String(x.nome || 'Impressora A4').replace(/[&<>"]/g, '') + '</option>'; }).join('');
+        const rd = 'display:flex;align-items:center;gap:6px;padding:9px 12px;border:2px solid #ccc;border-radius:10px;cursor:pointer;font-size:.9rem;font-weight:600;flex:1;justify-content:center;';
+        const seletorImp = '<div role="radiogroup" aria-label="Tipo de impressão" style="margin-top:10px;font-size:.85rem;">' +
+            '<div style="margin-bottom:6px;"><i class="fas fa-print"></i> Imprimir em:</div>' +
+            '<div style="display:flex;gap:8px;">' +
+            '<label style="' + rd + '"><input type="radio" name="imp-tipo" value="cupom" checked onchange="mudarDestinoImpressao(\'' + tipo + '\', ' + (aberto ? 'true' : 'false') + ')"> Térmica (cupom)</label>' +
+            '<label style="' + rd + '"><input type="radio" name="imp-tipo" value="a4" onchange="mudarDestinoImpressao(\'' + tipo + '\', ' + (aberto ? 'true' : 'false') + ')"> A4</label></div>' +
+            '<div id="imp-a4-box" style="display:none;margin-top:8px;">' +
+            (a4Lista.length ? '<select id="sel-imp-a4" aria-label="Impressora A4" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:8px;font-size:.9rem;" onchange="mudarDestinoImpressao(\'' + tipo + '\', ' + (aberto ? 'true' : 'false') + ')">' + optA4 + '</select>'
+                : '<div style="font-size:.78rem;color:#777;">Nenhuma impressora A4 cadastrada (Impressoras &gt; Impressoras A4). A janela de impressão deixa você escolher.</div>') +
+            '</div></div>';
 
         const anterior = document.getElementById('modal-preview-impressao');
         if (anterior) anterior.remove();
@@ -2005,7 +2019,7 @@ if (!window.renderDetalheComanda) {
             '        <button class="btn-limpar" onclick="fecharPreviewImpressao()" style="color:#333; background:transparent; border:none; cursor:pointer; flex-shrink:0;"><i class="fas fa-xmark" style="font-size:1.2rem;"></i></button>' +
             '    </div>' +
             '    <div class="modal-body" style="padding:20px; overflow-y:auto; max-height:70vh;">' +
-                     '<div id="preview-captura" style="background:#fff;">' + htmlPreview + '</div>' +
+                     '<div id="preview-captura" style="background:#fff;">' + htmlPreview + '</div>' + seletorImp +
                      (tipo === 'comanda' && !aberto ? '<button class="btn-outline" style="width:100%;margin-top:10px;" onclick="fecharPreviewImpressao();imprimirCozinhaAtual()"><i class="fas fa-utensils"></i> Imprimir via da cozinha</button>' : '') +
             '    </div>' +
             '    <div style="padding:15px; background:#fff; border-top:1px solid #ddd; display:flex; gap:8px; border-radius:0 0 12px 12px;">' +
@@ -2016,6 +2030,7 @@ if (!window.renderDetalheComanda) {
             '</div>';
 
         document.body.appendChild(modal);
+        setTimeout(function () { window.mudarDestinoImpressao(tipo, aberto); }, 0);   // destaca a opção padrão (térmica)
         if (aberto) {
             const mc = modal.querySelector('.modal-content');
             const rod = mc.lastElementChild;
@@ -2028,7 +2043,27 @@ if (!window.renderDetalheComanda) {
         }
     };
 
+    window.mudarDestinoImpressao = async function (tipo, aberto) {
+        const r = document.querySelector('input[name="imp-tipo"]:checked'); if (!r) return;
+        const ehA4 = r.value === 'a4';
+        const box = document.getElementById('imp-a4-box'); if (box) box.style.display = ehA4 ? 'block' : 'none';
+        const selA4 = document.getElementById('sel-imp-a4');
+        window.__impDestino = ehA4 ? (selA4 && selA4.value ? selA4.value : 'a4:') : 'cupom';
+        document.querySelectorAll('input[name="imp-tipo"]').forEach(function (x) { x.parentNode.style.borderColor = x.checked ? '#1976d2' : '#ccc'; x.parentNode.style.background = x.checked ? '#e3f2fd' : '#fff'; });
+        const mc = document.querySelector('#modal-preview-impressao .modal-content'); if (mc) mc.style.maxWidth = ehA4 ? '860px' : '400px';
+        const alvo = document.getElementById('preview-captura'); if (!alvo || !window.comandaAtual) return;
+        try {
+            let config = {}; try { config = window.normalizarArray(await apiGet('configuracoes'))[0] || {}; } catch (e) {}
+            const c = aberto ? Object.assign({}, window.comandaAtual, { pagamentos: window.pagamentosTemp, troco: (window.recebimentoAtual || {}).troco || 0 }) : window.comandaAtual;
+            const atualPend = aberto ? ((window.recebimentoAtual || {}).fiado ? Number((window.recebimentoAtual || {}).falta || 0) : 0) : undefined;
+            const doc = await window.impDocumento(tipo === 'recibo' ? 'recibo' : 'comanda', c, config, { aberto: aberto, modoPix: aberto ? 'forcar' : 'preview', atualPend: atualPend });
+            if (ehA4) doc.papel = 'a4';
+            alvo.innerHTML = (ehA4 && tipo === 'recibo' && window.impReciboA4Html) ? window.impReciboA4Html(c, config, { aberto: aberto }) : window.impHtml(doc, config);
+        } catch (e) { console.warn(e); }
+    };
+
     window.fecharPreviewImpressao = function () {
+        window.__impDestino = 'cupom';
         const m = document.getElementById('modal-preview-impressao');
         if (m) m.remove();
         if (window.__irAposRecibo) { window.__irAposRecibo = false; window.navigateTo(window.rotaOrigem || 'pdv'); }
@@ -2036,7 +2071,9 @@ if (!window.renderDetalheComanda) {
 
     window.executarImpressao = function (tipo) {
         window.__irAposRecibo = false;
+        const destinoEscolhido = window.__impDestino || 'cupom';
         fecharPreviewImpressao();
+        window.__impDestino = destinoEscolhido;
         if (tipo === 'comanda') {
             imprimirComandaAtual();
         } else {
@@ -2130,12 +2167,17 @@ if (!window.renderDetalheComanda) {
         extra = extra || {};
         const cDoc = extra.aberto ? Object.assign({}, window.comandaAtual, { pagamentos: window.pagamentosTemp, troco: (window.recebimentoAtual || {}).troco || 0 }) : window.comandaAtual;
         const optsDoc = extra.aberto ? { aberto: true, atualPend: ((window.recebimentoAtual || {}).fiado ? Number((window.recebimentoAtual || {}).falta || 0) : 0) } : {};
-        if (window.btTentarImprimir && await window.btTentarImprimir(tipo, Object.assign({ c: cDoc }, optsDoc))) { if (!extra.aberto) fecharPreviewImpressao(); return; }
+        const destino = (tipo === 'cozinha') ? 'cupom' : window.impDestinoAtual();   // cozinha sempre no cupom
+        const a4 = /^a4/.test(destino);
+        if (!extra.aberto) window.__impDestino = 'cupom';
+        if (!a4 && window.btTentarImprimir && await window.btTentarImprimir(tipo, Object.assign({ c: cDoc }, optsDoc))) { if (!extra.aberto) fecharPreviewImpressao(); return; }
         let config = {};
         try { const arr = window.normalizarArray(await apiGet('configuracoes')); config = arr[0] || {}; } catch (e) {}
         const c = cDoc;
         const doc = await window.impDocumento(tipo, c, config, Object.assign({ modoPix: extra.aberto ? 'forcar' : 'impressao' }, optsDoc));
-        const html = window.impPagina(window.impHtml(doc, config), titulo + ' ' + c.numero);
+        if (a4) doc.papel = 'a4';
+        const reciboA4 = a4 && (doc.tipo === 'recibo' || doc.tipo === 'pendencia') && window.impReciboA4Html;
+        const html = window.impPagina(reciboA4 ? window.impReciboA4Html(c, config, { aberto: !!extra.aberto }) : window.impHtml(doc, config), titulo + ' ' + c.numero, { a4: a4, nome: a4 ? window.impDestinoNome(config, destino) : '' });
         const janela = window.open('', '', 'width=420,height=700');
         janela.document.write(html);
         janela.document.close();

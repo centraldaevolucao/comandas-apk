@@ -22,6 +22,18 @@ jobs:
           curl -fsSL "$base/cloudflared-linux-arm"   -o app/src/main/jniLibs/armeabi-v7a/libcloudflared.so
           curl -fsSL "$base/cloudflared-linux-amd64" -o app/src/main/jniLibs/x86_64/libcloudflared.so
           chmod +x app/src/main/jniLibs/*/libcloudflared.so
+      - name: Chave de assinatura vinda dos Secrets (se cadastrados)
+        env: { KS_B64: '${{ secrets.KEYSTORE_BASE64 }}', KS_PASS: '${{ secrets.KEYSTORE_PASSWORD }}', KS_ALIAS: '${{ secrets.KEY_ALIAS }}' }
+        run: |
+          if [ -n "$KS_B64" ]; then
+            echo "$KS_B64" | base64 -d > "$RUNNER_TEMP/comandas.keystore"
+            echo "KEYSTORE_FILE=$RUNNER_TEMP/comandas.keystore" >> "$GITHUB_ENV"
+            echo "KEYSTORE_PASSWORD=$KS_PASS" >> "$GITHUB_ENV"
+            echo "KEY_PASSWORD=$KS_PASS" >> "$GITHUB_ENV"
+            [ -n "$KS_ALIAS" ] && echo "KEY_ALIAS=$KS_ALIAS" >> "$GITHUB_ENV" || true
+          else
+            echo "Secrets de assinatura não cadastrados: usando comandas.keystore do repositório (legado)."
+          fi
       - run: gradle assembleDebug
       - uses: actions/upload-artifact@v4
         with: { name: Restaurante-app, path: app/build/outputs/apk/debug/app-debug.apk }

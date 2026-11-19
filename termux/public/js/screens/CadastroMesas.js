@@ -88,12 +88,12 @@ function renderLista() {
     let html = '';
 
     if (mesas.length > 0) {
-        html += '<div style="padding:8px 20px;color:#888;font-size:0.75rem;font-weight:500;text-transform:uppercase;">Mesas</div>';
+        html += '<div style="padding:8px 20px;color:#6b6b6b;font-size:0.75rem;font-weight:500;text-transform:uppercase;">Mesas</div>';
         html += mesas.map(renderItem).join('');
     }
 
     if (especiais.length > 0) {
-        html += '<div style="padding:12px 20px 8px;color:#888;font-size:0.75rem;font-weight:500;text-transform:uppercase;">Especiais</div>';
+        html += '<div style="padding:12px 20px 8px;color:#6b6b6b;font-size:0.75rem;font-weight:500;text-transform:uppercase;">Especiais</div>';
         html += especiais.map(renderItem).join('');
     }
 

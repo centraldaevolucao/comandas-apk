@@ -216,7 +216,7 @@
             } else if (l.k === 'duas') h += '<div style="display:flex;justify-content:space-between;gap:8px;' + (l.b ? 'font-weight:700;' : '') + estiloExtra(l, l.g ? 15 : 12) + '"><span style="min-width:0;word-break:break-word;">' + esc(l.l) + '</span><span style="white-space:nowrap;">' + esc(l.r) + '</span></div>';
             else if (l.k === 'logo') {
                 if (l.amostra) h += '<div style="width:' + l.pct + '%;aspect-ratio:1;max-width:80px;border-radius:50%;background:' + COR + ';color:#fff;display:flex;align-items:center;justify-content:center;margin:0 auto 4px;font-weight:800;font-size:12px;">LOGO</div>';
-                else h += '<img src="' + esc(l.src) + '" style="display:block;margin:0 auto 5px;width:' + l.pct + '%;max-height:90px;object-fit:contain;">';
+                else h += '<img alt="Logo" src="' + esc(l.src) + '" style="display:block;margin:0 auto 5px;width:' + l.pct + '%;max-height:90px;object-fit:contain;">';
             } else if (l.k === 'qr') {
                 if (l.amostra) h += '<div style="text-align:center;"><div style="border-top:' + borda(doc.sep) + ';margin:6px 0;"></div><b>PAGAMENTO VIA PIX</b><div style="width:70px;height:70px;margin:6px auto;background:repeating-conic-gradient(#000 0 25%,#fff 0 50%) 0 0/14px 14px;"></div><div>Valor PIX: ' + money(l.valor) + '</div></div>';
                 else h += l.html || '';
@@ -224,9 +224,26 @@
         });
         return h + '</div>';
     };
-    window.impPagina = function (inner, titulo) {
-        return '<html><head><meta charset="utf-8"><title>' + esc(titulo) + '</title><style>@page{margin:0}body{margin:0;background:#fff;}</style></head><body>' + inner + '<br><br>' +
+    window.impPagina = function (inner, titulo, opts) {
+        opts = opts || {};
+        const a4 = !!opts.a4;
+        const css = a4 ? '@page{size:A4;margin:12mm}body{margin:0;background:#fff;}.imp-cupom{width:100%!important;max-width:720px!important;margin:0 auto!important;}'
+                       : '@page{margin:0}body{margin:0;background:#fff;}';
+        const dica = a4 && opts.nome ? '<div id="dica-a4" style="font:12px sans-serif;color:#555;text-align:center;padding:6px;">Impressora A4: <b>' + esc(opts.nome) + '</b> (escolha-a na janela de impressão)</div><style>@media print{#dica-a4{display:none}}</style>' : '';
+        return '<html><head><meta charset="utf-8"><title>' + esc(titulo) + '</title><style>' + css + '</style></head><body>' + dica + inner + '<br><br>' +
             '<script>window.onload=function(){setTimeout(function(){window.print();window.close();},400);}<\/script></body></html>';
+    };
+    // Destinos de impressão: 'cupom' (térmica, padrão) ou 'a4:<id>' (impressoras A4 cadastradas em Impressoras)
+    window.impDestinos = function (config) {
+        const l = [{ v: 'cupom', t: 'Cupom (térmica)' }];
+        ((config && config.impressorasA4) || []).forEach(function (p) { if (p && p.id) l.push({ v: 'a4:' + p.id, t: 'A4 — ' + (p.nome || 'Impressora A4') }); });
+        if (l.length === 1) l.push({ v: 'a4:', t: 'A4 (folha)' });
+        return l;
+    };
+    window.impDestinoAtual = function () { return window.__impDestino || 'cupom'; };
+    window.impDestinoNome = function (config, v) {
+        const d = window.impDestinos(config).find(function (x) { return x.v === v; });
+        return d ? d.t.replace(/^A4 — /, '') : '';
     };
     window.impPapelCols = function (papel) { return PAPEL_COLS[papel] || 32; };
     window.impSepChar = function (sep) { return sep === 'solida' ? '=' : (sep === 'pontos' ? '.' : '-'); };
@@ -282,7 +299,7 @@
                     '<div style="font-size:.7rem;color:#777;margin-top:6px;line-height:1.3;">Na térmica Bluetooth a cor não existe (sai preto). Tamanho a partir de 120% = letra de altura dupla; 150% ou mais = dupla em altura e largura; até 85% ou fonte Condensada = fonte menor da impressora.</div></div>';
             }
             lista += '<div style="padding:8px 0;border-bottom:1px solid #e0c8e8;"><div style="display:flex;align-items:center;gap:6px;">' +
-                '<div style="display:flex;flex-direction:column;"><button data-up="' + i + '" style="border:0;background:none;color:#999;font-size:.8rem;padding:0 4px;">▲</button><button data-dn="' + i + '" style="border:0;background:none;color:#999;font-size:.8rem;padding:0 4px;">▼</button></div>' +
+                '<div style="display:flex;flex-direction:column;"><button data-up="' + i + '" style="border:0;background:none;color:#767676;font-size:.8rem;padding:0 4px;">▲</button><button data-dn="' + i + '" style="border:0;background:none;color:#767676;font-size:.8rem;padding:0 4px;">▼</button></div>' +
                 '<div style="flex:1;font-weight:600;font-size:.9rem;min-width:0;">' + esc(livre ? 'Texto livre' : nomes[b.id]) + '</div>' + extra.join('') + (estilavel ? '<button data-est="' + b.id + '" title="Estilo do texto" style="border:0;background:none;color:' + COR + ';font-size:1rem;padding:0 4px;"><i class="fas fa-sliders"></i></button>' : '') +
                 '<label class="toggle"><input type="checkbox" data-on="' + i + '"' + (b.on ? ' checked' : '') + '><span class="slider"></span></label>' +
                 (livre ? '<button data-rm="' + i + '" style="border:0;background:none;color:#c62828;font-size:1rem;">🗑</button>' : '') + '</div>' + corpo + painelEst + '</div>';

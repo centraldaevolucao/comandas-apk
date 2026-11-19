@@ -37,7 +37,7 @@ window.renderCadastroColaborador = function() {
         '            <div class="field">',
         '                <label>Função / Cargo</label>',
         '                <select id="col-funcao"><option value="">Carregando...</option></select>',
-        '                <small style="color:#888;font-size:0.75rem;">',
+        '                <small style="color:#6b6b6b;font-size:0.75rem;">',
         '                    <i class="fas fa-plus-circle"></i> ',
         '                    <a href="#" onclick="event.preventDefault(); novoFuncaoInline()" style="color:var(--primary-color);text-decoration:none;">Cadastrar nova função</a>',
         '                </small>',
@@ -46,7 +46,7 @@ window.renderCadastroColaborador = function() {
         '            <div class="field" style="margin-bottom:0;">',
         '                <label>Nível de acesso</label>',
         '                <select id="col-nivel" onchange="atualizarAvisoNivel()"><option value="">Carregando...</option></select>',
-        '                <small style="color:#888;font-size:0.75rem;">',
+        '                <small style="color:#6b6b6b;font-size:0.75rem;">',
         '                    <i class="fas fa-plus-circle"></i> ',
         '                    <a href="#" onclick="event.preventDefault(); novoNivelInline()" style="color:var(--primary-color);text-decoration:none;">Cadastrar novo nível</a>',
         '                </small>',
@@ -62,7 +62,7 @@ window.renderCadastroColaborador = function() {
         // ---- Maquininhas do colaborador/garçom ----
         '        <div class="card" id="col-maq-card" style="background:#fff;border:2px solid #e0e0e0;display:none;">',
         '            <div style="font-weight:700;font-size:0.95rem;"><i class="fas fa-credit-card" style="color:#C2185B;"></i> Maquininhas deste garçom</div>',
-        '            <div style="font-size:0.75rem;color:#888;margin:4px 0 8px;">Marque as maquininhas que ele usa. Sem marcação = todas as maquininhas ativas do caixa.</div>',
+        '            <div style="font-size:0.75rem;color:#6b6b6b;margin:4px 0 8px;">Marque as maquininhas que ele usa. Sem marcação = todas as maquininhas ativas do caixa.</div>',
         '            <div id="col-maq-lista"></div>',
         '        </div>',
 
@@ -74,7 +74,7 @@ window.renderCadastroColaborador = function() {
         '                        <i class="fas fa-key" style="color:' + (acessoAtivo ? '#4caf50' : '#999') + ';"></i>',
         '                        Ativar acesso ao sistema',
         '                    </div>',
-        '                    <div style="font-size:0.75rem;color:#888;margin-top:4px;">',
+        '                    <div style="font-size:0.75rem;color:#6b6b6b;margin-top:4px;">',
         '                        Permite que este colaborador faça login no app com e-mail e senha.',
         '                    </div>',
         '                </div>',
@@ -89,7 +89,7 @@ window.renderCadastroColaborador = function() {
         '                <div class="field">',
         '                    <label>E-mail (login) *</label>',
         '                    <input type="email" id="col-acesso-email" maxlength="80" placeholder="usuario@minimercado.com.br" value="' + (u && u.email ? u.email : '') + '">',
-        '                    <small style="color:#888;font-size:0.75rem;">Este será o e-mail usado no login</small>',
+        '                    <small style="color:#6b6b6b;font-size:0.75rem;">Este será o e-mail usado no login</small>',
         '                </div>',
 
         '                <div class="field">',
@@ -97,7 +97,7 @@ window.renderCadastroColaborador = function() {
         '                    <div style="position:relative;display:flex;align-items:center;">',
         '                        <input type="password" id="col-acesso-senha" placeholder="' + (acessoAtivo ? 'Manter senha atual' : 'Mínimo 4 caracteres') + '" minlength="4" style="flex:1;padding-right:40px;">',
         '                        <button type="button" class="btn-limpar" style="position:absolute;right:8px;" onclick="toggleSenhaVisivel(\'col-acesso-senha\')">',
-        '                            <i class="fas fa-eye" style="color:#888;"></i>',
+        '                            <i class="fas fa-eye" style="color:#6b6b6b;"></i>',
         '                        </button>',
         '                    </div>',
         '                </div>',
@@ -257,14 +257,14 @@ window.atualizarAvisoNivel = async function() {
     const div = document.getElementById('col-permissoes-texto');
     if (!div) return;
     if (!nivelId) {
-        div.innerHTML = '<em style="color:#888;">Selecione um nível para ver as permissões.</em>';
+        div.innerHTML = '<em style="color:#6b6b6b;">Selecione um nível para ver as permissões.</em>';
         return;
     }
     try {
         const niveis = await apiGet('niveisAcesso');
         const n = (niveis || []).find(function(x) { return String(x.id) === String(nivelId); });
         if (!n) {
-            div.innerHTML = '<em style="color:#888;">Nível não encontrado.</em>';
+            div.innerHTML = '<em style="color:#6b6b6b;">Nível não encontrado.</em>';
             return;
         }
         div.innerHTML =
@@ -276,7 +276,7 @@ window.atualizarAvisoNivel = async function() {
             '</div>' +
             '<div style="color:#555;line-height:1.5;">' + (n.descricao || 'Sem descrição.') + '</div>';
     } catch (e) {
-        div.innerHTML = '<em style="color:#888;">Erro ao carregar.</em>';
+        div.innerHTML = '<em style="color:#6b6b6b;">Erro ao carregar.</em>';
     }
 };
 

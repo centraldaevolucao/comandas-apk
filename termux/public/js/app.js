@@ -25,6 +25,16 @@
         const appDiv = document.getElementById('app');
         if (!appDiv) return;
 
+        // Páginas legais públicas (#termos, #privacidade, #reembolso, #creditos): abrem sem login e sem aceite
+        if (window.legalEhPublica && window.legalEhPublica(window.location.hash) && !window.location.pathname.startsWith('/mesa/')) {
+            document.body.classList.remove('tela-login', 'modo-garcom', 'mostrando-abas-cozinha', 'mostrando-abas-pdv', 'permite-collapse');
+            document.documentElement.style.setProperty('overflow-y', 'auto', 'important'); document.documentElement.style.setProperty('height', 'auto', 'important');
+            document.body.style.setProperty('overflow-y', 'auto', 'important'); document.body.style.setProperty('height', 'auto', 'important');
+            appDiv.style.setProperty('height', 'auto', 'important'); appDiv.style.setProperty('overflow', 'visible', 'important');
+            appDiv.innerHTML = window.legalPaginaPublica(window.location.hash);
+            return;
+        }
+
         // Verifica Sessão
         if (typeof window.iniciarSessao === 'function') {
             await window.iniciarSessao();
@@ -69,6 +79,7 @@
             document.body.style.setProperty('overflow-y', 'auto', 'important');
             document.body.style.setProperty('height', 'auto', 'important');
             if (typeof window.renderGarcom === 'function') appDiv.innerHTML = window.renderGarcom();
+            if (window.legalGarantirAceite) window.legalGarantirAceite();
             return;
         }
 
@@ -76,6 +87,7 @@
         // MODO SISTEMA NORMAL
         // ---------------------------------------------------------
         document.body.classList.remove('cliente-qrcode', 'modo-garcom', 'tela-login', 'mostrando-abas-cozinha', 'mostrando-abas-pdv');
+        if (window.legalGarantirAceite) { try { await window.legalGarantirAceite(); } catch (e) { console.warn('aceite', e); } }
 
         // Espera a configuração do aparelho (modo/função) antes de decidir a tela inicial.
         for (let i = 0; i < 40 && window.MT && !window.MT._carregado; i++) await new Promise(r => setTimeout(r, 50));

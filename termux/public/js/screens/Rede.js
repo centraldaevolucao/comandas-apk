@@ -62,7 +62,7 @@ window.redeAtualizar = async function () {
         if (!ips.length) h += '<div style="color:#c62828;font-size:.85rem;">Nenhum IP de rede encontrado. Conecte ao Wi-Fi ou ligue o Hotspot.</div>';
         ips.forEach(function (i) {
             const u = 'http://' + i.ip + ':' + d.porta;
-            h += '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;font-size:.85rem;"><span><code>' + _esc(u) + '</code> <small style="color:#888;">' + _esc(i.interface) + ' · ' + _esc(window.CX.nomeTipo(window.CX.tipoPeloEndereco(u))) + '</small></span>' +
+            h += '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;font-size:.85rem;"><span><code>' + _esc(u) + '</code> <small style="color:#6b6b6b;">' + _esc(i.interface) + ' · ' + _esc(window.CX.nomeTipo(window.CX.tipoPeloEndereco(u))) + '</small></span>' +
                 '<button class="btn-outline" style="padding:4px 10px;" onclick="copiarTexto(\'' + _esc(u) + '\',\'Endereço copiado\')"><i class="fas fa-copy"></i></button></div>';
         });
     } else {
@@ -90,7 +90,7 @@ window.redeAtualizar = async function () {
             });
             h += '<div style="display:flex;gap:8px;margin-top:10px;"><button class="btn-outline" style="flex:1;" onclick="redeGerarChave()"><i class="fas fa-redo"></i> Renovar chave</button>' +
                  '<button class="btn-outline" style="flex:1;border-color:#c62828;color:#c62828;" onclick="redeRevogarChave()"><i class="fas fa-ban"></i> Revogar</button></div>';
-            h += '<div style="font-size:.72rem;color:#888;margin-top:6px;">Renovar ou revogar derruba o acesso de todos que usam a chave antiga. Quem tem a chave acessa os dados do sistema: envie só a pessoas de confiança.</div>';
+            h += '<div style="font-size:.72rem;color:#6b6b6b;margin-top:6px;">Renovar ou revogar derruba o acesso de todos que usam a chave antiga. Quem tem a chave acessa os dados do sistema: envie só a pessoas de confiança.</div>';
         }
         h += '</div>';
     }
@@ -99,7 +99,7 @@ window.redeAtualizar = async function () {
     if (tipo === 'cliente') {
         h += '<div class="card" style="background:#fff;"><div class="card-title"><i class="fas fa-route"></i> Endereços do servidor</div>';
         h += '<div style="font-size:.78rem;color:#666;margin-bottom:8px;">Ordem de preferência: Rede local › Hotspot › Cloudflare. O app usa o primeiro que realmente responde e troca sozinho se ele cair.</div>';
-        h += '<div id="rede-lista"><p style="color:#888;">Testando...</p></div>';
+        h += '<div id="rede-lista"><p style="color:#6b6b6b;">Testando...</p></div>';
         h += '<div class="field" style="margin-top:10px;"><label>Adicionar endereço (IP, IP:porta ou link https)</label><input type="text" id="rede-novo" placeholder="192.168.0.10  ou  https://xxxx.trycloudflare.com"></div>';
         h += '<div style="display:flex;gap:8px;flex-wrap:wrap;">';
         h += '<button class="btn-primary" style="flex:1;" onclick="redeAdicionar()"><i class="fas fa-plus"></i> Adicionar</button>';

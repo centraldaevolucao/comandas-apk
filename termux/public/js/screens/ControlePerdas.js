@@ -64,7 +64,7 @@ window.renderControlePerdas = function() {
         '    <details id="perdas-filtros-details">',
         '        <summary style="padding:12px 16px;cursor:pointer;font-weight:600;color:var(--primary-color);font-size:0.9rem;">',
         '            <i class="fas fa-filter"></i> Filtros',
-        '            <span id="perdas-filtros-resumo" style="font-size:0.75rem;color:#888;font-weight:400;margin-left:6px;"></span>',
+        '            <span id="perdas-filtros-resumo" style="font-size:0.75rem;color:#6b6b6b;font-weight:400;margin-left:6px;"></span>',
         '        </summary>',
 
         // Período
@@ -74,11 +74,11 @@ window.renderControlePerdas = function() {
         '            <div id="perdas-custom-date" style="display:none;margin-top:10px;">',
         '                <div style="display:flex;gap:8px;">',
         '                    <div style="flex:1;">',
-        '                        <label style="font-size:0.7rem;color:#888;">Inicial</label>',
+        '                        <label style="font-size:0.7rem;color:#6b6b6b;">Inicial</label>',
         '                        <input type="date" id="perdas-data-ini" onchange="aplicarFiltrosPerdas()" style="width:100%;padding:8px;border:1.5px solid #ccc;border-radius:6px;font-size:0.85rem;">',
         '                    </div>',
         '                    <div style="flex:1;">',
-        '                        <label style="font-size:0.7rem;color:#888;">Final</label>',
+        '                        <label style="font-size:0.7rem;color:#6b6b6b;">Final</label>',
         '                        <input type="date" id="perdas-data-fim" onchange="aplicarFiltrosPerdas()" style="width:100%;padding:8px;border:1.5px solid #ccc;border-radius:6px;font-size:0.85rem;">',
         '                    </div>',
         '                </div>',
@@ -378,7 +378,7 @@ function renderConteudoPerdas() {
         if (lista.length === 0) {
             html += '<div class="card" style="text-align:center;padding:30px;">';
             html += '    <i class="fas fa-check-circle" style="font-size:3rem;color:#4caf50;"></i>';
-            html += '    <p style="margin-top:15px;color:#888;">Nenhuma perda registrada no período</p>';
+            html += '    <p style="margin-top:15px;color:#6b6b6b;">Nenhuma perda registrada no período</p>';
             html += '    <button class="btn-primary" style="margin-top:15px;" onclick="abrirModalNovaPerda()">';
             html += '        <i class="fas fa-plus"></i> Registrar perda';
             html += '    </button>';
@@ -412,15 +412,15 @@ function renderItemPerda(p) {
     const motivoTexto = motivoLabel ? motivoLabel.label : (p.motivo || 'Sem motivo');
 
     const dataTexto = p.dataHora || p.data || '—';
-    const obsHTML = p.observacao ? '<div style="font-size:0.72rem;color:#888;margin-top:2px;"><i class="fas fa-comment"></i> ' + p.observacao + '</div>' : '';
-    const colabHTML = p.colaboradorNome ? '<div style="font-size:0.72rem;color:#888;"><i class="fas fa-user"></i> ' + p.colaboradorNome + '</div>' : '';
+    const obsHTML = p.observacao ? '<div style="font-size:0.72rem;color:#6b6b6b;margin-top:2px;"><i class="fas fa-comment"></i> ' + p.observacao + '</div>' : '';
+    const colabHTML = p.colaboradorNome ? '<div style="font-size:0.72rem;color:#6b6b6b;"><i class="fas fa-user"></i> ' + p.colaboradorNome + '</div>' : '';
 
     return '<div style="padding:12px 0;border-bottom:1px solid #f0f0f0;">' +
            '    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">' +
            '        <div style="flex:1;min-width:0;">' +
-           '            <div style="font-weight:600;font-size:0.9rem;">' + (p.produto || 'Produto') + ' <span style="color:#888;font-weight:400;">(' + (p.quantidade || 0) + 'x)</span></div>' +
+           '            <div style="font-weight:600;font-size:0.9rem;">' + (p.produto || 'Produto') + ' <span style="color:#6b6b6b;font-weight:400;">(' + (p.quantidade || 0) + 'x)</span></div>' +
            '            <div style="font-size:0.75rem;color:#c62828;margin-top:2px;"><i class="fas fa-tag"></i> ' + motivoTexto + '</div>' +
-           '            <div style="font-size:0.72rem;color:#888;margin-top:2px;"><i class="fas fa-calendar"></i> ' + dataTexto + '</div>' +
+           '            <div style="font-size:0.72rem;color:#6b6b6b;margin-top:2px;"><i class="fas fa-calendar"></i> ' + dataTexto + '</div>' +
            colabHTML +
            obsHTML +
            '        </div>' +
@@ -495,7 +495,7 @@ window.abrirModalNovaPerda = async function() {
         '        <div class="field">' +
         '            <label>Produto *</label>' +
         '            <select id="perda-produto" onchange="atualizarPrejuizoPerda()">' + opcoesProdutos + '</select>' +
-        '            <small id="perda-produto-info" style="color:#888;font-size:0.75rem;"></small>' +
+        '            <small id="perda-produto-info" style="color:#6b6b6b;font-size:0.75rem;"></small>' +
         '        </div>' +
 
         '        <div class="field">' +

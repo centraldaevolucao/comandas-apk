@@ -22,6 +22,7 @@ window.abrirLoginModal = function() {
         '                <i class="fas fa-sign-in-alt"></i> Entrar' +
         '            </button>' +
         '        </form>' +
+        '        <div style="text-align:center;font-size:.74rem;color:#767676;margin-top:14px;">' + (window.legalLinksHtml ? window.legalLinksHtml() : '') + '</div>' +
         '    </div>' +
         '</div>';
 

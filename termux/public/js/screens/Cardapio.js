@@ -80,14 +80,15 @@ window.renderCardapio = function() {
 
         window.seletorOrdemProdutos((window.cardapioState && window.cardapioState.ordem) || 'padrao', 'mudarOrdemCardapio'),
         '<div id="cardapio-grupos-chips" style="padding:0 16px 10px; overflow-x: auto; white-space: nowrap; -webkit-overflow-scrolling: touch; touch-action: pan-x;">',
-        '    <span style="color:#888;font-size:0.8rem;">Carregando categorias...</span>',
+        '    <span style="color:#6b6b6b;font-size:0.8rem;">Carregando categorias...</span>',
         '</div>',
 
         '<div id="cardapio-lista" style="padding:0 16px 120px; min-height: 300px; -webkit-overflow-scrolling: touch; touch-action: pan-y;">',
         '    <p class="empty-state">🔄 Carregando cardápio...</p>',
         '</div>',
 
-        '<div id="cardapio-carrinho-bar" style="display:none;"></div>'
+        '<div id="cardapio-carrinho-bar" style="display:none;"></div>',
+        '<div style="text-align:center;font-size:.72rem;color:#767676;padding:14px 10px 24px;">' + (window.legalLinksHtml ? window.legalLinksHtml() : '') + '</div>'
     ].join('\n');
 };
 
@@ -231,8 +232,9 @@ window.abrirModalIdentificacao = function() {
     html += '            <p style="margin-top:12px;color:#666;font-size:0.9rem;line-height:1.5;">Informe seus dados para agilizar o atendimento.</p>';
     html += '        </div>';
     html += '        <div class="field"><label>Nome</label><input type="text" id="ident-nome" maxlength="40" placeholder="Ex: João Silva"></div>';
-    html += '        <div class="field"><label>CPF</label><input type="text" id="ident-cpf" maxlength="14" placeholder="000.000.000-00" oninput="mascaraCPF(this)"><small style="color:#888;font-size:0.75rem;">Se já tiver cadastro, seus pedidos aparecerão automaticamente</small></div>';
+    html += '        <div class="field"><label>CPF</label><input type="text" id="ident-cpf" maxlength="14" placeholder="000.000.000-00" oninput="mascaraCPF(this)"><small style="color:#6b6b6b;font-size:0.75rem;">Se já tiver cadastro, seus pedidos aparecerão automaticamente</small></div>';
     html += '        <div class="field"><label>Garçom que está atendendo</label><select id="ident-garcom"><option value="">-- Sem preferência --</option></select></div>';
+    html += '        <div style="font-size:.75rem;color:#666;line-height:1.4;margin:2px 0 10px;">Opcional. Usamos nome e CPF só para identificar seu pedido neste estabelecimento. Você pode pular. <a href="/#privacidade" target="_blank" rel="noopener" style="color:#C2185B;font-weight:700;">Política de Privacidade</a></div>';
     html += '        <button class="btn-primary" onclick="confirmarIdentificacao()"><i class="fas fa-check"></i> Confirmar</button>';
     html += '        <button class="btn-outline" style="width:100%;margin-top:10px;" onclick="pularIdentificacao()">Pular (não informar)</button>';
     html += '    </div></div>';
@@ -379,7 +381,7 @@ function renderListaCardapio() {
         const esgotado = p.acabouCozinha === true;   // só a Cozinha marca que acabou
 
         let precoHTML = temPromo 
-            ? '<span style="text-decoration:line-through;color:#999;font-size:0.8rem;margin-right:6px;">' + formatMoney(precoVenda) + '</span><span style="color:#e65100;font-weight:bold;font-size:1.05rem;">' + formatMoney(precoFinal) + '</span>'
+            ? '<span style="text-decoration:line-through;color:#767676;font-size:0.8rem;margin-right:6px;">' + formatMoney(precoVenda) + '</span><span style="color:#e65100;font-weight:bold;font-size:1.05rem;">' + formatMoney(precoFinal) + '</span>'
             : '<span style="font-weight:bold;color:var(--primary-color);font-size:1.05rem;">' + formatMoney(precoFinal) + '</span>';
         
         const badgePromo = temPromo ? ' <span style="background:#ff9800;color:#fff;font-size:0.6rem;padding:2px 6px;border-radius:8px;">PROMO</span>' : '';
@@ -388,7 +390,7 @@ function renderListaCardapio() {
 
         let controles = '';
         if (esgotado) {
-            controles = '<span style="background:#eee;color:#999;font-size:0.75rem;font-weight:bold;padding:6px 10px;border-radius:20px;white-space:nowrap;"><i class="fas fa-ban"></i> Esgotado</span>';
+            controles = '<span style="background:#eee;color:#767676;font-size:0.75rem;font-weight:bold;padding:6px 10px;border-radius:20px;white-space:nowrap;"><i class="fas fa-ban"></i> Esgotado</span>';
         } else if (!window.cardapioState.caixaAberto) {
             controles = '<span style="background:#ffebee;color:#c62828;font-size:0.75rem;font-weight:bold;padding:6px 10px;border-radius:20px;white-space:nowrap;"><i class="fas fa-lock"></i> Caixa Fechado</span>';
         } else {
@@ -404,8 +406,8 @@ function renderListaCardapio() {
             '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;">' +
             '<div style="flex:1;min-width:0;">' +
             '<div style="font-weight:600;font-size:1rem;">' + p.nome + badgePromo + '</div>' +
-            (grupoNome ? '<div style="font-size:0.75rem;color:#888;margin-top:2px;">' + grupoNome + '</div>' : '') +
-            '<div style="margin-top:8px;">' + (esgotado ? '<span style="color:#999;font-weight:bold;">Indisponível</span>' : precoHTML) + '</div>' +
+            (grupoNome ? '<div style="font-size:0.75rem;color:#6b6b6b;margin-top:2px;">' + grupoNome + '</div>' : '') +
+            '<div style="margin-top:8px;">' + (esgotado ? '<span style="color:#767676;font-weight:bold;">Indisponível</span>' : precoHTML) + '</div>' +
             '</div><div>' + controles + '</div></div></div>'
         );
     });

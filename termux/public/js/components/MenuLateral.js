@@ -28,7 +28,7 @@ const MENU_SECOES = [
     { id: 'sec-config', titulo: 'Configurações', itens: [
         ['configuracoes', 'fa-cogs', 'Ajustes Gerais'], ['backup', 'fa-cloud-upload-alt', 'Backup'],
         ['grupos-trabalho', 'fa-users-cog', 'Grupos de Trabalho'], ['impressoras', 'fa-print', 'Impressoras'],
-        ['assinatura', 'fa-crown', 'Minha Assinatura'], ['parcelas', 'fa-credit-card', 'Parcelas'], ['suporte', 'fa-headset', 'Suporte'] ] }
+        ['assinatura', 'fa-crown', 'Minha Assinatura'], ['parcelas', 'fa-credit-card', 'Parcelas'], ['suporte', 'fa-headset', 'Suporte'], ['meus-dados', 'fa-user-shield', 'Privacidade e meus dados'] ] }
 ];
 
 function secoesMenuHtml(isAtivo, hash) {
@@ -70,7 +70,7 @@ window.renderMenuLateral = function () {
             const headerDiv = document.getElementById('menu-header-titulo');
             if (headerDiv) {
                 headerDiv.innerHTML = `
-                    ${logoEmpresa ? `<img src="${logoEmpresa}" style="height:30px; max-width:100px; object-fit:contain; border-radius:4px; margin-right:8px;">` : ''}
+                    ${logoEmpresa ? `<img alt="Logo" src="${logoEmpresa}" style="height:30px; max-width:100px; object-fit:contain; border-radius:4px; margin-right:8px;">` : ''}
                     <span style="${logoEmpresa ? 'display:none;' : ''}">${nomeEmpresa}</span>
                 `;
             }
@@ -153,7 +153,7 @@ window.renderMenuLateral = function () {
         '            <i class="fas fa-star" style="color:#ffc107;"></i>',
         '            <div>',
         '                <span style="display:block; font-weight:600; font-size:0.9rem; color:#333;">Avalie o Comandas</span>',
-        '                <span style="display:block; font-size:0.7rem; color:#888;">Conte o que achou, direto ao desenvolvedor</span>',
+        '                <span style="display:block; font-size:0.7rem; color:#6b6b6b;">Conte o que achou, direto ao desenvolvedor</span>',
         '            </div>',
         '        </div>',
 

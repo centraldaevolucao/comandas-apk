@@ -1110,3 +1110,5 @@ body.cliente-qrcode button.fab { display: none !important; }
         display: none !important;
     }
 }
+/* Acessibilidade: foco visível para navegação por teclado */
+:focus-visible { outline: 3px solid #1976d2 !important; outline-offset: 2px; }

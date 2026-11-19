@@ -40,6 +40,7 @@ if (!window.renderConfiguracoes) {
                 imprimirPedidosAutomatico: config.imprimirPedidosAutomatico || false,
                 fonteImpressaoGrande: config.fonteImpressaoGrande || false, impFonteTipo: config.impFonteTipo || '', impFonteTam: config.impFonteTam || 0,
                 nomeImpressao: config.nomeImpressao || 'Minha Empresa',
+                empresaRazao: config.empresaRazao || '', empresaCnpj: config.empresaCnpj || '', empresaEndereco: config.empresaEndereco || '', empresaTelefone: config.empresaTelefone || '', recibosObservacao: config.recibosObservacao || '',
                 urlLogo: config.urlLogo || '',
                 urlIcone: config.urlIcone || '',   // (faltava: o ícone sumia ao reabrir a tela e era apagado no próximo salvamento)
                 imprimirNome: config.imprimirNome !== false,
@@ -167,6 +168,13 @@ if (!window.renderConfiguracoes) {
             html += '        </div>';
             html += '    </div>';
 
+
+            html += '    <div style="font-size:.78rem;color:#666;margin:-6px 0 10px;">Recibo A4: dados que aparecem no cabeçalho (deixe em branco o que não quiser mostrar).</div>';
+            [['cfg-emp-razao', 'Razão social / nome completo', c.empresaRazao], ['cfg-emp-cnpj', 'CNPJ ou CPF', c.empresaCnpj], ['cfg-emp-end', 'Endereço', c.empresaEndereco], ['cfg-emp-tel', 'Telefone', c.empresaTelefone], ['cfg-emp-obs', 'Observação padrão do recibo A4', c.recibosObservacao]].forEach(function (f) {
+                html += '    <div style="border:1px solid #333;border-radius:8px;padding:0 10px;position:relative;margin-bottom:16px;"><label for="' + f[0] + '" style="position:absolute;top:-8px;left:10px;background:#FCE4EC;padding:0 4px;font-size:0.7rem;color:#333;font-weight:600;">' + f[1] + '</label>' +
+                    '<input type="text" id="' + f[0] + '" maxlength="120" value="' + String(f[2] || '').replace(/"/g, '&quot;') + '" style="border:none;background:transparent;width:100%;padding:12px 0;font-size:1rem;outline:none;box-sizing:border-box;"></div>';
+            });
+
             window._cfgImg = { logo: c.urlLogo || '', icone: c.urlIcone || '' };
             [['logo', 'Logo (Recibo/Comanda)', 'cfg-url-logo', 'https://exemplo.com/logo.png'], ['icone', 'Ícone do estabelecimento', 'cfg-url-icone', 'https://exemplo.com/icone.png']].forEach(function (it) {
                 const v = window._cfgImg[it[0]];
@@ -174,7 +182,7 @@ if (!window.renderConfiguracoes) {
                 html += '    <div style="border:1px solid #333;border-radius:8px;padding:0 10px 10px;position:relative;margin-bottom:16px;">';
                 html += '        <label style="position:absolute;top:-8px;left:10px;background:#FCE4EC;padding:0 4px;font-size:0.7rem;color:#333;font-weight:600;">' + it[1] + '</label>';
                 html += '        <div style="display:flex;align-items:center;gap:10px;">';
-                html += '            <div id="prev-' + it[0] + '" style="width:48px;height:48px;border:1px dashed #bbb;border-radius:8px;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#fff;margin-top:10px;">' + (v ? '<img src="' + v + '" style="max-width:100%;max-height:100%;">' : '<i class="fas fa-image" style="color:#bbb;"></i>') + '</div>';
+                html += '            <div id="prev-' + it[0] + '" style="width:48px;height:48px;border:1px dashed #bbb;border-radius:8px;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#fff;margin-top:10px;">' + (v ? '<img alt="Logo" src="' + v + '" style="max-width:100%;max-height:100%;">' : '<i class="fas fa-image" style="color:#bbb;"></i>') + '</div>';
                 html += '            <input type="text" id="' + it[2] + '" value="' + (ehData ? 'Imagem do dispositivo' : v) + '" placeholder="' + it[3] + '" style="border:none;background:transparent;flex:1;padding:12px 0;font-size:1rem;outline:none;min-width:0;">';
                 html += '            <button class="btn-limpar" onclick="salvarConfiguracoes()"><i class="fas fa-save" style="color:#C2185B;font-size:1.2rem;"></i></button>';
                 html += '        </div>';
@@ -236,7 +244,7 @@ if (!window.renderConfiguracoes) {
             // ============ TIPO DE DISPOSITIVO ============
             html += '<div class="card" style="background:#FCE4EC;border-radius:12px;padding:16px;margin-bottom:24px;cursor:pointer;" onclick="navigateTo(\'tipo-dispositivo\')">';
             html += '    <div style="display:flex;justify-content:space-between;align-items:center;">';
-            html += '        <div style="font-weight:600;font-size:0.95rem;">Tipo de dispositivo <span style="font-weight:400;color:#888;font-size:0.85rem;">(' + disp.label + ')</span></div>';
+            html += '        <div style="font-weight:600;font-size:0.95rem;">Tipo de dispositivo <span style="font-weight:400;color:#6b6b6b;font-size:0.85rem;">(' + disp.label + ')</span></div>';
             html += '        <i class="fas ' + disp.icone + '" style="color:#C2185B;font-size:1.3rem;"></i>';
             html += '    </div>';
             html += '</div>';
@@ -524,6 +532,9 @@ if (!window.renderConfiguracoes) {
             config.impFonteTam = parseInt(val('cfg-fonte-tam'), 10) || 100;
             config.fonteImpressaoGrande = false;
             config.nomeImpressao = (val('cfg-nome-impressao') || '').trim();
+            config.empresaRazao = (val('cfg-emp-razao') || '').trim(); config.empresaCnpj = (val('cfg-emp-cnpj') || '').trim();
+            config.empresaEndereco = (val('cfg-emp-end') || '').trim(); config.empresaTelefone = (val('cfg-emp-tel') || '').trim();
+            config.recibosObservacao = (val('cfg-emp-obs') || '').trim();
             const lerImg = function (chave, idCampo) {
                 const t = (val(idCampo) || '').trim();
                 if (t === 'Imagem do dispositivo') return (window._cfgImg && window._cfgImg[chave]) || '';
@@ -617,7 +628,7 @@ window.cfgEscolherImagem = function (qual) {
         const campo = document.getElementById(qual === 'logo' ? 'cfg-url-logo' : 'cfg-url-icone');
         if (campo) campo.value = 'Imagem do dispositivo';
         const pv = document.getElementById('prev-' + qual);
-        if (pv) pv.innerHTML = '<img src="' + dataUrl + '" style="max-width:100%;max-height:100%;">';
+        if (pv) pv.innerHTML = '<img alt="Pré-visualização" src="' + dataUrl + '" style="max-width:100%;max-height:100%;">';
         if (typeof window.salvarConfiguracoes === 'function') window.salvarConfiguracoes();
     });
 };

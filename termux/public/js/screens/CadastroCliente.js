@@ -83,7 +83,7 @@ window.renderCadastroCliente = function() {
 // ============================================================
 function renderEnderecosLista(enderecos) {
     if (!Array.isArray(enderecos) || enderecos.length === 0) {
-        return '<div style="padding:25px;text-align:center;color:#888;border:2px dashed #ddd;border-radius:10px;">' +
+        return '<div style="padding:25px;text-align:center;color:#6b6b6b;border:2px dashed #ddd;border-radius:10px;">' +
                '    <i class="fas fa-map-marked-alt" style="font-size:2rem;color:#ccc;"></i>' +
                '    <p style="margin-top:10px;font-size:0.85rem;">Nenhum endereço cadastrado</p>' +
                '</div>';
@@ -103,7 +103,7 @@ function renderEnderecosLista(enderecos) {
         html += (e.endereco || 'Endereço') + ', ' + (e.numero || 's/n') + compl;
         html += '            </div>';
         if (linha2) {
-            html += '            <div style="font-size:0.75rem;color:#888;margin-top:3px;">';
+            html += '            <div style="font-size:0.75rem;color:#6b6b6b;margin-top:3px;">';
             html += linha2 + (e.cep ? ' • CEP ' + e.cep : '');
             html += '            </div>';
         }
@@ -169,7 +169,7 @@ window.abrirModalEndereco = function(idx) {
     html += '                    <i class="fas fa-search"></i>';
     html += '                </button>';
     html += '            </div>';
-    html += '            <small id="end-cep-info" style="color:#888;font-size:0.75rem;">Digite o CEP para buscar automaticamente</small>';
+    html += '            <small id="end-cep-info" style="color:#6b6b6b;font-size:0.75rem;">Digite o CEP para buscar automaticamente</small>';
     html += '        </div>';
 
     // Campo: Endereço (Rua)
@@ -442,6 +442,7 @@ window.excluirClienteAtual = async function() {
 
     var lista = await apiGet('clientes');
     var novaLista = lista.filter(function(x) { return String(x.id) !== String(c.id); });
+    if (window.legalAnonimizarCliente) await window.legalAnonimizarCliente(c.id);   // tira nome/CPF/telefone das comandas (LGPD art. 18)
     await apiSave('clientes', novaLista);
 
     window.clienteEditando = null;

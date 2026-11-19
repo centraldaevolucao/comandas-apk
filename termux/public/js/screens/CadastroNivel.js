@@ -61,14 +61,14 @@ window.renderCadastroNivel = function() {
 
         // Preview
         '        <div class="card" style="background:#f5f5f5;padding:15px;text-align:center;">',
-        '            <div style="font-size:0.75rem;color:#888;margin-bottom:10px;">PRÉVIA</div>',
+        '            <div style="font-size:0.75rem;color:#6b6b6b;margin-bottom:10px;">PRÉVIA</div>',
         '            <div style="display:inline-flex;align-items:center;gap:12px;background:#fff;padding:10px 16px;border-radius:10px;box-shadow:0 2px 6px rgba(0,0,0,0.08);">',
         '                <div id="niv-preview-bola" style="width:40px;height:40px;border-radius:50%;background:' + corAtual + ';display:flex;align-items:center;justify-content:center;">',
         '                    <i class="fas ' + iconAtual + '" style="color:#fff;font-size:1rem;" id="niv-preview-icon"></i>',
         '                </div>',
         '                <div style="text-align:left;">',
         '                    <div id="niv-preview-nome" style="font-weight:600;">' + (n.nome || 'Nome do nível') + '</div>',
-        '                    <div id="niv-preview-desc" style="font-size:0.75rem;color:#888;">' + (n.descricao || 'Sem descrição') + '</div>',
+        '                    <div id="niv-preview-desc" style="font-size:0.75rem;color:#6b6b6b;">' + (n.descricao || 'Sem descrição') + '</div>',
         '                </div>',
         '            </div>',
         '        </div>',

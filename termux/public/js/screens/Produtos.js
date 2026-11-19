@@ -155,11 +155,11 @@ function renderListaProdutos() {
         if (p.inativo) badges += '<span style="background:#eee;color:#666;font-size:0.65rem;padding:2px 6px;border-radius:10px;margin-left:4px;">Inativo</span>';
         if (p.produtoProducao) badges += '<span style="background:#F8BBD0;color:#C2185B;font-size:0.65rem;padding:2px 6px;border-radius:10px;margin-left:4px;">Produção</span>';
 
-        const infoGrupo = nomeGrupo ? '<span style="color:#888;"> • ' + nomeGrupo + '</span>' : '';
+        const infoGrupo = nomeGrupo ? '<span style="color:#6b6b6b;"> • ' + nomeGrupo + '</span>' : '';
 
         let precoHTML;
         if (temPromo) {
-            precoHTML = '<span style="text-decoration:line-through;color:#999;font-size:0.85rem;margin-right:6px;">' + formatMoney(precoVenda) + '</span>' +
+            precoHTML = '<span style="text-decoration:line-through;color:#767676;font-size:0.85rem;margin-right:6px;">' + formatMoney(precoVenda) + '</span>' +
                         '<span style="color:#e65100;font-weight:bold;">' + formatMoney(precoFinal) + '</span>';
         } else {
             precoHTML = '<span>' + formatMoney(precoFinal) + '</span>';

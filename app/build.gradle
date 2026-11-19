@@ -12,7 +12,7 @@ android {
         // O Android só aceita atualizar por cima se o versionCode SOBE a cada versão.
         // No GitHub Actions usa o número da execução; local, usa o valor fixo abaixo.
         versionCode (System.getenv('GITHUB_RUN_NUMBER') ? (System.getenv('GITHUB_RUN_NUMBER') as int) + 100 : 100)
-        versionName '2.31.0'
+        versionName '2.32.0'
         ndk { abiFilters 'arm64-v8a', 'armeabi-v7a', 'x86_64' }
         python { version '3.11' }   // servidor usa só a biblioteca padrão: nenhum pip necessário
     }
@@ -21,10 +21,12 @@ android {
     // Guarde este arquivo: se trocar a chave, o Android obriga a desinstalar.
     signingConfigs {
         comandas {
-            storeFile file('../comandas.keystore')
-            storePassword 'comandas123'
-            keyAlias 'comandas'
-            keyPassword 'comandas123'
+            // Preferência: arquivo e senhas vindos do ambiente (GitHub Secrets), fora do repositório (LGPD art. 46).
+            // Reserva (legado): comandas.keystore na raiz — remova do repositório depois de cadastrar os Secrets (ver LEIAME).
+            storeFile System.getenv('KEYSTORE_FILE') ? file(System.getenv('KEYSTORE_FILE')) : file('../comandas.keystore')
+            storePassword System.getenv('KEYSTORE_PASSWORD') ?: 'comandas123'
+            keyAlias System.getenv('KEY_ALIAS') ?: 'comandas'
+            keyPassword System.getenv('KEY_PASSWORD') ?: 'comandas123'
         }
     }
     packagingOptions { jniLibs { useLegacyPackaging true } }   // cloudflared precisa ser extraído como arquivo

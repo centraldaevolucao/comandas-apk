@@ -213,7 +213,7 @@ function renderListaColaboradores() {
                 (inativo ? ' (inativo)' : '') +
                 '</div>';
         } else {
-            badgeAcesso = '<div style="margin-top:4px;font-size:0.7rem;color:#999;">' +
+            badgeAcesso = '<div style="margin-top:4px;font-size:0.7rem;color:#767676;">' +
                 '<i class="fas fa-key"></i> Sem acesso ao sistema' +
                 '</div>';
         }

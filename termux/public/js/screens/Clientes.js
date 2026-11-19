@@ -280,7 +280,7 @@ window.abrirFiadosCliente = function(clienteId) {
                      '        <div style="font-weight:600;">Comanda ' + cmd.numero + '</div>' +
                      '        <div style="font-size:0.75rem;color:#666;">' + (cmd.dataFechamento || cmd.dataAbertura || '') + '</div>' +
                      (cmd.dataVencimento ? '        <div style="font-size:0.7rem;color:#c62828;">Venc: ' + cmd.dataVencimento + '</div>' : '') +
-                     (cmd.observacaoFiado ? '        <div style="font-size:0.7rem;color:#888;"><i class="fas fa-comment"></i> ' + cmd.observacaoFiado + '</div>' : '') +
+                     (cmd.observacaoFiado ? '        <div style="font-size:0.7rem;color:#6b6b6b;"><i class="fas fa-comment"></i> ' + cmd.observacaoFiado + '</div>' : '') +
                      '    </div>' +
                      '    <div style="text-align:right;">' +
                      '        <div style="font-weight:700;color:#e65100;font-size:1rem;">' + formatMoney(cmd.valorPendente) + '</div>' +
@@ -611,6 +611,7 @@ window.excluirCliente = async function(id) {
 
     const lista = await apiGet('clientes');
     const novaLista = lista.filter(function(x) { return String(x.id) !== String(id); });
+    if (window.legalAnonimizarCliente) await window.legalAnonimizarCliente(id);   // tira nome/CPF/telefone das comandas (LGPD art. 18)
     await apiSave('clientes', novaLista);
 
     document.getElementById('app').innerHTML = renderClientes();

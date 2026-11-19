@@ -40,14 +40,14 @@ window.renderCadastroMesa = function() {
         '        <div class="field" id="m-campo-numero">',
         '            <label>Número da mesa *</label>',
         '            <input type="number" min="1" id="m-numero" placeholder="Ex: 21" value="' + (m.numero || '') + '">',
-        '            <small style="color:#888;font-size:0.75rem;">Número único que identifica a mesa nas comandas</small>',
+        '            <small style="color:#6b6b6b;font-size:0.75rem;">Número único que identifica a mesa nas comandas</small>',
         '        </div>',
 
         // Código (para tipo "especial")
         '        <div class="field" id="m-campo-codigo" style="display:none;">',
         '            <label>Código *</label>',
         '            <input type="text" id="m-codigo" maxlength="20" placeholder="Ex: vip, varanda" value="' + (tipo !== 'mesa' ? (m.numero || '') : '') + '">',
-        '            <small style="color:#888;font-size:0.75rem;">Código único (letras minúsculas, números, "-" e "_")</small>',
+        '            <small style="color:#6b6b6b;font-size:0.75rem;">Código único (letras minúsculas, números, "-" e "_")</small>',
         '        </div>',
 
         // Nome

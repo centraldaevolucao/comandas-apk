@@ -76,7 +76,7 @@ if (window.renderParcelas) {
                        '    <div style="display: flex; align-items: center; gap: 10px; flex: 1; cursor: pointer;" onclick="editarParcela(' + p.numero + ')">' +
                        '        <div>' +
                        '            <div style="font-weight: 600; font-size: 0.95rem; color: #333;">' + p.numero + 'x ' + badge + '</div>' +
-                       '            <div style="font-size: 0.8rem; color: #888; margin-top: 2px;">' + descricao + '</div>' +
+                       '            <div style="font-size: 0.8rem; color:#6b6b6b; margin-top: 2px;">' + descricao + '</div>' +
                        '        </div>' +
                        '    </div>' +
                        '    <div style="display: flex; align-items: center; gap: 12px;">' +

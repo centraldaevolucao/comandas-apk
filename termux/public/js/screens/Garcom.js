@@ -62,11 +62,11 @@ window.renderGarcom = function() {
         '<div style="padding:12px 16px;background:#f5f5f5;border-bottom:1px solid #eee;">',
         '    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;text-align:center;">',
         '        <div style="background:#fff;padding:10px;border-radius:8px;">',
-        '            <div style="font-size:0.7rem;color:#888;">ABERTAS</div>',
+        '            <div style="font-size:0.7rem;color:#6b6b6b;">ABERTAS</div>',
         '            <div style="font-size:1.3rem;font-weight:700;color:#ff9800;" id="garcom-abertas">0</div>',
         '        </div>',
         '        <div style="background:#fff;padding:10px;border-radius:8px;">',
-        '            <div style="font-size:0.7rem;color:#888;">FECHADAS</div>',
+        '            <div style="font-size:0.7rem;color:#6b6b6b;">FECHADAS</div>',
         '            <div style="font-size:1.3rem;font-weight:700;color:#4caf50;" id="garcom-fechadas">0</div>',
         '        </div>',
         '    </div>',
@@ -139,7 +139,7 @@ async function carregarListaGarcons() {
                 <div class="card" style="padding:20px;text-align:center;">
                     <i class="fas fa-user-slash" style="font-size:2.5rem;color:#ccc; margin-bottom:10px;"></i>
                     <p style="color:#666;font-weight:600;">Nenhum garçom cadastrado.</p>
-                    <p style="font-size:0.8rem;color:#888;margin-top:5px;">
+                    <p style="font-size:0.8rem;color:#6b6b6b;margin-top:5px;">
                         Para aparecer aqui, o colaborador precisa ter a função exata <b>"Garçom"</b>.
                     </p>
                     <button class="btn-primary" style="margin-top:15px; background:#1976d2;" onclick="navigateTo('cadastro-colaborador')">
@@ -159,7 +159,7 @@ async function carregarListaGarcons() {
                 '    </div>' +
                 '    <div>' +
                 '        <div style="font-weight:600;">' + c.nome + '</div>' +
-                '        <div style="font-size:0.75rem;color:#888;">' + (c.funcao || 'Garçom') + '</div>' +
+                '        <div style="font-size:0.75rem;color:#6b6b6b;">' + (c.funcao || 'Garçom') + '</div>' +
                 '    </div>' +
                 '</div>' +
                 '<i class="fas fa-chevron-right" style="color:#ccc;"></i>' +
@@ -334,10 +334,10 @@ function renderCardGarcom(c) {
         '    </div>' +
         '    <div style="font-size:0.8rem;color:#666;margin-top:4px;"><i class="fas fa-chair" style="font-size:0.7rem;"></i> ' + (c.mesa || '—') + '</div>' +
         clienteHTML +
-        '    <div style="font-size:0.7rem;color:#999;margin-top:4px;">' + (c.dataAbertura || '') + '</div>' +
+        '    <div style="font-size:0.7rem;color:#767676;margin-top:4px;">' + (c.dataAbertura || '') + '</div>' +
         '</div>' +
         '<div style="text-align:right;">' +
-        '    <div style="font-size:0.7rem;color:#888;">' + qtd + ' itens</div>' +
+        '    <div style="font-size:0.7rem;color:#6b6b6b;">' + qtd + ' itens</div>' +
         '    <div style="font-size:1.3rem;font-weight:700;color:var(--primary-color);">' + formatMoney(total) + '</div>' +
         '</div>' +
         '</div>' +

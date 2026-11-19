@@ -135,12 +135,12 @@ function renderListaMesas() {
     let html = '';
 
     if (mesas.length > 0) {
-        html += '<div style="padding:8px 20px;color:#888;font-size:0.75rem;font-weight:600;text-transform:uppercase;">Mesas (' + mesas.length + ')</div>';
+        html += '<div style="padding:8px 20px;color:#6b6b6b;font-size:0.75rem;font-weight:600;text-transform:uppercase;">Mesas (' + mesas.length + ')</div>';
         html += mesas.map(renderItemMesa).join('');
     }
 
     if (especiais.length > 0) {
-        html += '<div style="padding:12px 20px 8px;color:#888;font-size:0.75rem;font-weight:600;text-transform:uppercase;">Especiais (' + especiais.length + ')</div>';
+        html += '<div style="padding:12px 20px 8px;color:#6b6b6b;font-size:0.75rem;font-weight:600;text-transform:uppercase;">Especiais (' + especiais.length + ')</div>';
         html += especiais.map(renderItemMesa).join('');
     }
 

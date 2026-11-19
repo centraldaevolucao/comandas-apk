@@ -82,7 +82,7 @@ if (!window.renderBackup) {
 
         h += '<div style="text-align:center;border-top:1px solid #C2185B;padding-top:12px;margin-bottom:16px;"><h3 style="font-size:1rem;font-weight:500;">Backups guardados neste aparelho</h3></div>';
         if (!window.backupList.length) {
-            h += '<p style="text-align:center;color:#888;font-size:0.85rem;">Nenhum backup ainda.</p>';
+            h += '<p style="text-align:center;color:#6b6b6b;font-size:0.85rem;">Nenhum backup ainda.</p>';
         } else {
             window.backupList.forEach(function (b, i) {
                 const d = new Date(b.data);

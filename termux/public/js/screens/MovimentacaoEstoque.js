@@ -59,7 +59,7 @@ if (window.renderMovimentacaoEstoque) {
             '    <details id="mov-filtros-details">',
             '        <summary style="padding:12px 16px;cursor:pointer;font-weight:600;color:var(--primary-color);font-size:0.9rem;">',
             '            <i class="fas fa-filter"></i> Filtros',
-            '            <span id="mov-filtros-resumo" style="font-size:0.75rem;color:#888;font-weight:400;margin-left:6px;"></span>',
+            '            <span id="mov-filtros-resumo" style="font-size:0.75rem;color:#6b6b6b;font-weight:400;margin-left:6px;"></span>',
             '        </summary>',
             '        <div style="padding:0 16px 12px;">',
             '            <label style="font-size:0.8rem;color:#666;font-weight:500;display:block;margin-bottom:6px;">Período</label>',
@@ -67,11 +67,11 @@ if (window.renderMovimentacaoEstoque) {
             '            <div id="mov-custom-date" style="display:none;margin-top:10px;">',
             '                <div style="display:flex;gap:8px;">',
             '                    <div style="flex:1;">',
-            '                        <label style="font-size:0.7rem;color:#888;">Inicial</label>',
+            '                        <label style="font-size:0.7rem;color:#6b6b6b;">Inicial</label>',
             '                        <input type="date" id="mov-data-ini" onchange="aplicarFiltrosMov()" style="width:100%;padding:8px;border:1.5px solid #ccc;border-radius:6px;font-size:0.85rem;">',
             '                    </div>',
             '                    <div style="flex:1;">',
-            '                        <label style="font-size:0.7rem;color:#888;">Final</label>',
+            '                        <label style="font-size:0.7rem;color:#6b6b6b;">Final</label>',
             '                        <input type="date" id="mov-data-fim" onchange="aplicarFiltrosMov()" style="width:100%;padding:8px;border:1.5px solid #ccc;border-radius:6px;font-size:0.85rem;">',
             '                    </div>',
             '                </div>',
@@ -386,7 +386,7 @@ if (window.renderMovimentacaoEstoque) {
             if (lista.length === 0) {
                 html += '<div class="card" style="text-align:center;padding:30px;">';
                 html += '    <i class="fas fa-boxes" style="font-size:3rem;color:#ccc;"></i>';
-                html += '    <p style="margin-top:15px;color:#888;">Nenhuma movimentação no período</p>';
+                html += '    <p style="margin-top:15px;color:#6b6b6b;">Nenhuma movimentação no período</p>';
                 html += '    <button class="btn-primary" style="margin-top:15px;" onclick="abrirModalNovaMov()">';
                 html += '        <i class="fas fa-plus"></i> Registrar movimentação';
                 html += '    </button>';
@@ -419,8 +419,8 @@ if (window.renderMovimentacaoEstoque) {
         const label = entrada ? 'Entrada' : 'Saída';
 
         const dataTexto = m.dataHora || m.data || '—';
-        const obsHTML = m.observacao ? '<div style="font-size:0.72rem;color:#888;margin-top:2px;"><i class="fas fa-comment"></i> ' + m.observacao + '</div>' : '';
-        const colabHTML = m.colaboradorNome ? '<div style="font-size:0.72rem;color:#888;"><i class="fas fa-user"></i> ' + m.colaboradorNome + '</div>' : '';
+        const obsHTML = m.observacao ? '<div style="font-size:0.72rem;color:#6b6b6b;margin-top:2px;"><i class="fas fa-comment"></i> ' + m.observacao + '</div>' : '';
+        const colabHTML = m.colaboradorNome ? '<div style="font-size:0.72rem;color:#6b6b6b;"><i class="fas fa-user"></i> ' + m.colaboradorNome + '</div>' : '';
         const motivoHTML = m.motivo ? '<div style="font-size:0.75rem;color:' + cor + ';margin-top:2px;"><i class="fas fa-tag"></i> ' + m.motivo + '</div>' : '';
 
         return '<div style="padding:12px 0;border-bottom:1px solid #f0f0f0;">' +
@@ -433,7 +433,7 @@ if (window.renderMovimentacaoEstoque) {
                '                <div style="font-weight:600;font-size:0.9rem;">' + (m.produto || 'Produto') + '</div>' +
                '                <div style="font-size:0.75rem;color:' + cor + ';font-weight:600;">' + label + ' · ' + (m.quantidade || 0) + ' un</div>' +
                motivoHTML +
-               '                <div style="font-size:0.72rem;color:#888;margin-top:2px;"><i class="fas fa-calendar"></i> ' + dataTexto + '</div>' +
+               '                <div style="font-size:0.72rem;color:#6b6b6b;margin-top:2px;"><i class="fas fa-calendar"></i> ' + dataTexto + '</div>' +
                colabHTML +
                obsHTML +
                '            </div>' +
@@ -517,7 +517,7 @@ if (window.renderMovimentacaoEstoque) {
             '        <div class="field">' +
             '            <label>Produto *</label>' +
             '            <select id="mov-produto" onchange="atualizarInfoProdutoMov()">' + opcoesProdutos + '</select>' +
-            '            <small id="mov-produto-info" style="color:#888;font-size:0.75rem;"></small>' +
+            '            <small id="mov-produto-info" style="color:#6b6b6b;font-size:0.75rem;"></small>' +
             '        </div>' +
             '        <div class="field"><label>Quantidade *</label>' +
             '            <input type="number" min="1" id="mov-qtd" value="1"></div>' +

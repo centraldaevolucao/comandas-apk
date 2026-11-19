@@ -102,6 +102,17 @@ if (!window.renderImpressoras) {
             }
 
             // ==========================================
+            // IMPRESSORAS A4 (FOLHA) — cadastro
+            // ==========================================
+            html += '<div class="card" style="background:#FCE4EC;border-radius:12px;padding:16px;margin-bottom:16px;">';
+            html += '    <div style="font-weight:700;font-size:1.1rem;margin-bottom:8px;color:#C2185B;"><i class="fas fa-file-lines"></i> Impressoras A4 (folha)</div>';
+            html += '    <div style="font-size:0.85rem;color:#666;margin-bottom:12px;">Cadastre as impressoras de folha A4. Na comanda e no recibo você escolhe <b>Cupom</b> (padrão) ou <b>A4</b>. A impressora física é escolhida na janela de impressão do aparelho.</div>';
+            html += '    <div id="lista-a4"></div>';
+            html += '    <div style="display:flex;gap:8px;margin-top:10px;"><input type="text" id="a4-nome" maxlength="40" placeholder="Nome (ex.: HP Laser Escritório)" style="flex:1;padding:10px;border:1px solid #ccc;border-radius:8px;">';
+            html += '    <button class="btn-primary" style="flex:0 0 auto;" onclick="cadastrarImpressoraA4()"><i class="fas fa-plus"></i> Cadastrar</button></div>';
+            html += '</div>';
+
+            // ==========================================
             // CONFIGURAÇÕES SALVAS
             // ==========================================
             html += '<div class="card" style="background:#FCE4EC;border-radius:12px;padding:16px;margin-bottom:24px;">';
@@ -137,6 +148,7 @@ if (!window.renderImpressoras) {
             // Carrega as preferências salvas
             const config = window.normalizarArray(await apiGet('configuracoes'))[0] || {};
             if (window.btDesenhar) window.btDesenhar();
+            desenharListaA4(config);
             if (config.impressoraCaixa) document.getElementById('imp-padrao-caixa').value = config.impressoraCaixa;
             if (config.impressoraCozinha) document.getElementById('imp-padrao-cozinha').value = config.impressoraCozinha;
             if (config.impressoraRedeIp) document.getElementById('imp-ip').value = config.impressoraRedeIp;
@@ -241,6 +253,30 @@ if (!window.renderImpressoras) {
         setTimeout(() => {
             statusDiv.innerHTML = `<span style="color:#2e7d32;font-weight:bold;"><i class="fas fa-check-circle"></i> Conexão aceita para ${ip}</span>`;
         }, 1500);
+    };
+
+    function desenharListaA4(config) {
+        const el = document.getElementById('lista-a4'); if (!el) return;
+        const l = (config && config.impressorasA4) || [];
+        const esc = function (t) { return String(t).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
+        el.innerHTML = l.length ? l.map(function (p) {
+            return '<div style="display:flex;align-items:center;justify-content:space-between;background:#fff;border-radius:8px;padding:8px 10px;margin-bottom:6px;"><span><i class="fas fa-print" style="color:#C2185B;"></i> ' + esc(p.nome) + '</span>' +
+                '<button class="btn-outline" style="padding:4px 10px;border-color:#c62828;color:#c62828;" onclick="removerImpressoraA4(\'' + esc(p.id) + '\')" aria-label="Remover"><i class="fas fa-trash"></i></button></div>';
+        }).join('') : '<div style="font-size:.82rem;color:#6b6b6b;">Nenhuma impressora A4 cadastrada.</div>';
+    }
+    window.cadastrarImpressoraA4 = async function () {
+        const inp = document.getElementById('a4-nome'); const nome = (inp.value || '').trim();
+        if (!nome) { alert('Informe o nome da impressora A4.'); return; }
+        const config = window.normalizarArray(await apiGet('configuracoes'))[0] || {};
+        config.impressorasA4 = (config.impressorasA4 || []).concat([{ id: String(Date.now()), nome: nome }]);
+        await apiSave('configuracoes', [config]);
+        inp.value = ''; desenharListaA4(config);
+    };
+    window.removerImpressoraA4 = async function (id) {
+        const config = window.normalizarArray(await apiGet('configuracoes'))[0] || {};
+        config.impressorasA4 = (config.impressorasA4 || []).filter(function (p) { return String(p.id) !== String(id); });
+        await apiSave('configuracoes', [config]);
+        desenharListaA4(config);
     };
 
     window.salvarImpressoraRede = async function() {

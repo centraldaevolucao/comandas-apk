@@ -31,7 +31,7 @@ window.renderCadastroFuncao = function() {
         '        <div class="field">',
         '            <label>Nível de acesso</label>',
         '            <select id="func-nivel"></select>',
-        '            <small style="display:block;margin-top:4px;color:#888;">O nível define as telas e funções liberadas (edite em Níveis de acesso).</small>',
+        '            <small style="display:block;margin-top:4px;color:#6b6b6b;">O nível define as telas e funções liberadas (edite em Níveis de acesso).</small>',
         '        </div>',
         '        <div class="card" style="background:#fff;padding:12px 15px;display:flex;justify-content:space-between;align-items:center;gap:10px;">',
         '            <div><div style="font-weight:600;font-size:0.95rem;">Aparece no modo cliente</div><div style="font-size:0.75rem;color:#666;margin-top:3px;line-height:1.4;">Mostra esta função na escolha "Qual a função deste aparelho?" dos aparelhos clientes.</div></div>',
