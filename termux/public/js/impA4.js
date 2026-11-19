@@ -22,18 +22,19 @@
         const mesa = window.formatarMesa ? window.formatarMesa(c.mesa) : (c.mesa || '-');
         const data = opts.data || c.dataFechamento || new Date().toLocaleString('pt-BR');
         const nome = config.nomeImpressao || 'Minha Empresa';
+        const OA = (window.impLayoutDe ? window.impLayoutDe(config).a4 : {}) || {};   // opções do modelo A4 (Layout de impressão)
         const pend = !!c.pagamentoPendente, aberto = !!opts.aberto;
         const situacao = aberto ? 'AGUARDANDO PAGAMENTO' : (pend ? 'PENDENTE' : 'PAGO');
         const corSit = aberto || pend ? '#e65100' : '#2e7d32';
         const totalQtd = itens.reduce(function (s, i) { return s + Number(i.quantidade || 0); }, 0);
-        const logo = (config.imprimirLogo !== false && (config.urlLogo || opts.logoAmostra)) ? '<img src="' + esc(config.urlLogo || opts.logoAmostra) + '" style="max-height:62px;max-width:130px;object-fit:contain;" alt="Logo">' : '';
+        const logo = (OA.logo !== false && config.imprimirLogo !== false && (config.urlLogo || opts.logoAmostra)) ? '<img src="' + esc(config.urlLogo || opts.logoAmostra) + '" style="max-height:62px;max-width:130px;object-fit:contain;" alt="Logo">' : '';
 
         const emitente = '<div style="display:flex;gap:10px;align-items:center;">' + (logo ? '<div style="flex:0 0 auto;">' + logo + '</div>' : '') +
             '<div style="min-width:0;"><div style="font-size:17px;font-weight:800;line-height:1.1;">' + esc(String(nome).toUpperCase()) + '</div>' +
-            (config.empresaRazao ? '<div style="font-size:10.5px;">' + esc(config.empresaRazao) + '</div>' : '') +
-            (config.empresaCnpj ? '<div style="font-size:10.5px;">CNPJ/CPF: ' + esc(config.empresaCnpj) + '</div>' : '') +
-            (config.empresaEndereco ? '<div style="font-size:10.5px;">' + esc(config.empresaEndereco) + '</div>' : '') +
-            (config.empresaTelefone ? '<div style="font-size:10.5px;">Tel.: ' + esc(config.empresaTelefone) + '</div>' : '') + '</div></div>';
+            (OA.empresa !== false && config.empresaRazao ? '<div style="font-size:10.5px;">' + esc(config.empresaRazao) + '</div>' : '') +
+            (OA.empresa !== false && config.empresaCnpj ? '<div style="font-size:10.5px;">CNPJ/CPF: ' + esc(config.empresaCnpj) + '</div>' : '') +
+            (OA.empresa !== false && config.empresaEndereco ? '<div style="font-size:10.5px;">' + esc(config.empresaEndereco) + '</div>' : '') +
+            (OA.empresa !== false && config.empresaTelefone ? '<div style="font-size:10.5px;">Tel.: ' + esc(config.empresaTelefone) + '</div>' : '') + '</div></div>';
 
         const cabF = function (pg, tot) { return '<div style="display:flex;border:' + LINHA + ';">' +
             '<div style="flex:1;padding:8px 10px;min-width:0;">' + emitente + '</div>' +
@@ -76,7 +77,7 @@
                 qrHtml = '<img alt="QR Code Pix" src="' + esc(window.qrUrl(window.gerarPixComValor(config.pixRestaurante, valorQr), '200x200')) + '" style="width:104px;height:104px;display:block;">';
             }
         }
-        const blocoQr = qrHtml ? '<div style="flex:0 0 auto;text-align:center;border-left:1px dashed #999;padding-left:10px;margin-left:10px;"><div style="font-size:9px;font-weight:800;letter-spacing:.4px;">PAGUE COM PIX</div>' + qrHtml + '<div style="font-size:10px;font-weight:700;margin-top:2px;">' + R(valorQr) + '</div>' + (config.pixChave && window.pixFormatarChave ? '<div style="font-size:8px;color:#444;max-width:110px;word-break:break-all;">' + esc(window.pixFormatarChave(config.pixTipo, config.pixChave)) + '</div>' : '') + '</div>' : '';
+        const blocoQr = (qrHtml && OA.qr !== false) ? '<div style="flex:0 0 auto;text-align:center;border-left:1px dashed #999;padding-left:10px;margin-left:10px;"><div style="font-size:9px;font-weight:800;letter-spacing:.4px;">PAGUE COM PIX</div>' + qrHtml + '<div style="font-size:10px;font-weight:700;margin-top:2px;">' + R(valorQr) + '</div>' + (config.pixChave && window.pixFormatarChave ? '<div style="font-size:8px;color:#444;max-width:110px;word-break:break-all;">' + esc(window.pixFormatarChave(config.pixTipo, config.pixChave)) + '</div>' : '') + '</div>' : '';
 
         const linhaTot = function (r, v, forte) { return '<div style="display:flex;justify-content:space-between;padding:2px 0;' + (forte ? 'font-weight:800;font-size:14px;border-top:' + LINHA + ';margin-top:3px;padding-top:5px;' : 'font-size:11.5px;') + '"><span>' + r + '</span><span>' + v + '</span></div>'; };
         let tot = linhaTot('Itens', totalQtd) + linhaTot('Subtotal', R(calc.subtotal));
@@ -90,7 +91,7 @@
         const obs = quadro('Observações', '<div style="font-size:10.5px;min-height:34px;">' + esc(opts.observacao || config.recibosObservacao || 'Obrigado pela preferência!') + '</div>', 'margin-top:8px;');
         const ass = '<div style="display:flex;gap:30px;margin-top:30px;"><div style="flex:1;text-align:center;border-top:1px solid #333;font-size:10px;padding-top:3px;">Assinatura do cliente</div><div style="flex:1;text-align:center;border-top:1px solid #333;font-size:10px;padding-top:3px;">Assinatura do responsável</div></div>';
         const rodapeF = function (pg, tot) { return '<div style="margin-top:12px;border-top:1px solid #999;padding-top:4px;display:flex;justify-content:space-between;font-size:9px;color:#555;"><span>Recibo Nº ' + esc(c.numero) + ' • ' + esc(nome) + ' • Documento sem valor fiscal</span><span>' + esc(data) + (tot > 1 ? ' • Página ' + pg + '/' + tot : '') + '</span></div>'; };
-        const fechamento = rodapeBox + obs + ass;
+        const fechamento = rodapeBox + (OA.obs !== false ? obs : '') + (OA.ass !== false ? ass : '');
 
         // ---- paginação: R1 itens na 1ª página (com cabeçalho), R2 nas do meio, R3 na última (com o fechamento) ----
         const R1 = 11, R2 = 26, R3 = 11;

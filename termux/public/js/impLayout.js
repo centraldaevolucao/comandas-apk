@@ -44,6 +44,7 @@
         const base = padrao(), s = (config && config.layoutImp) || {};
         if (s.sep) base.sep = s.sep;
         if (s.margem) base.margem = s.margem;
+        base.a4 = Object.assign({ logo: true, empresa: true, qr: true, obs: true, ass: true }, s.a4 || {});   // modelo A4 (nota): o que aparece
         Object.keys(BLOCOS).forEach(function (d) {
             const sd = s[d]; if (!sd) return;
             if (sd.papel) base[d].papel = sd.papel;
@@ -249,6 +250,7 @@
     window.impSepChar = function (sep) { return sep === 'solida' ? '=' : (sep === 'pontos' ? '.' : '-'); };
 
     // ---------- tela de edição ----------
+    let PREV_ABERTO = false; const LOGO_AMOSTRA = 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="120" height="60"><rect width="120" height="60" rx="8" fill="#C2185B"/><text x="60" y="37" font-size="20" font-family="Arial" font-weight="700" fill="#fff" text-anchor="middle">LOGO</text></svg>');
     let LAY = null, DOC = 'comanda', VISAO = 'editar', CFG = {}, timer = null; const EST = {};
     const AMOSTRA = { numero: 12, mesa: '4', dataAbertura: '11/11/2026 12:40', dataFechamento: '11/11/2026 13:20', cliente: 'Maria', garcom: 'João',
         itens: [{ nome: 'Pastel de carne', quantidade: 2, preco: 6 }, { nome: 'Suco de laranja', quantidade: 1, preco: 8 }, { nome: 'Pastel de queijo', quantidade: 1, preco: 6, observacao: 'sem cebola' }],
@@ -259,6 +261,25 @@
         return Object.assign({}, AMOSTRA, { pagamentos: [{ forma: 'dinheiro', valor: 10 }], pagamentoPendente: true, valorPendente: 16 });
     }
 
+    // a folha A4 tem largura fixa (720px) e é reduzida para caber na tela, como a página impressa
+    function folhaA4(html, ov) {
+        const disp = (ov && ov.clientWidth ? ov.clientWidth : window.innerWidth) - (window.innerWidth >= 900 ? 460 : 56);
+        const z = Math.max(0.3, Math.min(1, disp / 720));
+        return '<div style="width:720px;zoom:' + z.toFixed(3) + ';background:#fff;box-shadow:0 1px 6px rgba(0,0,0,.25);">' + html + '</div>';
+    }
+    function amostraA4(d) {
+        const c = amostraDe(d);
+        c.cliente = 'Maria da Silva';
+        c.itens = [{ nome: 'Pastel de carne', quantidade: 2, preco: 6 }, { nome: 'Suco de laranja', quantidade: 1, preco: 8 }, { nome: 'Pastel de queijo', quantidade: 1, preco: 6, observacao: 'sem cebola' }];
+        return c;
+    }
+    async function salvarEmpresa(k, v) {
+        CFG[k] = v; clearTimeout(timerEmp);
+        timerEmp = setTimeout(async function () {
+            try { const arr = window.normalizarArray(await apiGet('configuracoes')); const cfg = arr[0] || {}; cfg[k] = v; await apiSave('configuracoes', [cfg]); } catch (e) {}
+        }, 350);
+    }
+    let timerEmp = null;
     async function salvar() {
         clearTimeout(timer);
         timer = setTimeout(async function () {
@@ -304,12 +325,21 @@
                 '<label class="toggle"><input type="checkbox" data-on="' + i + '"' + (b.on ? ' checked' : '') + '><span class="slider"></span></label>' +
                 (livre ? '<button data-rm="' + i + '" style="border:0;background:none;color:#c62828;font-size:1rem;">🗑</button>' : '') + '</div>' + corpo + painelEst + '</div>';
         });
+        const a4 = D.papel === 'a4' && (DOC === 'recibo' || DOC === 'pendencia');
+        const OA = LAY.a4;
+        const tg = function (k, t, sub) { return '<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #e0c8e8;"><div style="flex:1;"><div style="font-weight:600;font-size:.9rem;">' + t + '</div>' + (sub ? '<div style="font-size:.72rem;color:#777;">' + sub + '</div>' : '') + '</div><label class="toggle"><input type="checkbox" data-a4="' + k + '"' + (OA[k] !== false ? ' checked' : '') + '><span class="slider"></span></label></div>'; };
+        const inp = function (k, t, ph) { return '<label style="display:block;font-size:.78rem;color:#555;margin-top:8px;">' + t + '<input data-emp="' + k + '" value="' + esc(CFG[k] || '') + '" placeholder="' + ph + '" style="width:100%;box-sizing:border-box;padding:8px;border:2px solid #ddd;border-radius:8px;font-size:.85rem;margin-top:2px;"></label>'; };
+        const blocosA4 = '<div style="background:#FCE4EC;border-radius:12px;padding:12px;margin-bottom:10px;"><b style="font-size:.85rem;">Modelo A4 — formato de nota</b>' +
+            '<div style="font-size:.72rem;color:#777;margin:4px 0 6px;">Cabeçalho e rodapé saem em todas as páginas; se os itens não couberem, as páginas seguintes são geradas. O aviso <b>DOCUMENTO SEM VALOR FISCAL</b> sempre é impresso.</div>' +
+            tg('logo', 'Logo', 'Usa a logo das configurações') + tg('empresa', 'Dados da empresa', 'Razão social, CNPJ/CPF, endereço e telefone') + tg('qr', 'QR Code Pix', 'Só aparece se o recibo estiver aguardando pagamento ou pendente') + tg('obs', 'Observações') + tg('ass', 'Assinaturas') +
+            '<div style="font-size:.8rem;font-weight:700;margin-top:10px;">Dados que saem no cabeçalho</div>' + inp('empresaRazao', 'Razão social', 'Ex.: Minha Empresa LTDA') + inp('empresaCnpj', 'CNPJ/CPF', '00.000.000/0000-00') + inp('empresaEndereco', 'Endereço', 'Rua, nº, bairro, cidade-UF') + inp('empresaTelefone', 'Telefone', '(00) 00000-0000') + inp('recibosObservacao', 'Texto das observações', 'Obrigado pela preferência!') +
+            '<div style="font-size:.72rem;color:#777;margin-top:6px;">A impressora A4 é cadastrada em Configurações › Impressoras.</div></div>';
         const painel = '<div style="padding:12px;overflow-y:auto;' + (larg ? 'width:420px;flex:0 0 420px;' : '') + '">' +
             '<div style="background:#FCE4EC;border-radius:12px;padding:12px;margin-bottom:10px;"><b style="font-size:.85rem;">Documento</b><div style="display:flex;flex-wrap:wrap;gap:6px;margin:8px 0;">' +
             Object.keys(DOCS).map(function (d) { return '<span data-doc="' + d + '" style="padding:6px 12px;border-radius:16px;font-size:.8rem;font-weight:600;cursor:pointer;' + (d === DOC ? 'background:' + COR + ';color:#fff;' : 'background:#fff;') + '">' + DOCS[d] + '</span>'; }).join('') + '</div>' +
             seg([['58', 'Térmica 58mm'], ['80', 'Térmica 80mm'], ['a4', 'A4']], D.papel, 'papel') + '</div>' +
-            '<div style="background:#FCE4EC;border-radius:12px;padding:12px;margin-bottom:10px;"><b style="font-size:.85rem;">Blocos (use ▲ ▼ para reordenar)</b>' + lista +
-            '<button data-add class="btn-outline" style="width:100%;margin-top:10px;background:#fff;">+ Adicionar linha de texto</button></div>' +
+            '' + (a4 ? blocosA4 : '<div style="background:#FCE4EC;border-radius:12px;padding:12px;margin-bottom:10px;"><b style="font-size:.85rem;">Blocos (use ▲ ▼ para reordenar)</b>' + lista +
+            '<button data-add class="btn-outline" style="width:100%;margin-top:10px;background:#fff;">+ Adicionar linha de texto</button></div>') +
             '<div style="background:#FCE4EC;border-radius:12px;padding:12px;margin-bottom:10px;">' +
             '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;"><b style="font-size:.85rem;">Linha separadora</b>' + seg([['tracejada', '- - -'], ['solida', '───'], ['pontos', '···']], LAY.sep, 'sep') + '</div>' +
             '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;"><b style="font-size:.85rem;">Margem lateral</b>' + seg([['menor', 'Menor'], ['normal', 'Normal'], ['maior', 'Maior']], LAY.margem, 'margem') + '</div>' +
@@ -317,7 +347,8 @@
             '<button data-reset class="btn-outline" style="width:100%;margin-top:10px;background:#fff;">Restaurar layout padrão</button></div></div>';
         const cfgP = Object.assign({}, CFG, { imprimirLogo: CFG.imprimirLogo !== false, layoutImp: LAY });
         const doc = await window.impDocumento(DOC, amostraDe(DOC), cfgP, { amostra: true, aberto: false });
-        const prev = '<div style="padding:12px;overflow-y:auto;flex:1;min-width:0;"><b style="font-size:.85rem;">Pré-visualização</b><div style="background:#eee;border-radius:12px;padding:12px;margin-top:8px;overflow-x:auto;">' + window.impHtml(doc, cfgP) + '</div><div style="font-size:.72rem;color:#777;margin-top:6px;">Exemplo com dados fictícios. Na térmica Bluetooth, logo e QR saem como imagem.</div></div>';
+        const corpoPrev = a4 ? (window.impReciboA4Html ? folhaA4(window.impReciboA4Html(amostraA4(DOC), cfgP, { aberto: DOC === 'recibo' && PREV_ABERTO, pixAmostra: true, logoAmostra: LOGO_AMOSTRA, data: '11/11/2026 13:20' }), ov) : '') : window.impHtml(doc, cfgP);
+        const prev = '<div style="padding:12px;overflow-y:auto;flex:1;min-width:0;"><b style="font-size:.85rem;">Pré-visualização' + (a4 ? ' — A4' : '') + '</b>' + (a4 && DOC === 'recibo' ? '<label style="display:block;font-size:.78rem;margin:6px 0;"><input type="checkbox" data-prevab' + (PREV_ABERTO ? ' checked' : '') + '> Simular recibo <b>aguardando pagamento</b> (mostra o QR Pix)</label>' : '') + '<div style="background:#eee;border-radius:12px;padding:12px;margin-top:8px;overflow-x:auto;">' + corpoPrev + '</div><div style="font-size:.72rem;color:#777;margin-top:6px;">Exemplo com dados fictícios. Na térmica Bluetooth, logo e QR saem como imagem.</div></div>';
         const abas = larg ? '' : '<div style="display:flex;background:#fff;border-bottom:1px solid #ddd;">' + [['editar', 'Editar'], ['previa', 'Pré-visualizar']].map(function (a) { return '<div data-visao="' + a[0] + '" style="flex:1;text-align:center;padding:10px;font-weight:700;font-size:.85rem;cursor:pointer;' + (VISAO === a[0] ? 'color:' + COR + ';border-bottom:3px solid ' + COR + ';' : 'color:#777;') + '">' + a[1] + '</div>'; }).join('') + '</div>';
         ov.innerHTML = '<div style="background:' + COR + ';color:#fff;padding:14px 16px;font-weight:700;display:flex;align-items:center;gap:10px;"><span data-fechar style="cursor:pointer;font-size:1.2rem;">←</span> Layout de impressão</div>' + abas +
             '<div style="display:flex;flex:1;min-height:0;overflow:hidden;">' + (larg ? painel + prev : (VISAO === 'editar' ? painel : prev)) + '</div>';
@@ -341,6 +372,9 @@
                 re();
             };
         });
+        $$('[data-a4]', function (e) { e.onchange = function () { LAY.a4[e.dataset.a4] = e.checked; re(); }; });
+        $$('[data-prevab]', function (e) { e.onchange = function () { PREV_ABERTO = e.checked; desenhar(ov); }; });
+        $$('[data-emp]', function (e) { e.oninput = function () { salvarEmpresa(e.dataset.emp, e.value); atualizaPrev(ov); }; });
         $$('[data-est]', function (e) { e.onclick = function () { const k = DOC + e.dataset.est; EST[k] = !EST[k]; desenhar(ov); }; });
         $$('[data-fs]', function (e) { e.oninput = function () { const b = D.blocos[+e.dataset.fs]; b.fs = +e.value; const sp = ov.querySelector('#fsv' + e.dataset.fs); if (sp) sp.textContent = e.value + '%'; salvar(); atualizaPrev(ov); }; });
         $$('[data-fsr]', function (e) { e.onclick = function (ev) { ev.preventDefault(); delete D.blocos[+e.dataset.fsr].fs; re(); }; });
@@ -357,14 +391,17 @@
         $$('[data-reset]', async function (e) { e.onclick = async function () { if (!await window.confirmar('Restaurar o layout padrão de todos os documentos?', { perigo: true, ok: 'Restaurar' })) return; LAY = padrao(); re(); }; });
     }
     async function atualizaPrev(ov) {   // digitação: atualiza só o cupom, sem recriar os campos
+        const a4m = ov.querySelector('.imp-a4');
+        if (a4m) { const cA = Object.assign({}, CFG, { imprimirLogo: CFG.imprimirLogo !== false, layoutImp: LAY }); a4m.parentNode.parentNode.innerHTML = folhaA4(window.impReciboA4Html(amostraA4(DOC), cA, { aberto: DOC === 'recibo' && PREV_ABERTO, pixAmostra: true, logoAmostra: LOGO_AMOSTRA, data: '11/11/2026 13:20' }), ov); return; }
         const caixa = ov.querySelector('.imp-cupom'); if (!caixa) return;
         const cfgP = Object.assign({}, CFG, { imprimirLogo: CFG.imprimirLogo !== false, layoutImp: LAY });
         const doc = await window.impDocumento(DOC, amostraDe(DOC), cfgP, { amostra: true });
         caixa.parentNode.innerHTML = window.impHtml(doc, cfgP);
     }
-    window.abrirLayoutImpressao = async function () {
+    window.abrirLayoutImpressao = async function (docIni, papelIni) {
         try { CFG = window.normalizarArray(await apiGet('configuracoes'))[0] || {}; } catch (e) { CFG = {}; }
-        LAY = window.impLayoutDe(CFG); DOC = 'comanda'; VISAO = 'editar';
+        LAY = window.impLayoutDe(CFG); DOC = DOCS[docIni] ? docIni : 'comanda'; VISAO = 'editar'; PREV_ABERTO = false;
+        if (papelIni && LAY[DOC]) LAY[DOC].papel = papelIni;
         const ov = document.createElement('div');
         ov.style.cssText = 'position:fixed;inset:0;z-index:100000;background:#f5f5f5;display:flex;flex-direction:column;';
         document.body.appendChild(ov);

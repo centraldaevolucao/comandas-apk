@@ -2057,7 +2057,11 @@ if (!window.renderDetalheComanda) {
             const atualPend = aberto ? ((window.recebimentoAtual || {}).fiado ? Number((window.recebimentoAtual || {}).falta || 0) : 0) : undefined;
             const doc = await window.impDocumento(tipo === 'recibo' ? 'recibo' : 'comanda', c, config, { aberto: aberto, modoPix: aberto ? 'forcar' : 'preview', atualPend: atualPend });
             if (ehA4) doc.papel = 'a4';
-            alvo.innerHTML = (ehA4 && tipo === 'recibo' && window.impReciboA4Html) ? window.impReciboA4Html(c, config, { aberto: aberto }) : window.impHtml(doc, config);
+            if (ehA4 && tipo === 'recibo' && window.impReciboA4Html) {
+                // folha A4 com largura fixa, reduzida para caber na tela (como sairá na impressão)
+                const z = Math.max(0.3, Math.min(1, ((alvo.clientWidth || window.innerWidth - 40) - 4) / 720));
+                alvo.innerHTML = '<div data-a4-zoom style="width:720px;zoom:' + z.toFixed(3) + ';">' + window.impReciboA4Html(c, config, { aberto: aberto }) + '</div>';
+            } else alvo.innerHTML = window.impHtml(doc, config);
         } catch (e) { console.warn(e); }
     };
 
@@ -2094,7 +2098,9 @@ if (!window.renderDetalheComanda) {
                 const antes = bq ? bq.style.display : '';
                 if (bq) bq.style.display = window.pixQrAtivo(cfgW, outros ? 'compartilhar' : 'whatsapp', bq.getAttribute('data-pix-qr') === 'pendencia' ? 'pendencia' : (tipo === 'recibo' ? 'recibo' : 'comanda')) ? '' : 'none';   // QR no WhatsApp conforme a configuração
                 let png;
-                try { png = await window.elementoParaPng(alvo); } finally { if (bq) bq.style.display = antes; }
+                const zA4 = alvo.querySelector('[data-a4-zoom]'), zAnt = zA4 ? zA4.style.zoom : '';
+                if (zA4) zA4.style.zoom = '1';   // A4: imagem na escala real
+                try { png = await window.elementoParaPng(alvo); } finally { if (bq) bq.style.display = antes; if (zA4) zA4.style.zoom = zAnt; }
                 const nome = (tipo === 'comanda' ? 'comanda-' : 'recibo-') + (window.comandaAtual.numero || '') + '.png';
                 const txt = (tipo === 'comanda' ? 'Comanda ' : 'Recibo da comanda ') + (window.comandaAtual.numero || '');
                 if (await window.compartilharImagem(png, nome, txt, telZap, outros ? 'outros' : '')) return;
