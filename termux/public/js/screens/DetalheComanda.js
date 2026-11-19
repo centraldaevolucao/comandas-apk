@@ -240,7 +240,7 @@ if (!window.renderDetalheComanda) {
             if (podeFechar) botoesAcao += '<button class="btn-primary" style="margin-top:15px; background:#2e7d32;" onclick="abrirModalFechamento()"><i class="fas fa-cash-register"></i> ' + (window.comandaAtual.aguardandoRecebimento ? 'Retomar recebimento (recibo em aberto)' : 'Receber / Fechar Comanda') + '</button>';
             botoesAcao += '<button class="btn-outline" style="width:100%;margin-top:10px;" onclick="cancelarComanda()"><i class="fas fa-ban"></i> Cancelar Comanda</button>';
         } else if (ehPendencia) {
-            botoesAcao = '<div style="margin-top:15px;padding:12px;background:#fff8e1;border-left:4px solid #fbc02d;border-radius:8px;font-size:.85rem;color:#8d6e00;">⏳ Comanda em <b>Pendência</b> (fiado) — ' + formatMoney(c.valorPendente || 0) + ' a receber.</div>' +
+            botoesAcao = '<div style="margin-top:15px;padding:12px;background:#fff8e1;border-left:4px solid #fbc02d;border-radius:8px;font-size:.85rem;color:#8d6e00;">⏳ Comanda em <b>Pendência</b> — ' + formatMoney(c.valorPendente || 0) + ' a receber.</div>' +
                 '<div style="display:flex;gap:8px;margin-top:10px;">' +
                 '    <button class="btn-outline" style="flex:1;" onclick="abrirPreviewImpressao(\'comanda\')"><i class="fas fa-print"></i> Imprimir / ver comanda</button>' +
                 '    <button class="btn-outline" style="flex:1;" onclick="abrirPreviewImpressao(\'recibo\')"><i class="fas fa-receipt"></i> Recibo</button>' +
@@ -1385,7 +1385,7 @@ if (!window.renderDetalheComanda) {
             '            <label style="display:flex; justify-content:space-between; align-items:center; background:#fff3e0; padding:12px; border-radius:8px; cursor:pointer; border:1px solid #ffe0b2;">' +
             '                <div style="display:flex; align-items:center; gap:8px; color:#e65100;">' +
             '                    <i class="fas fa-clock"></i>' +
-            '                    <div style="font-weight:bold;">Deixar Fiado (Pendente)</div>' +
+            '                    <div style="font-weight:bold;">Deixar Pendente</div>' +
             '                </div>' +
             '                <input type="checkbox" id="pg-fiado" onchange="fiadoMarcado(this.checked)" style="width:20px; height:20px; accent-color:#e65100;">' +
             '            </label>' +
@@ -1463,7 +1463,7 @@ if (!window.renderDetalheComanda) {
         const chk = document.getElementById('pg-fiado');
         const rotulo = chk && chk.closest('label');
         if (chk && !pa.cliente && rotulo) {
-            rotulo.insertAdjacentHTML('afterend', '<div style="font-size:.75rem;color:#e65100;margin-top:6px;">Fiado exige cliente cadastrado — ao marcar, você escolhe ou cadastra o cliente.</div>');
+            rotulo.insertAdjacentHTML('afterend', '<div style="font-size:.75rem;color:#e65100;margin-top:6px;">Pendência exige cliente cadastrado — ao marcar, você escolhe ou cadastra o cliente.</div>');
         }
         if (pa.valor > 0 && rotulo) {
             rotulo.insertAdjacentHTML('beforebegin',
@@ -1703,9 +1703,9 @@ if (!window.renderDetalheComanda) {
         const m = document.createElement('div');
         m.id = 'modal-vinc-cli'; m.className = 'modal-overlay'; m.style.zIndex = '250000';
         m.innerHTML = '<div class="modal-content" style="max-width:380px;border-radius:16px;overflow:hidden;max-height:90vh;display:flex;flex-direction:column;">' +
-            '<div class="modal-header" style="background:#e65100;color:#fff;display:flex;justify-content:space-between;align-items:center;"><strong><i class="fas fa-user-check"></i> Cliente do fiado</strong>' +
+            '<div class="modal-header" style="background:#e65100;color:#fff;display:flex;justify-content:space-between;align-items:center;"><strong><i class="fas fa-user-check"></i> Cliente da pendência</strong>' +
             '<button class="btn-limpar" onclick="vincFechar()" style="color:#fff;"><i class="fas fa-xmark"></i></button></div>' +
-            '<div class="modal-body" style="overflow-y:auto;"><div style="font-size:.82rem;color:#666;margin-bottom:8px;">Fiado só para cliente cadastrado. Escolha um cliente ou cadastre agora.</div>' +
+            '<div class="modal-body" style="overflow-y:auto;"><div style="font-size:.82rem;color:#666;margin-bottom:8px;">Pendência só para cliente cadastrado. Escolha um cliente ou cadastre agora.</div>' +
             '<input type="text" id="vinc-busca" placeholder="Pesquisar cliente" oninput="vincFiltrar()" style="width:100%;padding:10px;border:1px solid #ccc;border-radius:8px;">' +
             '<div id="vinc-lista" style="margin:8px 0 14px;max-height:30vh;overflow-y:auto;"></div>' +
             '<div style="border-top:1px dashed #ddd;padding-top:12px;"><div style="font-weight:700;color:#C2185B;margin-bottom:6px;"><i class="fas fa-user-plus"></i> Cadastrar novo cliente</div>' +
@@ -1758,7 +1758,7 @@ if (!window.renderDetalheComanda) {
             ov.style.cssText = 'display:flex;align-items:center;justify-content:center;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:250000;padding:16px;';
             const bt = function (id, ic, t) { return '<button data-a="' + id + '" class="btn-outline" style="flex:1 1 45%;padding:10px 6px;font-size:.85rem;"><i class="' + ic + '"></i> ' + t + '</button>'; };
             ov.innerHTML = '<div style="background:#fff;border-radius:16px;max-width:380px;width:100%;overflow:hidden;box-shadow:0 8px 30px rgba(0,0,0,.35);">' +
-                '<div style="background:#C2185B;color:#fff;padding:14px 16px;font-weight:700;"><i class="fas fa-circle-question"></i> Deixar fiado</div>' +
+                '<div style="background:#C2185B;color:#fff;padding:14px 16px;font-weight:700;"><i class="fas fa-circle-question"></i> Deixar pendente</div>' +
                 '<div style="padding:16px;color:#333;white-space:pre-line;line-height:1.4;">' + msg.replace(/</g, '&lt;') + '</div>' +
                 '<div style="padding:0 16px;font-size:.78rem;color:#777;margin-bottom:6px;">Antes de enviar, se quiser, gere o comprovante da pendência:</div>' +
                 '<div style="display:flex;flex-wrap:wrap;gap:8px;padding:0 16px 12px;">' + bt('ver', 'fas fa-eye', 'Visualizar') + bt('imp', 'fas fa-print', 'Imprimir') +
@@ -1829,12 +1829,12 @@ if (!window.renderDetalheComanda) {
         }
         if (!isFiado && falta > 0.01) {
             // pagamento parcial (dinheiro, débito, crédito ou PIX): oferece deixar o restante em pendência
-            const querPend = await window.confirmar('Recebido ' + formatMoney(totalPago) + ' de ' + formatMoney(totais.total) + '.\n\nDeixar o restante, ' + formatMoney(falta) + ', em PENDÊNCIA (fiado)?\n\nOu toque em Cancelar para adicionar outro pagamento.', { titulo: 'Pagamento parcial', ok: 'Deixar em pendência' });
+            const querPend = await window.confirmar('Recebido ' + formatMoney(totalPago) + ' de ' + formatMoney(totais.total) + '.\n\nDeixar o restante, ' + formatMoney(falta) + ', em PENDÊNCIA?\n\nOu toque em Cancelar para adicionar outro pagamento.', { titulo: 'Pagamento parcial', ok: 'Deixar em pendência' });
             if (!querPend) return;
             const chkF = document.getElementById('pg-fiado'); if (chkF) chkF.checked = true;
             return window.confirmarFechamentoCompleto();
         }
-        if (!await window.confirmar('Confirmar o recebimento de ' + formatMoney(totais.total) + (isFiado ? ' (com saldo pendente / fiado)' : '') + ' e gerar o recibo em aberto?', { titulo: 'Confirmar recebimento', ok: 'Gerar recibo' })) return;
+        if (!await window.confirmar('Confirmar o recebimento de ' + formatMoney(totais.total) + (isFiado ? ' (com saldo pendente)' : '') + ' e gerar o recibo em aberto?', { titulo: 'Confirmar recebimento', ok: 'Gerar recibo' })) return;
 
         window.recebimentoAtual = { troco: troco, falta: falta > 0 ? falta : 0, fiado: isFiado };
         window.comandaAtual.aguardandoRecebimento = true;
@@ -1853,7 +1853,7 @@ if (!window.renderDetalheComanda) {
         if (!r) return;
         if (!await window.confirmar('Confirma que o pagamento foi recebido? A comanda será fechada.', { titulo: 'Fechar comanda', ok: 'Fechar comanda' })) return;
 
-        if (r.fiado) { const cli = await window.clienteCadastradoDaComanda(c); if (!cli) { await window.avisar('Fiado só é permitido para cliente cadastrado.'); return; } c.clienteId = cli.id; c.cliente = cli.nome; }
+        if (r.fiado) { const cli = await window.clienteCadastradoDaComanda(c); if (!cli) { await window.avisar('Pendência só é permitida para cliente cadastrado.'); return; } c.clienteId = cli.id; c.cliente = cli.nome; }
         c.status = 'fechada';
         c.dataFechamento = new Date().toLocaleString('pt-BR');
         c.pagamentos = window.pagamentosTemp && window.pagamentosTemp.length ? window.pagamentosTemp : (r.pagamentos || []);

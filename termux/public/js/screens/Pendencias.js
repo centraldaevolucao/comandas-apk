@@ -1,4 +1,4 @@
-// Pendências (fiado) por cliente — soma de TODAS as comandas pendentes, independente do caixa em que foram fechadas.
+// Pendências por cliente — soma de TODAS as comandas pendentes, independente do caixa em que foram fechadas.
 (function () {
     'use strict';
     let dados = { comandas: [], clientes: [] };
@@ -494,6 +494,29 @@
         window.open('https://wa.me/' + (tel || '') + '?text=' + encodeURIComponent(texto), '_blank');   // com número: abre direto a conversa
     }
 
+    // imagem (print) do card da pendência, no mesmo estilo do cupom, para enviar direto ao contato
+    async function imagemCard(titulo, subtitulo, corpoHtml) {
+        const wrap = document.createElement('div');
+        wrap.style.cssText = 'position:fixed;left:-9999px;top:0;';   // só o contêiner fica fora da tela; o cartão capturado não leva a posição
+        const d = document.createElement('div');
+        d.style.cssText = 'width:340px;background:#fff;color:#000;padding:16px;box-sizing:border-box;font-family:"Segoe UI",Tahoma,Arial,sans-serif;font-size:14px;';
+        d.innerHTML = '<div style="text-align:center;font-weight:800;font-size:16px;">' + esc(titulo) + '</div>' +
+            '<div style="text-align:center;color:#e65100;font-weight:700;margin:2px 0 8px;">PENDENTE</div>' +
+            (subtitulo ? '<div style="font-size:12px;color:#555;margin-bottom:6px;">' + subtitulo + '</div>' : '') + corpoHtml;
+        wrap.appendChild(d); document.body.appendChild(wrap);
+        try { return await window.elementoParaPng(d); } finally { wrap.remove(); }
+    }
+    // WhatsApp: com telefone no cadastro abre direto a conversa com a imagem; se falhar, cai no texto
+    async function enviarCard(titulo, subtitulo, corpoHtml, nomeArq, texto, tel, modoWa, textoFallback) {
+        if (modoWa) {
+            try {
+                const png = await imagemCard(titulo, subtitulo, corpoHtml);
+                if (await window.compartilharImagem(png, nomeArq, texto, tel, '')) return;
+            } catch (e) { console.warn('Imagem da pendência falhou, usando texto:', e); }
+        }
+        await enviarTexto(textoFallback, tel, modoWa ? 'wa' : 'outros', titulo);
+    }
+
     function buscar(id) { return dados.comandas.find(function (x) { return String(x.id) === String(id); }); }
 
     window.pendenciaVer = function (id) {
@@ -524,7 +547,11 @@
     window.pendenciaCompartilhar = async function (id, modo) {
         const c = buscar(id); if (!c) return;
         const tel = modo === 'wa' ? await window.telefoneWhatsApp(c, true) : '';
-        await enviarTexto(textoComanda(c), tel, modo === 'wa' ? 'wa' : 'outros', 'Comanda ' + c.numero);
+        const corpo = linhasItens(c) +
+            '<div style="margin-top:8px;display:flex;justify-content:space-between;"><span>Total da comanda</span><b>' + R(totalItens(c)) + '</b></div>' +
+            (pagoParcial(c) > 0 ? '<div style="display:flex;justify-content:space-between;color:#2e7d32;"><span>Já recebido</span><b>' + R(pagoParcial(c)) + '</b></div>' : '') +
+            '<div style="display:flex;justify-content:space-between;color:#e65100;font-size:16px;font-weight:800;"><span>Pendente</span><span>' + R(c.valorPendente) + '</span></div>';
+        await enviarCard('Comanda ' + c.numero, esc(c.cliente || '') + (c.dataFechamento ? ' · ' + esc(c.dataFechamento) : ''), corpo, 'pendencia-' + (c.numero || '') + '.png', 'Comanda ' + c.numero + ' (pendente)', tel, modo === 'wa', textoComanda(c));
     };
 
     // visão consolidada do cliente (todas as pendências, itens de cada comanda)
@@ -550,7 +577,10 @@
         let t = '*Pendências de ' + g.nome + '*\n\n' + g.comandas.map(textoComanda).join('\n') + '\n*TOTAL PENDENTE: ' + window.formatMoney(g.total) + '*';
         let tel = '';
         if (modo === 'wa') { tel = String(g.telefone || '').replace(/\D/g, ''); if (tel && !tel.startsWith('55') && tel.length <= 11) tel = '55' + tel; if (tel.length < 12) tel = await window.telefoneWhatsApp(g.comandas[0], true); }
-        await enviarTexto(t, tel, modo === 'wa' ? 'wa' : 'outros', 'Pendências de ' + g.nome);
+        const corpoC = g.comandas.map(function (c) {
+            return '<div style="border-top:1px dashed #bbb;padding:6px 0;"><div style="display:flex;justify-content:space-between;font-weight:700;"><span>Comanda ' + esc(c.numero) + '</span><span style="color:#e65100;">' + R(c.valorPendente) + '</span></div>' + linhasItens(c) + '</div>';
+        }).join('') + '<div style="display:flex;justify-content:space-between;font-size:16px;font-weight:800;color:#e65100;border-top:2px solid #000;padding-top:6px;"><span>TOTAL PENDENTE</span><span>' + R(g.total) + '</span></div>';
+        await enviarCard('Pendências de ' + g.nome, '', corpoC, 'pendencias-' + String(g.nome).replace(/\W+/g, '-') + '.png', 'Pendências de ' + g.nome, tel, modo === 'wa', t);
     };
 
     window.pendenciaExportarCliente = function (chave, tipo) {

@@ -248,7 +248,7 @@ function renderCaixaFechado(container) {
         html += '<div style="padding:12px;background:#fff3e0;border-left:4px solid #ff9800;border-radius:8px;margin-bottom:12px;">';
         html += '    <div style="display:flex;align-items:center;gap:10px;">';
         html += '        <i class="fas fa-clock" style="color:#e65100;font-size:1.3rem;"></i>';
-        html += '        <div style="flex:1;font-size:0.85rem;color:#e65100;"><b>' + pendentesHoje.length + ' fiado(s) pendente(s)</b> — total ' + formatMoney(soma) + '</div>';
+        html += '        <div style="flex:1;font-size:0.85rem;color:#e65100;"><b>' + pendentesHoje.length + ' pendência(s)</b> — total ' + formatMoney(soma) + '</div>';
         html += '    </div></div>';
     }
 
@@ -321,7 +321,7 @@ function renderCaixaAberto(container) {
         html += '<div style="padding:12px;background:#fff3e0;border-left:4px solid #ff9800;border-radius:8px;margin-bottom:12px;">';
         html += '    <div style="display:flex;align-items:center;gap:10px;">';
         html += '        <i class="fas fa-clock" style="color:#e65100;font-size:1.3rem;"></i>';
-        html += '        <div style="flex:1;font-size:0.85rem;color:#e65100;"><b>' + comandasPendentes.length + ' fiado(s) pendente(s)</b> — total ' + formatMoney(soma) + '</div>';
+        html += '        <div style="flex:1;font-size:0.85rem;color:#e65100;"><b>' + comandasPendentes.length + ' pendência(s)</b> — total ' + formatMoney(soma) + '</div>';
         html += '        <button class="btn-outline" style="padding:6px 10px;font-size:0.75rem;border-color:#e65100;color:#e65100;" onclick="mudarFiltroCaixa(\'pendentes\')">Ver</button>';
         html += '        <button class="btn-outline" style="padding:6px 10px;font-size:0.75rem;border-color:#1976d2;color:#1976d2;margin-left:4px;" onclick="pendenciasUnirModal()">Unir</button>';
         html += '    </div></div>';
@@ -439,7 +439,7 @@ function renderGridComandasCaixa(comandasDoCaixa) {
 
     if (lista.length === 0) {
         if (busca !== '') return '<p class="empty-state" style="padding:20px;">Nenhuma comanda encontrada.</p>';
-        if (filtro === 'pendentes') return '<p class="empty-state" style="padding:20px;">✅ Nenhum fiado pendente.</p>';
+        if (filtro === 'pendentes') return '<p class="empty-state" style="padding:20px;">✅ Nenhuma pendência.</p>';
         if (filtro !== 'todas') return '<p class="empty-state" style="padding:20px;">Nenhuma comanda <b>' + filtro + '</b> neste caixa.</p>';
         return '<p class="empty-state" style="padding:20px;">🛒 Nenhuma comanda criada neste caixa ainda.</p>';
     }
@@ -463,7 +463,7 @@ function renderCardComandaCaixa(c) {
     const corBadge = c.corGrupo ? (window.CORES_CAIXA || []).find(x => x.id === c.corGrupo) : null;
 
     const badgeCor = corBadge ? '<div style="position:absolute;top:6px;left:6px;width:10px;height:10px;border-radius:50%;background:' + corBadge.hex + ';border:2px solid #fff;"></div>' : '';
-    const badgePendente = pendente ? '<div style="position:absolute;top:6px;right:6px;background:#e65100;color:#fff;font-size:0.6rem;font-weight:700;padding:2px 6px;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,0.2);">FIADO</div>' : '';
+    const badgePendente = '';   // o card amarelo + linha "Pend:" já indicam; o selo sobrepunha a data e o menu
 
     const temClienteCadastrado = !!(c.clienteId && c.cliente);
     const nomeCliente = c.cliente ? String(c.cliente).trim() : '';
@@ -482,7 +482,7 @@ function renderCardComandaCaixa(c) {
            clienteHTML +
            (garcomCurto ? '<div class="card-comanda-status" style="font-size:0.6rem;opacity:0.85;">👨‍🍳 ' + garcomCurto + '</div>' : '') +
            '        <div class="card-comanda-status" style="margin-top:2px;font-weight:700;">' + formatMoney(total) + '</div>' +
-           (pendente ? '<div class="card-comanda-status" style="font-size:0.6rem;color:#e65100;font-weight:700;">Pendente: ' + formatMoney(c.valorPendente || 0) + '</div>' : '') +
+           (pendente ? '<div class="card-comanda-status" style="font-size:0.6rem;color:#e65100;font-weight:700;">Pend: ' + formatMoney(c.valorPendente || 0) + '</div>' : '') +
            (qtdItens > 0 ? '<div class="card-comanda-status" style="font-size:0.55rem;opacity:0.7;">' + qtdItens + ' item(ns)</div>' : '') +
            '    </div>' +
            '    <button class="card-comanda-menu" onclick="event.stopPropagation(); abrirMenuCardCaixa(' + c.id + ')">' +
@@ -511,7 +511,7 @@ window.abrirMenuCardCaixa = function (id) {
 
     let opcoes = '';
     opcoes += '<div class="card-menu-item" onclick="fecharMenuCardCaixa(); abrirComandaCaixa(' + c.id + ')"><i class="fas fa-eye" style="color:var(--primary-color);"></i><span>Ver detalhes</span></div>';
-    if (pendente) opcoes += '<div class="card-menu-item" onclick="fecharMenuCardCaixa(); abrirComandaCaixa(' + c.id + ', \'fechar\')"><i class="fas fa-money-bill-wave" style="color:#2e7d32;"></i><span>Receber Fiado</span></div>' +
+    if (pendente) opcoes += '<div class="card-menu-item" onclick="fecharMenuCardCaixa(); abrirComandaCaixa(' + c.id + ', \'fechar\')"><i class="fas fa-money-bill-wave" style="color:#2e7d32;"></i><span>Receber pendência</span></div>' +
         '<div class="card-menu-item" onclick="fecharMenuCardCaixa(); reabrirPendenciaCaixa(' + c.id + ')"><i class="fas fa-lock-open" style="color:#6a1b9a;"></i><span>Reabrir no caixa atual</span></div>';
     if (estaAtiva) {
         opcoes += '<div class="card-menu-item" onclick="fecharMenuCardCaixa(); abrirComandaCaixa(' + c.id + ', \'fechar\')"><i class="fas fa-check-circle" style="color:#2e7d32;"></i><span>Fechar comanda</span></div>';

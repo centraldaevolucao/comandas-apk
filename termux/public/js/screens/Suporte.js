@@ -48,7 +48,7 @@
             '<button class="btn-outline" style="flex:1;border-color:#25d366;color:#1b8f4a;" onclick="suporteAbrirWhats()"><i class="fab fa-whatsapp"></i> WhatsApp<div style="font-size:.68rem;color:#666;font-weight:400;">' + esc(C.whatsappFmt) + '</div></button>' +
             '<button class="btn-outline" style="flex:1;border-color:#1976d2;color:#1976d2;" onclick="suporteAbrirEmail()"><i class="fas fa-envelope"></i> E-mail<div style="font-size:.68rem;color:#666;font-weight:400;overflow:hidden;text-overflow:ellipsis;">' + esc(C.email) + '</div></button></div>' +
             '<div id="chat-box" style="background:#f4f4f6;border-radius:14px;padding:10px;height:calc(100vh - 420px);min-height:260px;overflow-y:auto;"></div>' +
-            '<div style="display:flex;gap:8px;margin-top:8px;"><input id="chat-entrada" type="text" placeholder="Digite sua dúvida (ex.: fiado, impressora, licença)" autocomplete="off" ' +
+            '<div style="display:flex;gap:8px;margin-top:8px;"><input id="chat-entrada" type="text" placeholder="Digite sua dúvida (ex.: pendência, impressora, licença)" autocomplete="off" ' +
             'style="flex:1;padding:12px;border:2px solid #ddd;border-radius:24px;font-size:.95rem;" onkeydown="if(event.key===\'Enter\')suporteEnviar()">' +
             '<button class="btn-primary" style="width:48px;height:48px;border-radius:50%;padding:0;" onclick="suporteEnviar()" aria-label="Enviar"><i class="fas fa-paper-plane"></i></button></div>' +
             '<div style="background:#fff;border-radius:12px;padding:10px 12px;margin-top:10px;font-size:.8rem;color:#555;line-height:1.5;box-shadow:0 1px 3px rgba(0,0,0,.06);"><b><i class="far fa-clock"></i> Horário de atendimento</b><br>' + C.horarios.map(esc).join('<br>') + '</div>' +
@@ -143,7 +143,7 @@
         balaoUsuario(t);
         const achou = buscar(t);
         if (!achou.length) {
-            balaoBot('Não encontrei uma resposta para isso. Tente outras palavras (ex.: <i>fiado, caixa, impressora, licença, backup</i>) ou fale com a gente.');
+            balaoBot('Não encontrei uma resposta para isso. Tente outras palavras (ex.: <i>pendência, caixa, impressora, licença, backup</i>) ou fale com a gente.');
             opcoes([{ t: 'Ver o menu de assuntos', f: function () { menuPrincipal(); } }, { t: '<i class="fas fa-headset"></i> Falar com o suporte', cor: '#1b8f4a', f: function () { balaoUsuario('Falar com o suporte'); contato(t); } }]);
             return;
         }

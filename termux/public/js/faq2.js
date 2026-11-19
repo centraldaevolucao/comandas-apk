@@ -1,30 +1,30 @@
-// Perguntas frequentes — parte 2 (fiado, caixa, cozinha, cardápio, cadastros)
+// Perguntas frequentes — parte 2 (pendências, caixa, cozinha, cardápio, cadastros)
 (function () {
 var O = window.FAQ_O, U = window.FAQ_U, DICA = window.FAQ_DICA;
 window.FAQ_DADOS.push(
-{ id: 'fiado', icone: 'fa-hand-holding-dollar', titulo: 'Fiado e Pendências', itens: [
- { p: 'Como vender fiado?', k: 'fiado deixar fiado pendente cliente conta anotar',
-   r: O('Abra a comanda e toque em <b>Receber / Fechar</b>.', 'Marque <b>Deixar Fiado</b> e confirme.', 'Se a comanda não tem cliente cadastrado, abre a janela <b>Cliente do fiado</b>: pesquise e escolha um cliente ou <b>cadastre na hora</b> (nome + telefone).', 'Pronto: a comanda <b>não é fechada e nenhum recibo é gerado</b>. Ela vai para <b>Pendências</b> com o saldo pendente e a mesa fica livre.') + 'Pagamentos parciais já informados são mantidos (só o que falta fica pendente).' },
- { p: 'Por que o botão Fiado pede um cliente cadastrado?', k: 'fiado cliente cadastrado obrigatorio desabilitado',
-   r: 'Para saber <b>quem deve</b>. O fiado só é confirmado depois de vincular um cliente cadastrado — escolhendo um existente ou cadastrando na hora pela janela <b>Cliente do fiado</b>. Assim a dívida aparece em Pendências no nome certo.' },
+{ id: 'fiado', icone: 'fa-hand-holding-dollar', titulo: 'Pendências', itens: [
+ { p: 'Como deixar uma comanda pendente?', k: 'fiado deixar fiado pendente cliente conta anotar',
+   r: O('Abra a comanda e toque em <b>Receber / Fechar</b>.', 'Marque <b>Deixar Pendente</b> e confirme.', 'Se a comanda não tem cliente cadastrado, abre a janela <b>Cliente da pendência</b>: pesquise e escolha um cliente ou <b>cadastre na hora</b> (nome + telefone).', 'Pronto: a comanda <b>não é fechada e nenhum recibo é gerado</b>. Ela vai para <b>Pendências</b> com o saldo pendente e a mesa fica livre.') + 'Pagamentos parciais já informados são mantidos (só o que falta fica pendente).' },
+ { p: 'Por que o botão Deixar Pendente pede um cliente cadastrado?', k: 'fiado cliente cadastrado obrigatorio desabilitado',
+   r: 'Para saber <b>quem deve</b>. A pendência só é confirmada depois de vincular um cliente cadastrado — escolhendo um existente ou cadastrando na hora pela janela <b>Cliente da pendência</b>. Assim a dívida aparece em Pendências no nome certo.' },
  { p: 'Onde vejo o que cada cliente deve?', k: 'pendencias devedores cliente total deve lista',
    r: O('Abra <b>Atalhos › Pendências</b> (ou <b>Clientes › Pendências por cliente</b>).', 'Veja o <b>total geral</b>, que soma todos os caixas.', 'Use a <b>busca</b> para achar um cliente.', 'Toque no cliente para ver as comandas pendentes e <b>Ver itens</b> para conferir o consumo.') },
  { p: 'Como recebo uma pendência (total ou parcial)?', k: 'receber pendencia quitar pagar parcial finalizar abater',
    r: O('Em <b>Pendências</b>, abra o cliente.', 'Para uma comanda, toque em <b>Receber</b> na linha dela (ou marque-a e use <b>Receber a comanda selecionada</b>). Para receber várias juntas, use antes <b>Unir comandas</b> — nada é unido sozinho.', 'Escolha a <b>forma de pagamento</b> e digite o <b>valor</b> (parcial é permitido; abate das mais antigas).', 'Se quiser, escolha o <b>grupo de trabalho/caixa</b> onde a venda será lançada.', 'Confirme. Ao zerar o saldo, a venda <b>fecha no caixa aberto</b> e o recibo final (PAGO) é liberado.') },
  { p: 'O que é unir pendências e como faço?', k: 'unir pendencias juntar fiado varias comandas uma so',
-   r: 'Junta todas as pendências do mesmo cliente em <b>uma só comanda</b>.' + O('Em <b>Pendências</b>, abra o cliente.', 'Toque em <b>Unir pendências deste cliente</b> (ou, no Caixa, no banner de fiados › <b>Unir</b>).', 'Escolha o <b>grupo de trabalho</b> da comanda resultante e confirme.') + 'A primeira comanda recebe os itens (iguais são somados), os pagamentos parciais e o saldo; <b>as demais são excluídas</b>. Dá para <b>ver os itens antes e depois</b> de unir.' },
+   r: 'Junta todas as pendências do mesmo cliente em <b>uma só comanda</b>.' + O('Em <b>Pendências</b>, abra o cliente.', 'Toque em <b>Unir pendências deste cliente</b> (ou, no Caixa, no banner de pendências › <b>Unir</b>).', 'Escolha o <b>grupo de trabalho</b> da comanda resultante e confirme.') + 'A primeira comanda recebe os itens (iguais são somados), os pagamentos parciais e o saldo; <b>as demais são excluídas</b>. Dá para <b>ver os itens antes e depois</b> de unir.' },
  { p: 'Posso reabrir uma comanda pendente?', k: 'reabrir pendencia comanda caixa atual voltar aberta',
    r: O('Em <b>Pendências</b>, <b>Caixa</b>, <b>PDV</b> ou na tela da própria comanda pendente, toque em <b>Reabrir no caixa atual</b>.', 'Confirme.') + 'A comanda volta a ficar aberta no caixa atual, <b>mantém os pagamentos parciais</b> (entram no fechamento como "já recebido") e guarda o caixa de origem.' },
  { p: 'Como vejo os itens de uma pendência e imprimo?', k: 'ver itens pendencia imprimir visualizar recibo pendente',
    r: O('Em Pendências, abra o cliente e toque em <b>Ver itens</b> (de uma comanda ou de todas).', 'Use <b>Imprimir/visualizar</b> para o recibo pendente.', 'Ou compartilhe por <b>WhatsApp</b>, <b>Outros</b>, <b>PDF</b> ou <b>CSV</b>.') },
  { p: 'A pendência impede de fechar o caixa?', k: 'pendencia fechar caixa bloqueia fiado impede',
-   r: 'Não. Comandas em fiado <b>liberam a mesa</b> e <b>não bloqueiam o fechamento do caixa</b>. O valor só entra no caixa quando for recebido.' },
+   r: 'Não. Comandas pendentes <b>liberam a mesa</b> e <b>não bloqueiam o fechamento do caixa</b>. O valor só entra no caixa quando for recebido.' },
  { p: 'Como cobro o cliente pelo WhatsApp?', k: 'cobrar whatsapp cliente telefone mensagem devedor',
    r: O('Em <b>Pendências</b>, abra o cliente.', 'Toque em <b>WhatsApp</b>.', 'Se o cliente não tiver telefone, o app pergunta o número (com DDD) e abre uma <b>nova conversa</b>, mesmo fora da agenda.', 'Confirme o envio dentro do WhatsApp.') },
  { p: 'Como exporto a lista de pendências?', k: 'exportar pendencias pdf csv compartilhar planilha',
    r: 'Em <b>Pendências</b> escolha a comanda ou o cliente e use <b>PDF</b> ou <b>CSV</b>. O arquivo abre o menu <b>Compartilhar</b> do Android (WhatsApp, e-mail, Drive, salvar em arquivos).' },
- { p: 'Como o fiado aparece no caixa e nos relatórios?', k: 'fiado caixa relatorio pendente total recebido',
-   r: 'Fiado <b>não entra como recebido</b> até ser pago. Enquanto pendente aparece no filtro <b>Pendentes</b> (PDV e Caixa) como card amarelo e no total de Pendências. Ao receber, a venda é lançada no <b>caixa aberto</b> naquele momento, na forma de pagamento escolhida.' },
+ { p: 'Como a pendência aparece no caixa e nos relatórios?', k: 'fiado caixa relatorio pendente total recebido',
+   r: 'A pendência <b>não entra como recebido</b> até ser pago. Enquanto pendente aparece no filtro <b>Pendentes</b> (PDV e Caixa) como card amarelo e no total de Pendências. Ao receber, a venda é lançada no <b>caixa aberto</b> naquele momento, na forma de pagamento escolhida.' },
  { p: 'Errei e quitei a pendência do cliente errado. E agora?', k: 'erro quitar pendencia cliente errado corrigir desfazer',
    r: O('Anote a forma e o valor lançados.', 'Abra a comanda quitada e verifique o pagamento.', 'Se necessário, reabra o caso com <b>Reabrir no caixa atual</b> (para comandas ainda pendentes) ou corrija o pagamento na comanda.') + 'Se não conseguir desfazer, fale com o suporte pelo WhatsApp ou e-mail informando o cliente e o valor.' }
 ]},
@@ -36,9 +36,9 @@ window.FAQ_DADOS.push(
  { p: 'Como faço sangria (retirada) ou entrada de dinheiro no caixa?', k: 'sangria suprimento movimentacao retirada dinheiro caixa entrada',
    r: O('Com o caixa aberto, abra a tela do <b>Caixa</b>.', 'Em <b>Movimentações</b>, adicione uma <b>retirada (sangria)</b> ou <b>entrada</b>.', 'Informe valor e motivo e salve.') + 'As movimentações entram no resumo e no fechamento do caixa.' },
  { p: 'Como fecho o caixa?', k: 'fechar caixa fechamento encerrar dia turno',
-   r: O('Finalize, cancele ou deixe como fiado todas as <b>comandas em aberto</b>.', 'Abra <b>Caixa</b> e toque em <b>Fechar caixa</b>.', 'Confira o resumo (vendas por forma, sangrias, saldo).', 'Confirme o fechamento.') + 'O fechamento fica guardado no <b>Histórico de caixa</b>.' },
+   r: O('Finalize, cancele ou deixe como pendente todas as <b>comandas em aberto</b>.', 'Abra <b>Caixa</b> e toque em <b>Fechar caixa</b>.', 'Confira o resumo (vendas por forma, sangrias, saldo).', 'Confirme o fechamento.') + 'O fechamento fica guardado no <b>Histórico de caixa</b>.' },
  { p: 'Não consigo fechar o caixa. Por quê?', k: 'nao consigo fechar caixa bloqueado comandas abertas assinatura',
-   r: 'Os motivos mais comuns:' + U('Há <b>comandas em aberto</b>: finalize, cancele ou lance como <b>fiado</b> cada uma.', 'O <b>Caixa é recurso de assinante</b>: no plano gratuito o fechamento fica bloqueado. Veja <b>Minha Assinatura</b>.') },
+   r: 'Os motivos mais comuns:' + U('Há <b>comandas em aberto</b>: finalize, cancele ou lance como <b>pendente</b> cada uma.', 'O <b>Caixa é recurso de assinante</b>: no plano gratuito o fechamento fica bloqueado. Veja <b>Minha Assinatura</b>.') },
  { p: 'Onde vejo o resumo e o histórico do caixa?', k: 'resumo historico caixa fechamentos anteriores',
    r: U('<b>Resumo do caixa</b>: vendas por forma de pagamento, sangrias e saldo do caixa atual.', '<b>Histórico de caixa</b>: fechamentos anteriores, com detalhes e opção de exportar.') },
  { p: 'Posso ter mais de um caixa aberto ao mesmo tempo?', k: 'varios caixas simultaneo grupos de trabalho turnos',

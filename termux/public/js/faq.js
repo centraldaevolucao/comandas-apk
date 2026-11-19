@@ -9,7 +9,7 @@ var O = window.FAQ_O, U = window.FAQ_U, DICA = window.FAQ_DICA;
 window.FAQ_DADOS = [
 { id: 'inicio', icone: 'fa-rocket', titulo: 'Primeiros passos', itens: [
  { p: 'O que é o Comandas e o que ele faz?', k: 'sistema app sobre pdv restaurante bar lanchonete cantina para que serve',
-   r: 'O Comandas é um sistema de <b>comandas e PDV</b> para bares, restaurantes, lanchonetes e cantinas. Ele reúne:' + U('<b>PDV e comandas</b> (pedidos por mesa ou cliente)', '<b>Cozinha</b> e <b>painel do garçom</b>', '<b>Caixa</b>, <b>fiado (pendências)</b> e formas de pagamento (dinheiro, PIX, cartão)', '<b>Cadastros</b>, <b>estoque</b> e <b>perdas</b>', '<b>Relatórios</b>, <b>cardápio digital por QR Code</b>', 'Impressão em papel/Bluetooth e envio por WhatsApp') + 'Funciona no celular ou tablet <b>sem depender de internet</b>: os dados ficam no seu aparelho.' },
+   r: 'O Comandas é um sistema de <b>comandas e PDV</b> para bares, restaurantes, lanchonetes e cantinas. Ele reúne:' + U('<b>PDV e comandas</b> (pedidos por mesa ou cliente)', '<b>Cozinha</b> e <b>painel do garçom</b>', '<b>Caixa</b>, <b>pendências</b> e formas de pagamento (dinheiro, PIX, cartão)', '<b>Cadastros</b>, <b>estoque</b> e <b>perdas</b>', '<b>Relatórios</b>, <b>cardápio digital por QR Code</b>', 'Impressão em papel/Bluetooth e envio por WhatsApp') + 'Funciona no celular ou tablet <b>sem depender de internet</b>: os dados ficam no seu aparelho.' },
  { p: 'Como instalo o aplicativo pela primeira vez?', k: 'instalar apk baixar primeira vez origem desconhecida',
    r: O('Baixe o arquivo <b>.apk</b> no celular ou tablet Android.', 'Toque no arquivo. Se o Android perguntar, permita <b>instalar apps desta origem</b> (só uma vez).', 'Toque em <b>Instalar</b> e depois em <b>Abrir</b>.', 'Na primeira abertura, <b>aceite as permissões</b> que o app pedir (rede, arquivos, Bluetooth, notificações).', 'Escolha o modo de uso (<b>Único</b> para um só aparelho, ou <b>Servidor/Cliente</b> para vários) e comece a cadastrar.') + DICA('Instale no aparelho principal primeiro. Os demais (garçom, cozinha) entram depois como Cliente.') },
  { p: 'Como atualizo o aplicativo sem perder meus dados?', k: 'atualizar atualizacao versao nova perder dados cadastros por cima',
@@ -63,7 +63,7 @@ window.FAQ_DADOS = [
  { p: 'Como abro uma nova comanda?', k: 'nova comanda abrir criar pedido mesa iniciar',
    r: O('Abra o <b>PDV</b> (Menu Principal).', 'Toque em <b>Nova comanda</b>.', 'Escolha a <b>mesa</b> (ou deixe sem mesa) e o <b>colaborador/garçom</b>.', 'Se quiser, selecione o <b>cliente</b> (campo opcional).', 'Confirme e comece a <b>adicionar os produtos</b>.') + 'Mesas e colaboradores aparecem em ordem alfabética.' },
  { p: 'Como vinculo um cliente à comanda?', k: 'cliente comanda cadastro selecionar novo opcional vincular',
-   r: O('No campo <b>Cliente (opcional)</b>, toque no campo ou na <b>setinha</b>.', 'A lista mostra todos os clientes em <b>ordem alfabética</b>. Digite para filtrar por nome, telefone ou CPF.', 'Toque no cliente desejado — ou em <b>Sem cadastro (digitar nome)</b> para só informar um nome.', 'Para um cliente novo, toque em <b>+ Novo cliente</b>: cadastro rápido que já seleciona.') + DICA('O cliente é obrigatório para vender no <b>fiado</b>.') },
+   r: O('No campo <b>Cliente (opcional)</b>, toque no campo ou na <b>setinha</b>.', 'A lista mostra todos os clientes em <b>ordem alfabética</b>. Digite para filtrar por nome, telefone ou CPF.', 'Toque no cliente desejado — ou em <b>Sem cadastro (digitar nome)</b> para só informar um nome.', 'Para um cliente novo, toque em <b>+ Novo cliente</b>: cadastro rápido que já seleciona.') + DICA('O cliente é obrigatório para vender com <b>pendência</b>.') },
  { p: 'Como adiciono produtos à comanda?', k: 'adicionar produto item comanda lancar pedido',
    r: O('Abra a comanda e toque em <b>Adicionar produto</b>.', 'Procure pelo nome ou filtre por <b>grupo</b> (se a opção estiver ativa em Configurações).', 'Toque no produto e ajuste a <b>quantidade</b>.', 'Se houver adicionais, marque os desejados.', 'Confirme. O item entra na comanda e vai para a cozinha.') + 'A lista de produtos é sempre em A-Z; os itens da comanda ficam na ordem em que foram inseridos.' },
  { p: 'Como adiciono extras (adicionais) a um item?', k: 'adicional extra complemento bacon queijo item',
@@ -71,9 +71,9 @@ window.FAQ_DADOS = [
  { p: 'Como edito a quantidade ou removo um item?', k: 'editar excluir remover item comanda alterar quantidade corrigir',
    r: O('Abra a comanda.', 'Toque em <b>Editar</b> (ou no item).', 'Altere a <b>quantidade</b> ou use a lixeira para <b>remover</b>.', 'Salve.') + 'O que pode ser cancelado depende do <b>nível de acesso</b> do usuário. Atenção: depois de gerar o recibo em aberto, mudar itens <b>não atualiza</b> o valor já confirmado — use <b>Cancelar recebimento</b> e refaça.' },
  { p: 'Como encontro uma comanda? (filtros e busca)', k: 'filtro buscar procurar comanda pendente aberta fechada',
-   r: 'No PDV e no Caixa use:' + U('Os <b>filtros</b> no topo: Abertas, Fechadas, <b>Pendentes</b> (fiado) etc.', 'A <b>busca</b> por nome do cliente, mesa ou número.', 'A <b>cor/nome do grupo de trabalho</b> em cada card, para separar caixas.') + 'Comandas de fiado aparecem como <b>cards amarelos</b> com a tarja "Pendente: R$ …".' },
+   r: 'No PDV e no Caixa use:' + U('Os <b>filtros</b> no topo: Abertas, Fechadas, <b>Pendentes</b> etc.', 'A <b>busca</b> por nome do cliente, mesa ou número.', 'A <b>cor/nome do grupo de trabalho</b> em cada card, para separar caixas.') + 'Comandas pendentes aparecem como <b>cards amarelos</b> com a tarja "Pendente: R$ …".' },
  { p: 'Como junto (uno) comandas abertas?', k: 'unir juntar comandas mesa transferir',
-   r: O('Em <b>Comandas/PDV</b>, toque em <b>Unir comandas</b>.', 'Marque as comandas abertas que quer juntar.', 'Confirme: os itens iguais são somados em uma só comanda.') + 'Para unir <b>fiados do mesmo cliente</b>, use <b>Pendências › Unir pendências deste cliente</b> (a união comum não lista comandas pendentes).' },
+   r: O('Em <b>Comandas/PDV</b>, toque em <b>Unir comandas</b>.', 'Marque as comandas abertas que quer juntar.', 'Confirme: os itens iguais são somados em uma só comanda.') + 'Para unir <b>pendências do mesmo cliente</b>, use <b>Pendências › Unir pendências deste cliente</b> (a união comum não lista comandas pendentes).' },
  { p: 'Como transfiro uma comanda de mesa?', k: 'transferir trocar mesa mudar comanda',
    r: O('Abra a comanda e toque em <b>Editar</b>.', 'Altere o campo <b>Mesa</b> para a nova mesa (escolhendo na lista).', 'Salve. A mesa antiga é liberada.') },
  { p: 'O que são os Pedidos Pendentes?', k: 'pedidos pendentes aprovar recusar cardapio qr cliente aprovacao',
@@ -85,7 +85,7 @@ window.FAQ_DADOS = [
  { p: 'Como dou desconto em uma comanda?', k: 'desconto abatimento valor comanda promocao',
    r: O('Abra a comanda.', 'Informe o valor no campo <b>Desconto</b>.', 'O total é atualizado; o desconto também aparece no recibo (tela, impressão e WhatsApp).') },
  { p: 'Como reabro uma comanda já fechada?', k: 'reabrir comanda fechada arquivada corrigir',
-   r: 'Comandas <b>pendentes (fiado)</b> podem ser reabertas: Pendências, Caixa, PDV ou tela da comanda › <b>Reabrir no caixa atual</b> (mantém pagamentos parciais). Comandas já quitadas e arquivadas ficam como consulta no relatório <b>Comandas Arquivadas</b>.' },
+   r: 'Comandas <b>pendentes</b> podem ser reabertas: Pendências, Caixa, PDV ou tela da comanda › <b>Reabrir no caixa atual</b> (mantém pagamentos parciais). Comandas já quitadas e arquivadas ficam como consulta no relatório <b>Comandas Arquivadas</b>.' },
  { p: 'Como o PDV mostra de qual caixa é cada comanda?', k: 'grupo trabalho cor caixa faixa pdv comanda',
    r: 'O PDV mostra uma faixa <b>"Grupo de trabalho: cor/nome"</b> no topo e uma etiqueta colorida em cada card. O nome vem de <b>Configurações › Grupos de Trabalho</b> e também sai na comanda e no recibo.' },
  { p: 'Posso ordenar as comandas?', k: 'ordenar comandas ordem alfabetica ultimo consumo',
@@ -93,7 +93,7 @@ window.FAQ_DADOS = [
 ]},
 { id: 'fechamento', icone: 'fa-receipt', titulo: 'Fechamento e pagamentos', itens: [
  { p: 'Como fecho uma comanda passo a passo?', k: 'fechar comanda receber pagamento recibo etapas finalizar',
-   r: O('Abra a comanda e toque em <b>Receber / Fechar</b>.', 'Informe as <b>formas de pagamento</b> e os valores (ou marque <b>Deixar Fiado</b>).', 'Toque em <b>Confirmar e gerar recibo</b> e confirme. Aparece o <b>recibo em aberto</b> (tarja AGUARDANDO PAGAMENTO) com QR Code e chave PIX com o valor.', 'Receba o dinheiro/PIX/cartão do cliente.', 'Toque em <b>Fechar comanda (recebido)</b> e confirme. Aparece o <b>recibo final (PAGO)</b>.', 'Agora estão liberados <b>Imprimir</b> e <b>Enviar por WhatsApp</b>.') + DICA('Em qualquer momento da etapa 3 você pode tocar em <b>Cancelar recebimento</b>: nada é fechado e a comanda segue aberta.') },
+   r: O('Abra a comanda e toque em <b>Receber / Fechar</b>.', 'Informe as <b>formas de pagamento</b> e os valores (ou marque <b>Deixar Pendente</b>).', 'Toque em <b>Confirmar e gerar recibo</b> e confirme. Aparece o <b>recibo em aberto</b> (tarja AGUARDANDO PAGAMENTO) com QR Code e chave PIX com o valor.', 'Receba o dinheiro/PIX/cartão do cliente.', 'Toque em <b>Fechar comanda (recebido)</b> e confirme. Aparece o <b>recibo final (PAGO)</b>.', 'Agora estão liberados <b>Imprimir</b> e <b>Enviar por WhatsApp</b>.') + DICA('Em qualquer momento da etapa 3 você pode tocar em <b>Cancelar recebimento</b>: nada é fechado e a comanda segue aberta.') },
  { p: 'Posso dividir o pagamento em várias formas?', k: 'dividir pagamento varias formas dinheiro pix cartao misto parte',
    r: O('Na tela de fechamento, escolha a primeira forma (ex.: Dinheiro) e digite o valor.', 'Adicione outra forma (ex.: PIX) com o restante — o atalho <b>Restante</b> preenche o que falta.', 'Repita quantas vezes precisar.', 'Confira o total e confirme.') },
  { p: 'Como altero ou excluo um pagamento já lançado?', k: 'editar pagamento alterar valor forma excluir apagar lancado',
@@ -123,11 +123,11 @@ window.FAQ_DADOS = [
  { p: 'Como cancelo o recebimento antes de fechar?', k: 'cancelar recebimento voltar desfazer fechamento',
    r: O('No recibo em aberto, toque em <b>Cancelar recebimento</b> (ou no X).', 'Confirme.', 'A comanda segue aberta, sem nada fechado. Edite o que precisar e refaça o fechamento.') },
  { p: 'Como imprimo ou envio o recibo final?', k: 'recibo imprimir whatsapp enviar compartilhar pdf final pago',
-   r: 'No recibo final há três botões:' + U('<b>Imprimir</b>: papel comum ou impressora <b>Bluetooth</b>.', '<b>WhatsApp</b>: envia a <b>imagem</b> do recibo direto ao telefone do cliente (tenta WhatsApp e WhatsApp Business).', '<b>Compartilhar</b>: menu do Android (e-mail, Drive, Telegram, SMS…).') + 'O texto mostra <b>PAGO</b> ou <b>PENDENTE (FIADO)</b>.' },
+   r: 'No recibo final há três botões:' + U('<b>Imprimir</b>: papel comum ou impressora <b>Bluetooth</b>.', '<b>WhatsApp</b>: envia a <b>imagem</b> do recibo direto ao telefone do cliente (tenta WhatsApp e WhatsApp Business).', '<b>Compartilhar</b>: menu do Android (e-mail, Drive, Telegram, SMS…).') + 'O texto mostra <b>PAGO</b> ou <b>PENDENTE</b>.' },
  { p: 'O recibo mostra pendências antigas do cliente?', k: 'recibo pendencias anteriores total geral fiado soma',
-   r: 'Sim. Se o cliente tem fiado de outras comandas (de qualquer caixa), o fechamento mostra as <b>pendências anteriores</b>, o valor desta comanda e o <b>TOTAL GERAL com pendências</b>. O mesmo bloco sai no recibo.' },
+   r: 'Sim. Se o cliente tem pendências de outras comandas (de qualquer caixa), o fechamento mostra as <b>pendências anteriores</b>, o valor desta comanda e o <b>TOTAL GERAL com pendências</b>. O mesmo bloco sai no recibo.' },
  { p: 'Quais formas de pagamento existem?', k: 'formas pagamento dinheiro pix debito credito fiado vale',
-   r: 'Dinheiro, PIX, Débito e Crédito (com parcelas), além do <b>Fiado</b> (pendência). Os totais por forma aparecem no resumo do caixa e no relatório <b>Totais por Espécie</b>.' }
+   r: 'Dinheiro, PIX, Débito e Crédito (com parcelas), além da <b>Pendência</b> (venda para pagar depois). Os totais por forma aparecem no resumo do caixa e no relatório <b>Totais por Espécie</b>.' }
 ]}
 ];
 })();

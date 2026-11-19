@@ -28,7 +28,7 @@ window.FAQ_DADOS.push(
  { p: 'Como vejo os produtos mais vendidos?', k: 'mais vendidos produtos ranking quantidade',
    r: O('Abra <b>Relatórios › Produtos Vendidos</b>.', 'Escolha o período.', 'Em <b>Ordenar</b>, selecione <b>maior quantidade</b> (ou maior valor).') },
  { p: 'Como vejo o total por forma de pagamento?', k: 'total forma pagamento dinheiro pix cartao especie',
-   r: O('Abra <b>Relatórios › Totais por Espécie</b>.', 'Escolha o período.', 'Veja o total em <b>Dinheiro, PIX, Débito, Crédito</b> e fiado.') },
+   r: O('Abra <b>Relatórios › Totais por Espécie</b>.', 'Escolha o período.', 'Veja o total em <b>Dinheiro, PIX, Débito, Crédito</b> e pendências.') },
  { p: 'O que são as Comandas Arquivadas?', k: 'arquivadas historico comandas antigas fechadas consulta',
    r: 'São as comandas já fechadas, guardadas para consulta. Abra uma para ver itens e pagamentos e imprimir ou compartilhar o recibo.' },
  { p: 'Como vejo as vendas de um cliente?', k: 'vendas cliente historico consumo relatorio clientes',

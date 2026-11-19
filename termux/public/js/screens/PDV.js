@@ -242,7 +242,7 @@ function renderCardComandaPDV(c) {
     const corBadge = c.corGrupo ? (window.CORES_CAIXA || []).find(x => x.id === c.corGrupo) : null;
 
     const badgeCor = corBadge ? '<div style="position:absolute;top:6px;left:6px;width:10px;height:10px;border-radius:50%;background:' + corBadge.hex + ';border:2px solid #fff;"></div>' : '';
-    const badgePendente = pendente ? '<div style="position:absolute;top:6px;right:6px;background:#e65100;color:#fff;font-size:0.6rem;font-weight:700;padding:2px 6px;border-radius:8px;">FIADO</div>' : '';
+    const badgePendente = '';   // o card amarelo + linha "Pend:" já indicam; o selo sobrepunha a data e o menu
     const badgeFaltando = temFaltando ? '<div style="position:absolute;top:6px;right:6px;background:#c62828;color:#fff;font-size:0.6rem;font-weight:700;padding:2px 6px;border-radius:8px;"><i class="fas fa-exclamation-triangle"></i> FALTOU</div>' : '';
 
     const temClienteCadastrado = !!(c.clienteId && c.cliente);
@@ -264,7 +264,7 @@ function renderCardComandaPDV(c) {
            clienteHTML +
            (garcomCurto ? '<div class="card-comanda-status" style="font-size:0.6rem;opacity:0.85;">👨‍🍳 ' + garcomCurto + '</div>' : '') +
            totalHTML +
-           (pendente ? '<div class="card-comanda-status" style="font-size:0.6rem;color:#e65100;font-weight:700;">Pendente: ' + formatMoney(c.valorPendente || 0) + '</div>' : '') +
+           (pendente ? '<div class="card-comanda-status" style="font-size:0.6rem;color:#e65100;font-weight:700;">Pend: ' + formatMoney(c.valorPendente || 0) + '</div>' : '') +
            (qtdItens > 0 ? '<div class="card-comanda-status" style="font-size:0.55rem;opacity:0.7;">' + qtdItens + ' item(ns)</div>' : '') +
            '    </div>' +
            '    <button class="card-comanda-menu" onclick="event.stopPropagation(); abrirMenuCardPDV(' + c.id + ')">' +
@@ -293,7 +293,7 @@ window.abrirMenuCardPDV = function(id) {
 
     let opcoes = '';
     opcoes += '<div class="card-menu-item" onclick="fecharMenuCardPDV(); abrirComandaPDV(' + c.id + ')"><i class="fas fa-eye" style="color:var(--primary-color);"></i><span>Ver detalhes</span></div>';
-    if (pendente) opcoes += '<div class="card-menu-item" onclick="fecharMenuCardPDV(); abrirComandaPDV(' + c.id + ', \'fechar\')"><i class="fas fa-money-bill-wave" style="color:#2e7d32;"></i><span>Receber Fiado</span></div>' +
+    if (pendente) opcoes += '<div class="card-menu-item" onclick="fecharMenuCardPDV(); abrirComandaPDV(' + c.id + ', \'fechar\')"><i class="fas fa-money-bill-wave" style="color:#2e7d32;"></i><span>Receber pendência</span></div>' +
         '<div class="card-menu-item" onclick="fecharMenuCardPDV(); reabrirPendenciaPDV(' + c.id + ')"><i class="fas fa-lock-open" style="color:#6a1b9a;"></i><span>Reabrir no caixa atual</span></div>';
     if (estaAtiva) {
         opcoes += '<div class="card-menu-item" onclick="fecharMenuCardPDV(); abrirComandaPDV(' + c.id + ', \'fechar\')"><i class="fas fa-check-circle" style="color:#2e7d32;"></i><span>Fechar comanda</span></div>';

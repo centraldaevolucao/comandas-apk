@@ -136,7 +136,7 @@
             (cats.length ? cats.map(function (k) { return lin(esc(k), d.porCat[k], true); }).join('') : '<div style="padding:4px 12px;font-size:.82rem;color:#6b6b6b;">Nenhuma despesa lançada neste mês. Cadastre em Contas.</div>') +
             lin('Taxas de cartão e Pix (' + pct(num(s.cfg.taxa)) + ', estimado)', d.taxas, true) +
             '<div style="display:flex;justify-content:space-between;align-items:center;padding:14px;background:' + COR + ';color:#fff;border-radius:12px;margin-top:8px;"><div><div style="font-size:.75rem;opacity:.9;">Resultado do mês</div><div style="font-size:1.5rem;font-weight:800;">' + R(d.resultado) + '</div></div><div style="text-align:right;"><div style="font-size:.75rem;opacity:.9;">Margem</div><div style="font-size:1.2rem;font-weight:800;">' + pct(d.margem) + '</div></div></div>' +
-            (d.pendente > 0 ? '<div style="font-size:.78rem;color:#6A4300;background:#FFF4E5;border-radius:10px;padding:8px 12px;margin-top:8px;">Inclui <b>' + R(d.pendente) + '</b> ainda pendentes (fiado) que não entraram no caixa.</div>' : '') +
+            (d.pendente > 0 ? '<div style="font-size:.78rem;color:#6A4300;background:#FFF4E5;border-radius:10px;padding:8px 12px;margin-top:8px;">Inclui <b>' + R(d.pendente) + '</b> ainda pendentes que não entraram no caixa.</div>' : '') +
             (d.semCusto ? '<div style="font-size:.78rem;color:#6A4300;background:#FFF4E5;border-radius:10px;padding:8px 12px;margin-top:8px;">' + d.semCusto + ' item(ns) vendido(s) sem custo cadastrado: o CMV está subestimado. Preencha em <b>Precificação</b>.</div>' : '') +
             '<button class="btn-outline" style="width:100%;margin-top:10px;" onclick="finCompartilhar()"><i class="fab fa-whatsapp"></i> Enviar resumo por WhatsApp</button>';
     }
@@ -188,7 +188,7 @@
         l = l.slice().sort(function (a, b) { return (a.venc || '9999').localeCompare(b.venc || '9999'); });
         return '<div style="display:flex;gap:10px;margin-bottom:10px;">' +
             '<div style="flex:1;background:#fff;border:1px solid #EBD9E0;border-radius:12px;padding:12px;"><div style="font-size:.7rem;color:#777;">A pagar</div><div style="font-weight:800;">' + R(totAb) + '</div>' + (venc.length ? '<div style="font-size:.7rem;color:#c62828;">' + venc.length + ' vencida(s)</div>' : '') + '</div>' +
-            '<div style="flex:1;background:#fff;border:1px solid #EBD9E0;border-radius:12px;padding:12px;"><div style="font-size:.7rem;color:#777;">A receber (fiado)</div><div style="font-weight:800;color:#e65100;">' + R(totFiado) + '</div><div style="font-size:.7rem;color:#777;">' + fiado.length + ' cliente(s)</div></div></div>' +
+            '<div style="flex:1;background:#fff;border:1px solid #EBD9E0;border-radius:12px;padding:12px;"><div style="font-size:.7rem;color:#777;">A receber (pendências)</div><div style="font-weight:800;color:#e65100;">' + R(totFiado) + '</div><div style="font-size:.7rem;color:#777;">' + fiado.length + ' cliente(s)</div></div></div>' +
             '<div style="display:flex;gap:8px;margin-bottom:10px;">' + [['pendentes', 'A pagar'], ['pagas', 'Pagas']].map(function (a) { const on = f === a[0]; return '<button onclick="finFiltroContas(\'' + a[0] + '\')" style="border:1px solid ' + COR + ';border-radius:99px;padding:6px 14px;font-size:.8rem;font-weight:600;background:' + (on ? COR : '#fff') + ';color:' + (on ? '#fff' : COR) + ';">' + a[1] + '</button>'; }).join('') +
             '<button class="btn-primary" style="margin-left:auto;padding:6px 14px;font-size:.8rem;" onclick="finDespesa(null)">+ Despesa</button></div>' +
             (l.length ? l.map(function (x) {
@@ -197,7 +197,7 @@
                     '<div style="display:flex;justify-content:space-between;"><b style="font-size:.9rem;">' + esc(x.desc) + '</b><b>' + R(x.valor) + '</b></div>' +
                     '<div style="display:flex;justify-content:space-between;font-size:.76rem;color:#777;margin-top:2px;"><span>' + esc(x.sub) + '</span><span style="color:' + (atras ? '#c62828;font-weight:700' : '#777') + ';">' + (x.pago ? 'paga em ' + dataBR(x.pagoEm) : (x.venc ? (atras ? 'vencida em ' : 'vence ') + dataBR(x.venc) : 'sem vencimento')) + '</span></div></div>';
             }).join('') : '<p class="empty-state">' + (f === 'pagas' ? 'Nenhuma conta paga.' : 'Nenhuma conta a pagar.') + '</p>') +
-            (fiado.length ? '<div style="font-size:.72rem;font-weight:700;color:#777;letter-spacing:.05em;margin:14px 4px 6px;">A RECEBER · PENDÊNCIAS (FIADO)</div>' +
+            (fiado.length ? '<div style="font-size:.72rem;font-weight:700;color:#777;letter-spacing:.05em;margin:14px 4px 6px;">A RECEBER · PENDÊNCIAS</div>' +
                 fiado.slice(0, 8).map(function (x) { return '<div class="card" style="padding:10px 12px;margin-bottom:6px;display:flex;justify-content:space-between;font-size:.88rem;"><span>' + esc(x.nome) + ' <small style="color:#6b6b6b;">· ' + x.q + ' comanda(s)</small></span><b style="color:#e65100;">' + R(x.v) + '</b></div>'; }).join('') +
                 '<button class="btn-outline" style="width:100%;" onclick="navigateTo(\'pendencias\')">Abrir Pendências</button>' : '');
     }

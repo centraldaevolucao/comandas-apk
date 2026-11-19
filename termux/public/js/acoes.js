@@ -165,7 +165,7 @@ console.log('✔ acoes.js carregado');
             linha('Total recebido (todas as formas)', money(tf.geral), true) +
             linha('Total de vendas (comandas fechadas)', money(vendas)) +
             (tf.troco > 0 ? linha('Troco devolvido (já descontado do dinheiro)', money(tf.troco)) : '') +
-            (Math.abs(vendas - tf.geral) >= 0.01 ? linha('Diferença vendas × recebido (fiado/ajustes)', money(vendas - tf.geral)) : '') +
+            (Math.abs(vendas - tf.geral) >= 0.01 ? linha('Diferença vendas × recebido (pendências/ajustes)', money(vendas - tf.geral)) : '') +
             linha('Sangrias', '- ' + money(sang)) +
             linha('Suprimentos', '+ ' + money(supr)) +
             linha('Dinheiro esperado na gaveta', money(esperado), true) +

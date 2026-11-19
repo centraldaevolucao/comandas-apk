@@ -692,6 +692,15 @@ window.compartilharImagem = async function (dataUrl, nome, texto, telefone, modo
     }
     try {
         const blob = await (await fetch(dataUrl)).blob();
+        // navegador/desktop com telefone: abre direto a conversa do contato e deixa a imagem na área de transferência (Ctrl+V)
+        if (telefone && modo !== 'outros') {
+            let copiou = false;
+            try { if (navigator.clipboard && window.ClipboardItem) { await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]); copiou = true; } } catch (e) {}
+            if (!copiou) { const a0 = document.createElement('a'); a0.href = URL.createObjectURL(blob); a0.download = nome; document.body.appendChild(a0); a0.click(); a0.remove(); }
+            window.open('https://wa.me/' + telefone + '?text=' + encodeURIComponent(texto || ''), '_blank');
+            if (window.mostrarToast) window.mostrarToast(copiou ? '📋 Imagem copiada — cole (Ctrl+V) na conversa do WhatsApp' : '📥 Imagem baixada — anexe na conversa do WhatsApp');
+            return true;
+        }
         const f = new File([blob], nome, { type: 'image/png' });
         if (navigator.canShare && navigator.canShare({ files: [f] })) { await navigator.share({ files: [f], text: texto || '' }); return true; }
         const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = nome; document.body.appendChild(a); a.click(); a.remove();

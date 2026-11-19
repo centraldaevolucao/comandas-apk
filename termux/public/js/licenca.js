@@ -6,7 +6,7 @@
     const COR = '#C2185B';
     // Número do WhatsApp que recebe o comprovante (com 55 + DDD). Troque pelo SEU número.
     const EDICOES = {
-        essencial: { nome: 'Essencial', rank: 1, lema: 'Para vender, imprimir e fechar o caixa do dia.', inclui: ['PDV e comandas ilimitadas', 'Caixa e fechamento', 'Clientes e fiado', 'Impressão e Pix QR', 'Relatórios', 'Estoque e movimentações', 'Cardápio digital por QR (bônus)'] },
+        essencial: { nome: 'Essencial', rank: 1, lema: 'Para vender, imprimir e fechar o caixa do dia.', inclui: ['PDV e comandas ilimitadas', 'Caixa e fechamento', 'Clientes e pendências', 'Impressão e Pix QR', 'Relatórios', 'Estoque e movimentações', 'Cardápio digital por QR (bônus)'] },
         gestao: { nome: 'Gestão', rank: 2, lema: 'Para acompanhar custos, margem e contas.', inclui: ['Compras e fornecedores', 'Ficha técnica e precificação', 'Financeiro: DRE, fluxo de caixa, contas a pagar e a receber', 'Metas de margem (produtos abaixo da meta)'], base: 'Tudo do Essencial, mais:' },
         completo: { nome: 'Completo', rank: 3, lema: 'Para equipes com usuários, permissões e entregas.', inclui: ['Usuários, níveis de acesso e permissões', 'Delivery e entrega nas comandas', 'Maquininha Mercado Pago (integração)', 'Backup local e compartilhamento'], base: 'Tudo do Gestão, mais:', nota: 'Em desenvolvimento, sem data prometida: NFC-e por emissor parceiro, nuvem e várias lojas, outras integrações. Contrate pelo que o app faz hoje.' }
     };

@@ -54,13 +54,13 @@ window.renderClientes = function() {
         '    <button class="icon-btn" onclick="abrirMenu()"><i class="fas fa-bars"></i></button>',
         '</div>',
 
-        '<div style="padding:10px 16px 0;"><button class="btn-outline" style="width:100%;border-color:#e65100;color:#e65100;" onclick="navigateTo(\'pendencias\')"><i class="fas fa-file-invoice-dollar"></i> Pendências (fiado) por cliente</button></div>',
+        '<div style="padding:10px 16px 0;"><button class="btn-outline" style="width:100%;border-color:#e65100;color:#e65100;" onclick="navigateTo(\'pendencias\')"><i class="fas fa-file-invoice-dollar"></i> Pendências por cliente</button></div>',
 
         // Card de resumo de fiado
         '<div id="clientes-fiado-resumo" style="padding:12px 16px;background:linear-gradient(135deg, #e65100 0%, #bf360c 100%);color:#fff;display:none;">',
         '    <div style="display:flex;justify-content:space-between;align-items:center;">',
         '        <div>',
-        '            <div style="font-size:0.75rem;opacity:0.9;">📝 Fiado em aberto</div>',
+        '            <div style="font-size:0.75rem;opacity:0.9;">📝 Pendências em aberto</div>',
         '            <div id="clientes-fiado-total" style="font-size:1.6rem;font-weight:700;margin-top:4px;">R$ 0,00</div>',
         '            <div id="clientes-fiado-qtd" style="font-size:0.75rem;opacity:0.9;margin-top:2px;">0 cliente(s)</div>',
         '        </div>',
@@ -79,8 +79,8 @@ window.renderClientes = function() {
         // Filtro fiado
         '<div style="padding:0 16px 10px;display:flex;gap:6px;">',
         '    <button id="filtro-todos" class="chip-grupo ativo" onclick="mudarFiltroFiado(\'todos\')" style="flex:1;">Todos</button>',
-        '    <button id="filtro-com-fiado" class="chip-grupo" onclick="mudarFiltroFiado(\'com-fiado\')" style="flex:1;">📝 Com fiado</button>',
-        '    <button id="filtro-sem-fiado" class="chip-grupo" onclick="mudarFiltroFiado(\'sem-fiado\')" style="flex:1;">✅ Sem fiado</button>',
+        '    <button id="filtro-com-fiado" class="chip-grupo" onclick="mudarFiltroFiado(\'com-fiado\')" style="flex:1;">📝 Com pendência</button>',
+        '    <button id="filtro-sem-fiado" class="chip-grupo" onclick="mudarFiltroFiado(\'sem-fiado\')" style="flex:1;">✅ Sem pendência</button>',
         '</div>',
 
         // Contador
@@ -235,13 +235,13 @@ function renderListaClientes() {
             '    </div>' +
             '    <div class="lista-item-sub">' +
             '        <i class="fas fa-phone" style="font-size:0.65rem;"></i> ' + telefone + infoEnd +
-            (temFiado ? ' • <b style="color:#e65100;">' + infoFiado.comandas.length + ' fiado(s)</b>' : '') +
+            (temFiado ? ' • <b style="color:#e65100;">' + infoFiado.comandas.length + ' pendência(s)</b>' : '') +
             '    </div>' +
             '</div>' +
 
             // Botão receber fiado (se tiver)
             (temFiado
-                ? '<button class="btn-limpar" onclick="event.stopPropagation(); abrirFiadosCliente(' + c.id + ')" title="Ver fiados" style="margin-right:4px;">' +
+                ? '<button class="btn-limpar" onclick="event.stopPropagation(); abrirFiadosCliente(' + c.id + ')" title="Ver pendências" style="margin-right:4px;">' +
                   '    <i class="fas fa-money-bill-wave" style="color:#ff9800;font-size:1rem;"></i>' +
                   '</button>'
                 : '') +
@@ -265,7 +265,7 @@ window.abrirFiadosCliente = function(clienteId) {
 
     const info = fiadoDoCliente(c, window.comandasCacheClientes);
     if (info.comandas.length === 0) {
-        alert('Este cliente não tem fiado em aberto.');
+        alert('Este cliente não tem pendência em aberto.');
         return;
     }
 
@@ -300,7 +300,7 @@ window.abrirFiadosCliente = function(clienteId) {
     modal.innerHTML =
         '<div class="modal-content" style="max-width:440px;">' +
         '    <div class="modal-header" style="background:#ff9800;color:#fff;">' +
-        '        <strong>📝 Fiados de ' + c.nome + '</strong>' +
+        '        <strong>📝 Pendências de ' + c.nome + '</strong>' +
         '        <button class="btn-limpar" onclick="fecharModalFiadosCliente()" style="color:#fff;"><i class="fas fa-xmark"></i></button>' +
         '    </div>' +
         '    <div class="modal-body">' +
@@ -329,7 +329,7 @@ window.receberFiadoCliente = async function(comandaId) {
     const cmd = comandas.find(function(c) { return String(c.id) === String(comandaId); });
     if (!cmd) return;
     if (!comandaTemFiado(cmd)) {
-        alert('Esta comanda não tem fiado pendente.');
+        alert('Esta comanda não tem pendência.');
         return;
     }
 
@@ -355,11 +355,11 @@ window.receberTodosFiadosCliente = async function(clienteId) {
 
     const info = fiadoDoCliente(c, window.comandasCacheClientes);
     if (info.comandas.length === 0) {
-        alert('Sem fiados em aberto.');
+        alert('Sem pendências em aberto.');
         return;
     }
 
-    if (!await window.confirmar('Receber TODOS os fiados de ' + c.nome + '?\n\nTotal: ' + formatMoney(info.total))) return;
+    if (!await window.confirmar('Receber TODAS as pendências de ' + c.nome + '?\n\nTotal: ' + formatMoney(info.total))) return;
 
     const forma = await window.perguntar('Forma de pagamento (dinheiro, debito, credito, pix):', 'dinheiro');
     if (forma === null) return;
@@ -393,9 +393,9 @@ window.receberTodosFiadosCliente = async function(clienteId) {
         await apiSave('comandas', comandas);
         fecharModalFiadosCliente();
         if (typeof window.mostrarToast === 'function') {
-            window.mostrarToast('✅ Fiados recebidos: ' + formatMoney(info.total));
+            window.mostrarToast('✅ Pendências recebidas: ' + formatMoney(info.total));
         } else {
-            alert('✅ Fiados recebidos: ' + formatMoney(info.total));
+            alert('✅ Pendências recebidas: ' + formatMoney(info.total));
         }
 
         // Recarrega
@@ -419,7 +419,7 @@ function abrirModalPagamentoFiadoSimples(cmd) {
     modal.innerHTML =
         '<div class="modal-content" style="max-width:420px;">' +
         '    <div class="modal-header" style="background:#4caf50;color:#fff;">' +
-        '        <strong>Receber Fiado — Comanda ' + cmd.numero + '</strong>' +
+        '        <strong>Receber Pendência — Comanda ' + cmd.numero + '</strong>' +
         '        <button class="btn-limpar" onclick="fecharModalQuitarFiadoSimples()" style="color:#fff;"><i class="fas fa-xmark"></i></button>' +
         '    </div>' +
         '    <div class="modal-body">' +
@@ -479,7 +479,7 @@ window.confirmarQuitarFiadoSimples = async function(comandaId) {
         await apiSave('comandas', comandas);
         fecharModalQuitarFiadoSimples();
         if (typeof window.mostrarToast === 'function') {
-            window.mostrarToast('✅ Fiado recebido: ' + formatMoney(valor));
+            window.mostrarToast('✅ Pendência recebida: ' + formatMoney(valor));
         }
 
         atualizarListaClientes();
@@ -503,7 +503,7 @@ window.abrirFiadosTodos = function() {
     });
 
     if (todosFiados.length === 0) {
-        alert('Nenhum fiado em aberto.');
+        alert('Nenhuma pendência em aberto.');
         return;
     }
 
@@ -539,7 +539,7 @@ window.abrirFiadosTodos = function() {
     modal.innerHTML =
         '<div class="modal-content" style="max-width:460px;">' +
         '    <div class="modal-header" style="background:#ff9800;color:#fff;">' +
-        '        <strong>📝 Todos os Fiados</strong>' +
+        '        <strong>📝 Todas as Pendências</strong>' +
         '        <button class="btn-limpar" onclick="fecharModalFiadosTodos()" style="color:#fff;"><i class="fas fa-xmark"></i></button>' +
         '    </div>' +
         '    <div class="modal-body">' +
@@ -591,7 +591,7 @@ window.excluirCliente = async function(id) {
     // Verifica fiado em aberto
     const info = fiadoDoCliente(cliente, window.comandasCacheClientes);
     if (info.total > 0) {
-        alert('Não é possível excluir: o cliente tem ' + formatMoney(info.total) + ' em fiado.\n\nReceba o fiado antes de excluir.');
+        alert('Não é possível excluir: o cliente tem ' + formatMoney(info.total) + ' em pendências.\n\nReceba as pendências antes de excluir.');
         return;
     }
 

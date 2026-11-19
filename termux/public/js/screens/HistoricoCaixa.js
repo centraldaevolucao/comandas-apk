@@ -273,7 +273,7 @@ function renderConteudoHistorico() {
                         '    </div>' +
                         '    <div style="text-align:right;">' +
                         '        <div style="font-weight:600;color:var(--primary-color);">' + formatMoney(cmd.total || 0) + '</div>' +
-                        (temFiado ? '<div style="font-size:0.65rem;color:#e65100;font-weight:600;">FIADO ' + formatMoney(cmd.valorPendente) + '</div>' : '') +
+                        (temFiado ? '<div style="font-size:0.65rem;color:#e65100;font-weight:600;">PEND. ' + formatMoney(cmd.valorPendente) + '</div>' : '') +
                         '    </div>' +
                         '</div>' +
                         '</div>';
