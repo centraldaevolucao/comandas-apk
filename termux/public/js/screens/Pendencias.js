@@ -71,21 +71,42 @@
                 h += '<div style="padding:0 14px 12px;border-top:1px dashed #eee;">';
                 g.comandas.slice().sort(function (a, b) { return String(a.dataFechamento || '').localeCompare(String(b.dataFechamento || '')); }).forEach(function (c) {
                     h += '<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #f3f3f3;">' +
+                        '<label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" ' + (sel[String(c.id)] ? 'checked ' : '') + 'onchange="pendenciaSel(' + jq(c.id) + ',this.checked)" aria-label="Selecionar comanda ' + esc(c.numero) + '" style="width:20px;height:20px;accent-color:#1976d2;">' +
                         '<div><div style="font-weight:600;font-size:.88rem;">Comanda ' + esc(c.numero) + '</div>' +
-                        '<div style="font-size:.72rem;color:#6b6b6b;">' + esc(c.dataFechamento || c.dataAbertura || '') + '</div></div>' +
+                        '<div style="font-size:.72rem;color:#6b6b6b;">' + esc(c.dataFechamento || c.dataAbertura || '') + '</div></div></label>' +
                         '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end;"><b style="color:#e65100;">' + R(c.valorPendente) + '</b>' +
                         '<button class="btn-outline" style="padding:5px 9px;font-size:.75rem;border-color:#1976d2;color:#1976d2;" onclick="pendenciaVer(' + jq(c.id) + ')"><i class="fas fa-eye"></i> Ver</button>' +
                         '<button class="btn-outline" style="padding:5px 9px;font-size:.75rem;border-color:#6a1b9a;color:#6a1b9a;" onclick="reabrirPendencia(' + jq(c.id) + ')"><i class="fas fa-lock-open"></i> Reabrir</button>' +
                         '<button class="btn-outline" style="padding:5px 9px;font-size:.75rem;border-color:#2e7d32;color:#2e7d32;" onclick="pendenciaReceber(' + jq(g.chave) + ',' + jq(c.id) + ')"><i class="fas fa-hand-holding-usd"></i> Receber</button></div></div>';
                 });
-                h += '<button class="btn-outline" style="width:100%;margin-top:12px;border-color:#455a64;color:#455a64;" onclick="pendenciaVerCliente(' + jq(g.chave) + ')"><i class="fas fa-list"></i> Ver itens de todas / exportar / compartilhar</button>';
-                if (g.comandas.length > 1) h += '<button class="btn-outline" style="width:100%;margin-top:8px;border-color:#1976d2;color:#1976d2;" onclick="pendenciasUnir(' + jq(g.chave) + ')"><i class="fas fa-object-group"></i> Unir as ' + g.comandas.length + ' pendências em uma comanda</button>';
-                h += '<button class="btn-primary" style="width:100%;margin-top:8px;background:#2e7d32;" onclick="pendenciaReceber(' + jq(g.chave) + ')"><i class="fas fa-check-double"></i> Receber / finalizar tudo (' + R(g.total) + ')</button></div>';
+                const ns = selDoGrupo(g).length;
+                h += '<div style="font-size:.74rem;color:#6b6b6b;margin-top:10px;">Marque as comandas que quer usar. Nada é unido sozinho: só pelo botão <b>Unir comandas</b>. Com uma comanda marcada, o recibo/comanda sai só dela.</div>';
+                h += '<button class="btn-outline" style="width:100%;margin-top:8px;border-color:#455a64;color:#455a64;" onclick="pendenciaVerSel(' + jq(g.chave) + ')"><i class="fas fa-list"></i> ' + (ns === 1 ? 'Ver itens / comanda / recibo da selecionada' : (ns > 1 ? 'Ver itens das ' + ns + ' selecionadas' : 'Ver itens de todas / exportar / compartilhar')) + '</button>';
+                if (g.comandas.length > 1) h += '<button class="btn-outline" style="width:100%;margin-top:8px;border-color:#1976d2;color:#1976d2;" onclick="pendenciasUnir(' + jq(g.chave) + ')"><i class="fas fa-object-group"></i> Unir comandas' + (ns > 1 ? ' (' + ns + ' selecionadas)' : ' (todas: ' + g.comandas.length + ')') + '</button>';
+                h += '<button class="btn-primary" style="width:100%;margin-top:8px;background:#2e7d32;" onclick="pendenciaReceberSel(' + jq(g.chave) + ')"><i class="fas fa-hand-holding-usd"></i> Receber ' + (ns === 1 ? 'a comanda selecionada' : 'comanda selecionada') + '</button></div>';
             }
             return h + '</div>';
         }).join('');
     }
 
+    // ---- seleção de comandas (nada é unido sozinho: só pelo botão "Unir comandas") ----
+    const sel = {};
+    const selDoGrupo = function (g) { return g.comandas.filter(function (c) { return sel[String(c.id)]; }); };
+    window.pendenciaSel = function (id, on) { if (on) sel[String(id)] = true; else delete sel[String(id)]; desenhar(); };
+    window.pendenciaReceberSel = async function (chave) {
+        const g = agrupar().find(function (x) { return x.chave === chave; }); if (!g) return;
+        const m = selDoGrupo(g);
+        if (m.length === 1) return window.pendenciaReceber(chave, m[0].id);
+        if (g.comandas.length === 1) return window.pendenciaReceber(chave, g.comandas[0].id);
+        if (!m.length) { await window.avisar('Marque a comanda que deseja receber.'); return; }
+        await window.avisar('Você marcou ' + m.length + ' comandas. O recebimento é de uma comanda por vez. Para receber várias juntas, use primeiro o botão "Unir comandas".');
+    };
+    window.pendenciaVerSel = function (chave) {
+        const g = agrupar().find(function (x) { return x.chave === chave; }); if (!g) return;
+        const m = selDoGrupo(g);
+        if (m.length === 1) return window.pendenciaVer(m[0].id);
+        window.pendenciaVerCliente(chave, m.map(function (c) { return String(c.id); }));
+    };
     window.pendenciasAbrir = function (k) { aberto = aberto === k ? '' : k; desenhar(); };
     window.pendenciasFiltrar = function () { termo = document.getElementById('pend-busca').value || ''; desenhar(); };
     window.pendenciasLimpar = function () { const i = document.getElementById('pend-busca'); if (i) i.value = ''; termo = ''; desenhar(); };
@@ -93,7 +114,10 @@
     // ---- unir pendências de um cliente em uma só comanda ----
     window.pendenciasUnir = async function (chave) {
         if (!dados.comandas.length) await window.pendenciasCarregar();
-        const g = agrupar().find(function (x) { return x.chave === chave; });
+        const g0 = agrupar().find(function (x) { return x.chave === chave; });
+        const marcadas = g0 ? selDoGrupo(g0) : [];
+        if (g0 && marcadas.length === 1) { await window.avisar('Você marcou só uma comanda. Marque pelo menos duas para unir (ou desmarque para unir todas deste cliente).'); return; }
+        const g = g0 && marcadas.length > 1 ? Object.assign({}, g0, { comandas: marcadas }) : g0;
         if (!g || g.comandas.length < 2) { await window.avisar('Este cliente tem menos de duas pendências para unir.'); return; }
         const soma = g.comandas.reduce(function (t, c) { return t + Number(c.valorPendente || 0); }, 0);
         const esc2 = await escolherGrupo({
@@ -129,6 +153,7 @@
             base.unidaDe = (base.unidaDe || []).concat(unidas.slice(1));
             const excluir = ids.slice(1);
             await apiSave('comandas', lista.filter(function (x) { return excluir.indexOf(String(x.id)) === -1; }));
+            ids.forEach(function (i) { delete sel[i]; });
             if (window.mostrarToast) window.mostrarToast('✅ Pendências unidas na comanda ' + base.numero);
             if (document.getElementById('modal-pend-unir')) window.pendenciasUnirModal(); else await window.pendenciasCarregar();
         } catch (e) { await window.avisar('Erro ao unir: ' + e.message); }
@@ -166,7 +191,12 @@
         if (mp && ativas[mp]) fi = mp;
         const g = agrupar().find(function (x) { return x.chave === chave; });
         if (!g) return;
-        const alvo = comandaId != null && comandaId !== '' ? g.comandas.filter(function (c) { return String(c.id) === String(comandaId); }) : g.comandas;
+        // Recebimento é SEMPRE de uma comanda: várias só depois de unidas pelo botão "Unir comandas".
+        if (comandaId == null || comandaId === '') {
+            if (g.comandas.length > 1) { await window.avisar('Escolha a comanda a receber (ou una antes pelo botão "Unir comandas").'); return; }
+            comandaId = g.comandas[0].id;
+        }
+        const alvo = g.comandas.filter(function (c) { return String(c.id) === String(comandaId); });
         if (!alvo.length) return;
         const total = Math.round(alvo.reduce(function (s, c) { return s + Number(c.valorPendente || 0); }, 0) * 100) / 100;
         window.__pendAlvo = { ids: alvo.map(function (c) { return String(c.id); }), total: total, nome: g.nome, qtd: alvo.length, ativas: ativas, formaInicial: fi, pags: [{ forma: fi, valor: total }], dsc: { on: false, tipo: 'valor', valor: 0, motivo: '' } };
@@ -498,8 +528,9 @@
     };
 
     // visão consolidada do cliente (todas as pendências, itens de cada comanda)
-    window.pendenciaVerCliente = function (chave) {
-        const g = agrupar().find(function (x) { return x.chave === chave; }); if (!g) return;
+    window.pendenciaVerCliente = function (chave, ids) {
+        let g = agrupar().find(function (x) { return x.chave === chave; }); if (!g) return;
+        if (ids && ids.length) { const cs = g.comandas.filter(function (c) { return ids.indexOf(String(c.id)) >= 0; }); g = Object.assign({}, g, { comandas: cs, total: cs.reduce(function (t, c) { return t + Number(c.valorPendente || 0); }, 0) }); }
         const corpo = g.comandas.map(function (c) {
             return '<div style="border:1px solid #ffe0b2;border-radius:10px;padding:8px 10px;margin-bottom:8px;background:#fffaf0;">' +
                 '<div style="display:flex;justify-content:space-between;font-weight:700;"><span>Comanda ' + esc(c.numero) + '</span><span style="color:#e65100;">' + R(c.valorPendente) + '</span></div>' +

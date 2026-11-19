@@ -229,7 +229,9 @@
     }
     window.compraWhats = function (id) {
         const c = window.comprasState.compras.find(function (x) { return String(x.id) === String(id); }); if (!c) return;
-        const tel = String(c.fornecedorTel || '').replace(/\D/g, '');
+        // telefone atual do cadastro do fornecedor (o copiado no pedido pode estar desatualizado ou vazio)
+        const fcad = window.comprasState.fornecedores.find(function (f) { return String(f.id) === String(c.fornecedorId) || (c.fornecedor && String(f.nome || '').trim().toLowerCase() === String(c.fornecedor).trim().toLowerCase()); });
+        const tel = String((fcad && fcad.telefone) || c.fornecedorTel || '').replace(/\D/g, '');
         const num = tel ? (tel.length <= 11 ? '55' + tel : tel) : '';
         const linhas = lista(c.itens).map(function (i) { return '• ' + i.quantidade + ' × ' + i.nome; });
         const texto = 'Olá! Segue o pedido de compra #' + c.numero + ':\n\n' + linhas.join('\n') + (c.obs ? '\n\nObs.: ' + c.obs : '') + '\n\nPor favor, confirme o prazo de entrega. Obrigado!';

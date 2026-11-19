@@ -1469,8 +1469,7 @@ if (!window.renderDetalheComanda) {
             rotulo.insertAdjacentHTML('beforebegin',
                 '<div style="margin-bottom:10px;padding:10px 12px;background:#fff3e0;border-radius:8px;border:1px solid #ffe0b2;font-size:.85rem;">' +
                 '<div style="display:flex;justify-content:space-between;"><span>Pendências anteriores (' + pa.qtd + ' comanda(s))</span><b style="color:#e65100;">' + formatMoney(pa.valor) + '</b></div>' +
-                '<div style="display:flex;justify-content:space-between;margin-top:4px;"><span>Esta comanda</span><b>' + formatMoney(totais.total) + '</b></div>' +
-                '<div style="display:flex;justify-content:space-between;margin-top:6px;padding-top:6px;border-top:1px dashed #e0b080;font-weight:700;"><span>TOTAL GERAL com pendências</span><span style="color:#bf360c;">' + formatMoney(pa.valor + totais.total) + '</span></div></div>');
+                '<div style="margin-top:6px;font-size:.75rem;color:#6b6b6b;">Aviso: não são somadas a esta comanda. O recibo sai só dela; para juntar, use <b>Unir comandas</b> em Pendências.</div></div>');
         }
     };
 
