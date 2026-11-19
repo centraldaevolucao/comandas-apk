@@ -1680,8 +1680,21 @@ if (!window.renderDetalheComanda) {
             if (window.atualizarListaPagamentos) window.atualizarListaPagamentos();
             return;
         }
-        // marcou: sempre pergunta o cadastro (pode trocar o escolhido antes); cancelar volta ao estado original
+        // marcou: com cliente cadastrado na comanda, pergunta se quer alterar; sem cliente, abre a seleção normal
         if (chk) chk.checked = false;
+        const cliAtual = await window.clienteCadastradoDaComanda(window.comandaAtual);
+        const aplicar = async function () {
+            window.__pendAnt = await window.pendenciasAnteriores(window.comandaAtual);
+            const c2 = document.getElementById('pg-fiado');
+            if (!(window.__pendAnt && window.__pendAnt.cliente)) { if (c2) c2.checked = false; return; }
+            if (c2) c2.checked = true;
+            window.pagamentosTemp = window.pagamentosTemp.filter(function (p) { return p.anterior; });
+            if (window.atualizarListaPagamentos) window.atualizarListaPagamentos();
+        };
+        if (cliAtual) {
+            const alterar = await window.confirmar('Esta comanda já está com o cliente "' + String(cliAtual.nome || '') + '".\n\nDeseja alterar o cliente?', { titulo: 'Deixar pendente', ok: 'Sim, alterar', cancelar: 'Não, manter', perigo: false });
+            if (!alterar) { await aplicar(); return; }
+        }
         window.abrirVinculoClienteFiado(async function () {
             window.__pendAnt = await window.pendenciasAnteriores(window.comandaAtual);
             const c2 = document.getElementById('pg-fiado');

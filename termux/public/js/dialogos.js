@@ -40,7 +40,7 @@ console.log('✔ dialogos.js carregado');
         opts = opts || {};
         return new Promise(function (resolve) {
             const perigo = opts.perigo !== undefined ? opts.perigo : /exclu|apag|remov|zerar|delet|revog|cancel|limpar|substitu|restaur/i.test(String(msg));
-            const ov = montar({ titulo: opts.titulo || tituloAuto(msg, true), icone: perigo ? 'fa-triangle-exclamation' : 'fa-circle-question', perigo: perigo, corpo: fmtTexto(msg), botoes: BTN_CANCEL + BTN_OK(opts.ok || (perigo ? 'Confirmar' : 'OK'), perigo) });
+            const ov = montar({ titulo: opts.titulo || tituloAuto(msg, true), icone: perigo ? 'fa-triangle-exclamation' : 'fa-circle-question', perigo: perigo, corpo: fmtTexto(msg), botoes: (opts.cancelar ? BTN_CANCEL.replace('Cancelar', esc(opts.cancelar)) : BTN_CANCEL) + BTN_OK(opts.ok || (perigo ? 'Confirmar' : 'OK'), perigo) });
             const fim = function (v) { ov.remove(); document.removeEventListener('keydown', tecla, true); resolve(v); };
             const tecla = function (e) { if (e.key === 'Escape') fim(false); };
             document.addEventListener('keydown', tecla, true);
