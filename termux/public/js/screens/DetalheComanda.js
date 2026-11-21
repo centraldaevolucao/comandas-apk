@@ -2006,7 +2006,8 @@ if (!window.renderDetalheComanda) {
             ((tipo === 'recibo' && !window.impPendenteAgora(aberto)) ?
                 '<div style="margin-bottom:8px;font-size:.85rem;"><div style="margin-bottom:4px;"><i class="fas fa-file-invoice"></i> Modelo do A4:</div><div style="display:flex;gap:8px;">' +
                 '<label style="' + rd + '"><input type="radio" name="imp-modelo" value="nota" checked onchange="mudarDestinoImpressao(\'' + tipo + '\', ' + (aberto ? 'true' : 'false') + ')"> Nota (NF)</label>' +
-                '<label style="' + rd + '"><input type="radio" name="imp-modelo" value="simples" onchange="mudarDestinoImpressao(\'' + tipo + '\', ' + (aberto ? 'true' : 'false') + ')"> Recibo simples</label></div></div>' : '') +
+                '<label style="' + rd + '"><input type="radio" name="imp-modelo" value="simples" onchange="mudarDestinoImpressao(\'' + tipo + '\', ' + (aberto ? 'true' : 'false') + ')"> Recibo simples</label></div>' +
+                '</div>' : '') +
             (a4Lista.length ? '<select id="sel-imp-a4" aria-label="Impressora A4" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:8px;font-size:.9rem;" onchange="mudarDestinoImpressao(\'' + tipo + '\', ' + (aberto ? 'true' : 'false') + ')">' + optA4 + '</select>'
                 : '<div style="font-size:.78rem;color:#777;"><i class="fas fa-circle-info"></i> Sem impressora A4 cadastrada: a visualização, o WhatsApp e o Compartilhar funcionam normalmente. Ao imprimir, o sistema deixa você escolher a impressora (cadastre em Impressoras &gt; Impressoras A4 se quiser fixar uma).</div>') +
             '</div></div>';
@@ -2065,6 +2066,7 @@ if (!window.renderDetalheComanda) {
     };
 
     window.mudarDestinoImpressao = async function (tipo, aberto) {
+        window.__impAberto = !!aberto;
         const r = document.querySelector('input[name="imp-tipo"]:checked'); if (!r) return;
         const ehA4 = r.value === 'a4';
         const box = document.getElementById('imp-a4-box'); if (box) box.style.display = ehA4 ? 'block' : 'none';
@@ -2085,13 +2087,18 @@ if (!window.renderDetalheComanda) {
             if (ehA4 && tipo === 'recibo' && window.impReciboA4Html) {
                 // folha A4 com largura fixa, reduzida para caber na tela (como sairá na impressão)
                 const z = Math.max(0.3, Math.min(1, ((alvo.clientWidth || window.innerWidth - 40) - 4) / 720));
-                alvo.innerHTML = '<div data-a4-zoom style="width:720px;zoom:' + z.toFixed(3) + ';">' + window.impReciboA4Auto(c, config, { aberto: aberto, pendente: window.impPendenteAgora(aberto), pagador: await window.impPagadorDe(c) }) + '</div>';
+                const pagador = await window.impPagadorDe(c), simples = window.impModeloA4(c, config, { aberto: aberto, pendente: window.impPendenteAgora(aberto) }) === 'simples';
+                alvo.innerHTML = '<div data-a4-zoom style="width:720px;zoom:' + z.toFixed(3) + ';">' + window.impReciboA4Auto(c, config, { aberto: aberto, pendente: window.impPendenteAgora(aberto), pagador: pagador }) + '</div>';
+                if (simples && !window.__gpsLoc && !window.__gpsTentou) {   // cidade/UF pelo GPS: busca em segundo plano e redesenha quando chegar
+                    window.__gpsTentou = true;
+                    window.gpsCidadeUF().then(function (r) { if (r && document.getElementById('preview-captura')) window.mudarDestinoImpressao(tipo, aberto); });
+                }
             } else alvo.innerHTML = window.impHtml(doc, config);
         } catch (e) { console.warn(e); }
     };
 
     window.fecharPreviewImpressao = function () {
-        window.__impDestino = 'cupom'; window.__impModeloA4 = null;
+        window.__impDestino = 'cupom'; window.__impModeloA4 = null; window.__impPagadorDoc = null; window.__gpsTentou = false;
         const m = document.getElementById('modal-preview-impressao');
         if (m) m.remove();
         if (window.__irAposRecibo) { window.__irAposRecibo = false; window.navigateTo(window.rotaOrigem || 'pdv'); }

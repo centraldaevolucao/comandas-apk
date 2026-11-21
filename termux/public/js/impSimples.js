@@ -55,7 +55,8 @@
         const nomeEmp = config.empresaRazao || config.empresaFantasia || config.nomeImpressao || '';
         const respNome = config.empresaResponsavel || nomeEmp;
         const respDoc = config.empresaRespDoc || config.empresaCnpj || '';
-        const cidadeUF = [config.empresaCidade, config.empresaUF].filter(Boolean).join('/');
+        const gps = opts.cidadeUF || (window.__gpsLoc ? window.__gpsLoc.cidade + '/' + window.__gpsLoc.uf : '');   // localização (GPS) de quem emite; senão, a cidade da empresa
+        const cidadeUF = gps || [config.empresaCidade, config.empresaUF].filter(Boolean).join('/');
         let d = opts.data ? new Date(opts.data) : new Date(); if (isNaN(d)) d = new Date();
         const dataExt = (cidadeUF ? esc(cidadeUF) : '__________________') + ', ' + d.getDate() + ' de ' + MESES[d.getMonth()] + ' de ' + d.getFullYear() + '.';
         const logo = (OA.logo !== false && config.imprimirLogo !== false && (opts.logoAmostra || config.urlLogo))
@@ -76,14 +77,44 @@
             '<div style="margin-top:34px;text-align:center;font-size:10px;color:#666;">Documento sem valor fiscal.</div></div>';
     };
 
+    /** Cidade/UF pelo GPS (navigator.geolocation + geocodificação reversa). Devolve {cidade, uf} ou null. Guarda 30 min. */
+    window.gpsCidadeUF = function (forcar) {
+        const agora = Date.now();
+        if (!forcar && window.__gpsLoc && agora - (window.__gpsLocT || 0) < 30 * 60e3) return Promise.resolve(window.__gpsLoc);
+        if (window.__gpsBusca && !forcar) return window.__gpsBusca;
+        window.__gpsBusca = new Promise(function (resolve) {
+            if (!navigator.geolocation) return resolve(null);
+            navigator.geolocation.getCurrentPosition(async function (pos) {
+                const lat = pos.coords.latitude, lon = pos.coords.longitude; let r = null;
+                try {
+                    const j = await (await fetch('https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=' + lat + '&longitude=' + lon + '&localityLanguage=pt')).json();
+                    const uf = String(j.principalSubdivisionCode || '').split('-')[1] || '';
+                    const cid = j.city || j.locality || '';
+                    if (cid && uf) r = { cidade: cid, uf: uf };
+                } catch (e) {}
+                if (!r) {
+                    try {
+                        const j = await (await fetch('https://nominatim.openstreetmap.org/reverse?format=jsonv2&accept-language=pt-BR&lat=' + lat + '&lon=' + lon)).json();
+                        const a = j.address || {}; const uf = String(a['ISO3166-2-lvl4'] || '').split('-')[1] || '';
+                        const cid = a.city || a.town || a.village || a.municipality || '';
+                        if (cid && uf) r = { cidade: cid, uf: uf };
+                    } catch (e) {}
+                }
+                if (r) { window.__gpsLoc = r; window.__gpsLocT = Date.now(); }
+                resolve(r);
+            }, function () { resolve(null); }, { enableHighAccuracy: false, timeout: 12000, maximumAge: 10 * 60e3 });
+        }).then(function (r) { window.__gpsBusca = null; return r; });
+        return window.__gpsBusca;
+    };
+
     /** Pagador (cliente cadastrado) da comanda: nome + CPF/CNPJ, quando houver. */
     window.impPagadorDe = async function (c) {
         try {
             const clientes = window.normalizarArray(await apiGet('clientes')); const nome = String(c.cliente || '').trim().toLowerCase();
             const cli = clientes.find(function (x) { return (c.clienteId && String(x.id) === String(c.clienteId)) || (nome && String(x.nome || '').trim().toLowerCase() === nome); });
-            if (cli) return { nome: cli.nome, doc: cli.documento || '' };
+            if (cli) return { nome: cli.nome, doc: window.__impPagadorDoc || cli.documento || cli.cpf || cli.cnpj || '', id: cli.id, tinhaDoc: !!(cli.documento || cli.cpf || cli.cnpj) };
         } catch (e) {}
-        return { nome: c.cliente || '', doc: '' };
+        return { nome: c.cliente || '', doc: window.__impPagadorDoc || '' };
     };
     /** Modelo A4 em uso: 'nota' (NF) ou 'simples'. Recibo em aberto/pendente é sempre a nota. */
     window.impModeloA4 = function (c, config, opts) {

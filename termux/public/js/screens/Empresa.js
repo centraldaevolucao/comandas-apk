@@ -45,6 +45,7 @@ console.log('✔ Empresa.js carregado');
             '<div style="display:flex;gap:8px;">' + campo('empresaNumero', 'Número', '123', { flex: 1, max: 10 }) + campo('empresaComplemento', 'Complemento', 'Sala 2', { flex: 2, max: 40 }) + '</div>' +
             campo('empresaBairro', 'Bairro', '') +
             '<div style="display:flex;gap:8px;">' + campo('empresaCidade', 'Cidade', '', { flex: 3 }) + campo('empresaUF', 'UF', 'PA', { flex: 1, max: 2 }) + '</div>' +
+            '<button type="button" class="btn-outline" style="width:100%;margin-top:6px;" onclick="empGps()"><i class="fas fa-location-crosshairs"></i> Preencher cidade e UF pelo GPS</button><small id="emp-gps-info" style="color:#6b6b6b;font-size:.75rem;"></small>' +
             sec('Contato', 'fa-phone') +
             campo('empresaTelefone', 'Telefone', '(00) 00000-0000', { tipo: 'tel', max: 20 }) +
             campo('empresaEmail', 'E-mail', 'contato@empresa.com', { tipo: 'email', max: 80 }) +
@@ -74,6 +75,14 @@ console.log('✔ Empresa.js carregado');
             set('empresaLogradouro', r.logradouro); set('empresaBairro', r.bairro); set('empresaCidade', r.localidade); set('empresaUF', r.uf);
             if (info) info.textContent = 'Endereço preenchido. Informe o número.';
         } catch (e) { if (info) info.textContent = 'Sem internet — preencha o endereço à mão.'; }
+    };
+
+    window.empGps = async function () {
+        const info = document.getElementById('emp-gps-info'); if (info) info.textContent = 'Buscando sua localização…';
+        const r = await window.gpsCidadeUF(true);
+        if (!r) { if (info) info.textContent = 'Não consegui a localização (permissão negada, sem GPS ou sem internet). Preencha à mão.'; return; }
+        document.getElementById('emp-empresaCidade').value = r.cidade; document.getElementById('emp-empresaUF').value = r.uf;
+        if (info) info.textContent = 'Localização: ' + r.cidade + '/' + r.uf + '. Confira e salve.';
     };
 
     window.empSalvar = async function () {

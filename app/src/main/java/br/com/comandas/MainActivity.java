@@ -29,6 +29,7 @@ import android.view.WindowManager;
 import android.webkit.CookieManager;
 import android.webkit.JavascriptInterface;
 import android.webkit.ValueCallback;
+import android.webkit.GeolocationPermissions;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
@@ -67,6 +68,9 @@ public class MainActivity extends Activity {
     private static final int PORTA = 3000;
     private static final String PREFS = "comandas";
     private static final int REQ_PERMISSOES = 100;
+    private static final int REQ_GEO = 88;
+    private GeolocationPermissions.Callback geoCb;
+    private String geoOrigem;
     private static final int REQ_ARQUIVO = 101;
     private static final int MAX_PEDIDOS_PERMISSAO = 2; // não insiste mais que isso
 
@@ -205,6 +209,16 @@ public class MainActivity extends Activity {
         // Sem WebChromeClient o WebView ignora alert()/confirm()/prompt(): confirm() devolvia sempre
         // "não" e os botões de excluir/fechar/cancelar pareciam não fazer nada.
         web.setWebChromeClient(new WebChromeClient() {
+            // GPS (navigator.geolocation): cidade/UF automáticos no recibo e no cadastro da empresa
+            @Override public void onGeolocationPermissionsShowPrompt(String origin, GeolocationPermissions.Callback cb) {
+                if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+                        || checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                    cb.invoke(origin, true, false);
+                } else {
+                    geoOrigem = origin; geoCb = cb;
+                    requestPermissions(new String[]{ Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION }, REQ_GEO);
+                }
+            }
             @Override public boolean onShowFileChooser(WebView v, ValueCallback<Uri[]> cb, FileChooserParams p) {
                 if (seletorArquivo != null) seletorArquivo.onReceiveValue(null);
                 seletorArquivo = cb;
@@ -284,6 +298,12 @@ public class MainActivity extends Activity {
 
     @Override public void onRequestPermissionsResult(int req, String[] perms, int[] res) {
         super.onRequestPermissionsResult(req, perms, res);
+        if (req == REQ_GEO) {
+            boolean ok = false;
+            for (int r : res) if (r == PackageManager.PERMISSION_GRANTED) ok = true;
+            if (geoCb != null) { geoCb.invoke(geoOrigem, ok, false); geoCb = null; geoOrigem = null; }
+            return;
+        }
         if (req != REQ_PERMISSOES) return;
         int negadas = 0;
         for (int r : res) if (r != PackageManager.PERMISSION_GRANTED) negadas++;
