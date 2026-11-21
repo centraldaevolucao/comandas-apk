@@ -89,7 +89,10 @@
             '<div style="flex:1;">' + quadro('Forma de pagamento', '<div style="display:flex;align-items:center;"><div style="flex:1;min-width:0;">' + pagHtml + '</div>' + blocoQr + '</div>', 'height:100%;box-sizing:border-box;') + '</div>' +
             '<div style="flex:0 0 250px;">' + quadro('Totais', tot, 'height:100%;box-sizing:border-box;') + '</div></div>';
         const obs = quadro('Observações', '<div style="font-size:10.5px;min-height:34px;">' + esc(opts.observacao || config.recibosObservacao || 'Obrigado pela preferência!') + '</div>', 'margin-top:8px;');
-        const ass = '<div style="display:flex;gap:30px;margin-top:30px;"><div style="flex:1;text-align:center;border-top:1px solid #333;font-size:10px;padding-top:3px;">Assinatura do cliente</div><div style="flex:1;text-align:center;border-top:1px solid #333;font-size:10px;padding-top:3px;">Assinatura do responsável</div></div>';
+        const campoAss = function (tit, sub) { return '<div style="flex:1;"><div style="height:52px;border-bottom:1px solid #333;"></div><div style="font-size:10px;font-weight:700;padding-top:3px;text-align:center;">' + tit + '</div><div style="font-size:9px;color:#444;margin-top:5px;">' + sub + '</div></div>'; };
+        const ass = quadro('Assinaturas', '<div style="display:flex;gap:26px;padding:4px 4px 2px;">' +
+            campoAss('Assinatura do cliente', 'Nome: ______________________________<br>CPF/CNPJ: _________________ &nbsp; Data: ____/____/______') +
+            campoAss('Assinatura do responsável', esc(config.empresaResponsavel || config.empresaRazao || config.nomeImpressao || 'Responsável') + (config.empresaRespDoc || config.empresaCnpj ? '<br>CPF/CNPJ: ' + esc(config.empresaRespDoc || config.empresaCnpj) : '<br>CPF/CNPJ: _________________') + '<br>Data: ____/____/______') + '</div>', 'margin-top:10px;');
         const rodapeF = function (pg, tot) { return '<div style="margin-top:12px;border-top:1px solid #999;padding-top:4px;display:flex;justify-content:space-between;font-size:9px;color:#555;"><span>Recibo Nº ' + esc(c.numero) + ' • ' + esc(nome) + ' • Documento sem valor fiscal</span><span>' + esc(data) + (tot > 1 ? ' • Página ' + pg + '/' + tot : '') + '</span></div>'; };
         const fechamento = rodapeBox + (OA.obs !== false ? obs : '') + (OA.ass !== false ? ass : '');
 

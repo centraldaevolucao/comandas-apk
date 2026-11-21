@@ -139,10 +139,6 @@ if (!window.renderConfiguracoes) {
             html += '        <i class="fas fa-chevron-right" style="color:#C2185B;"></i>';
             html += '    </div>';
 
-            html += '    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;border-bottom:1px solid #e0c8e8;padding-bottom:16px;margin-bottom:16px;cursor:pointer;" onclick="abrirLayoutImpressao(\'recibo\',\'a4\')">';
-            html += '        <div style="min-width:0;"><div style="font-weight:600;font-size:0.95rem;">Modelo A4 (formato de nota)</div><div style="font-size:0.75rem;color:#666;">Recibo em folha A4 com cabeçalho, QR Pix, assinaturas e várias páginas. Escolha o que aparece e veja a pré-visualização.</div></div>';
-            html += '        <i class="fas fa-chevron-right" style="color:#C2185B;"></i>';
-            html += '    </div>';
 
             const linhaTog = function (titulo, sub, id, val) {
                 return '    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;border-bottom:1px solid #e0c8e8;padding-bottom:14px;margin-bottom:14px;">' +
@@ -173,12 +169,6 @@ if (!window.renderConfiguracoes) {
             html += '        </div>';
             html += '    </div>';
 
-
-            html += '    <div style="font-size:.78rem;color:#666;margin:-6px 0 10px;">Recibo A4: dados que aparecem no cabeçalho (deixe em branco o que não quiser mostrar).</div>';
-            [['cfg-emp-razao', 'Razão social / nome completo', c.empresaRazao], ['cfg-emp-cnpj', 'CNPJ ou CPF', c.empresaCnpj], ['cfg-emp-end', 'Endereço', c.empresaEndereco], ['cfg-emp-tel', 'Telefone', c.empresaTelefone], ['cfg-emp-obs', 'Observação padrão do recibo A4', c.recibosObservacao]].forEach(function (f) {
-                html += '    <div style="border:1px solid #333;border-radius:8px;padding:0 10px;position:relative;margin-bottom:16px;"><label for="' + f[0] + '" style="position:absolute;top:-8px;left:10px;background:#FCE4EC;padding:0 4px;font-size:0.7rem;color:#333;font-weight:600;">' + f[1] + '</label>' +
-                    '<input type="text" id="' + f[0] + '" maxlength="120" value="' + String(f[2] || '').replace(/"/g, '&quot;') + '" style="border:none;background:transparent;width:100%;padding:12px 0;font-size:1rem;outline:none;box-sizing:border-box;"></div>';
-            });
 
             window._cfgImg = { logo: c.urlLogo || '', icone: c.urlIcone || '' };
             [['logo', 'Logo (Recibo/Comanda)', 'cfg-url-logo', 'https://exemplo.com/logo.png'], ['icone', 'Ícone do estabelecimento', 'cfg-url-icone', 'https://exemplo.com/icone.png']].forEach(function (it) {
@@ -537,9 +527,6 @@ if (!window.renderConfiguracoes) {
             config.impFonteTam = parseInt(val('cfg-fonte-tam'), 10) || 100;
             config.fonteImpressaoGrande = false;
             config.nomeImpressao = (val('cfg-nome-impressao') || '').trim();
-            config.empresaRazao = (val('cfg-emp-razao') || '').trim(); config.empresaCnpj = (val('cfg-emp-cnpj') || '').trim();
-            config.empresaEndereco = (val('cfg-emp-end') || '').trim(); config.empresaTelefone = (val('cfg-emp-tel') || '').trim();
-            config.recibosObservacao = (val('cfg-emp-obs') || '').trim();
             const lerImg = function (chave, idCampo) {
                 const t = (val(idCampo) || '').trim();
                 if (t === 'Imagem do dispositivo') return (window._cfgImg && window._cfgImg[chave]) || '';

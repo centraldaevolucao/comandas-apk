@@ -44,7 +44,7 @@
         const base = padrao(), s = (config && config.layoutImp) || {};
         if (s.sep) base.sep = s.sep;
         if (s.margem) base.margem = s.margem;
-        base.a4 = Object.assign({ logo: true, empresa: true, qr: true, obs: true, ass: true }, s.a4 || {});   // modelo A4 (nota): o que aparece
+        base.a4 = Object.assign({ modelo: 'nota', logo: true, empresa: true, qr: true, obs: true, ass: true }, s.a4 || {});   // modelo A4 (nota): o que aparece
         Object.keys(BLOCOS).forEach(function (d) {
             const sd = s[d]; if (!sd) return;
             if (sd.papel) base[d].papel = sd.papel;
@@ -329,10 +329,14 @@
         const OA = LAY.a4;
         const tg = function (k, t, sub) { return '<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #e0c8e8;"><div style="flex:1;"><div style="font-weight:600;font-size:.9rem;">' + t + '</div>' + (sub ? '<div style="font-size:.72rem;color:#777;">' + sub + '</div>' : '') + '</div><label class="toggle"><input type="checkbox" data-a4="' + k + '"' + (OA[k] !== false ? ' checked' : '') + '><span class="slider"></span></label></div>'; };
         const inp = function (k, t, ph) { return '<label style="display:block;font-size:.78rem;color:#555;margin-top:8px;">' + t + '<input data-emp="' + k + '" value="' + esc(CFG[k] || '') + '" placeholder="' + ph + '" style="width:100%;box-sizing:border-box;padding:8px;border:2px solid #ddd;border-radius:8px;font-size:.85rem;margin-top:2px;"></label>'; };
-        const blocosA4 = '<div style="background:#FCE4EC;border-radius:12px;padding:12px;margin-bottom:10px;"><b style="font-size:.85rem;">Modelo A4 — formato de nota</b>' +
+        const simples = OA.modelo === 'simples';
+        const blocosA4 = '<div style="background:#FCE4EC;border-radius:12px;padding:12px;margin-bottom:10px;"><b style="font-size:.85rem;">Modelo A4 do recibo</b>' +
+            '<div style="margin:8px 0;">' + seg([['nota', 'Nota (NF)'], ['simples', 'Recibo simples']], OA.modelo || 'nota', 'modelo') + '</div>' +
+            '<div style="font-size:.72rem;color:#777;margin:0 0 8px;">É o modelo padrão do A4; na tela do recibo dá para trocar na hora. O recibo simples só vale para comanda <b>paga</b> (pendente/aguardando sai como nota).</div>' +
             '<div style="font-size:.72rem;color:#777;margin:4px 0 6px;">Cabeçalho e rodapé saem em todas as páginas; se os itens não couberem, as páginas seguintes são geradas. O aviso <b>DOCUMENTO SEM VALOR FISCAL</b> sempre é impresso.</div>' +
-            tg('logo', 'Logo', 'Usa a logo das configurações') + tg('empresa', 'Dados da empresa', 'Razão social, CNPJ/CPF, endereço e telefone') + tg('qr', 'QR Code Pix', 'Só aparece se o recibo estiver aguardando pagamento ou pendente') + tg('obs', 'Observações') + tg('ass', 'Assinaturas') +
-            '<div style="font-size:.8rem;font-weight:700;margin-top:10px;">Dados que saem no cabeçalho</div>' + inp('empresaRazao', 'Razão social', 'Ex.: Minha Empresa LTDA') + inp('empresaCnpj', 'CNPJ/CPF', '00.000.000/0000-00') + inp('empresaEndereco', 'Endereço', 'Rua, nº, bairro, cidade-UF') + inp('empresaTelefone', 'Telefone', '(00) 00000-0000') + inp('recibosObservacao', 'Texto das observações', 'Obrigado pela preferência!') +
+            tg('logo', 'Logo', 'Usa a logo das configurações') + tg('empresa', 'Dados da empresa', 'Razão social, CNPJ/CPF e endereço no topo') + (simples ? '' : tg('qr', 'QR Code Pix', 'Só aparece se o recibo estiver aguardando pagamento ou pendente') + tg('obs', 'Observações') + tg('ass', 'Assinaturas')) +
+            '<button data-emp-link class="btn-outline" style="width:100%;margin-top:10px;background:#fff;"><i class="fas fa-building"></i> Editar dados da empresa (Cadastros › Empresa)</button>' +
+            (simples ? '' : inp('recibosObservacao', 'Texto das observações', 'Obrigado pela preferência!')) +
             '<div style="font-size:.72rem;color:#777;margin-top:6px;">A impressora A4 é cadastrada em Configurações › Impressoras.</div></div>';
         const painel = '<div style="padding:12px;overflow-y:auto;' + (larg ? 'width:420px;flex:0 0 420px;' : '') + '">' +
             '<div style="background:#FCE4EC;border-radius:12px;padding:12px;margin-bottom:10px;"><b style="font-size:.85rem;">Documento</b><div style="display:flex;flex-wrap:wrap;gap:6px;margin:8px 0;">' +
@@ -347,7 +351,7 @@
             '<button data-reset class="btn-outline" style="width:100%;margin-top:10px;background:#fff;">Restaurar layout padrão</button></div></div>';
         const cfgP = Object.assign({}, CFG, { imprimirLogo: CFG.imprimirLogo !== false, layoutImp: LAY });
         const doc = await window.impDocumento(DOC, amostraDe(DOC), cfgP, { amostra: true, aberto: false });
-        const corpoPrev = a4 ? (window.impReciboA4Html ? folhaA4(window.impReciboA4Html(amostraA4(DOC), cfgP, { aberto: DOC === 'recibo' && PREV_ABERTO, pixAmostra: true, logoAmostra: LOGO_AMOSTRA, data: '11/11/2026 13:20' }), ov) : '') : window.impHtml(doc, cfgP);
+        const corpoPrev = a4 ? (window.impReciboA4Html ? folhaA4(window.impReciboA4Auto(amostraA4(DOC), cfgP, { modelo: LAY.a4.modelo, pagador: { nome: 'Maria da Silva', doc: '123.456.789-00' }, aberto: DOC === 'recibo' && PREV_ABERTO, pixAmostra: true, logoAmostra: LOGO_AMOSTRA, data: '11/11/2026 13:20' }), ov) : '') : window.impHtml(doc, cfgP);
         const prev = '<div style="padding:12px;overflow-y:auto;flex:1;min-width:0;"><b style="font-size:.85rem;">Pré-visualização' + (a4 ? ' — A4' : '') + '</b>' + (a4 && DOC === 'recibo' ? '<label style="display:block;font-size:.78rem;margin:6px 0;"><input type="checkbox" data-prevab' + (PREV_ABERTO ? ' checked' : '') + '> Simular recibo <b>aguardando pagamento</b> (mostra o QR Pix)</label>' : '') + '<div style="background:#eee;border-radius:12px;padding:12px;margin-top:8px;overflow-x:auto;">' + corpoPrev + '</div><div style="font-size:.72rem;color:#777;margin-top:6px;">Exemplo com dados fictícios. Na térmica Bluetooth, logo e QR saem como imagem.</div></div>';
         const abas = larg ? '' : '<div style="display:flex;background:#fff;border-bottom:1px solid #ddd;">' + [['editar', 'Editar'], ['previa', 'Pré-visualizar']].map(function (a) { return '<div data-visao="' + a[0] + '" style="flex:1;text-align:center;padding:10px;font-weight:700;font-size:.85rem;cursor:pointer;' + (VISAO === a[0] ? 'color:' + COR + ';border-bottom:3px solid ' + COR + ';' : 'color:#777;') + '">' + a[1] + '</div>'; }).join('') + '</div>';
         ov.innerHTML = '<div style="background:' + COR + ';color:#fff;padding:14px 16px;font-weight:700;display:flex;align-items:center;gap:10px;"><span data-fechar style="cursor:pointer;font-size:1.2rem;">←</span> Layout de impressão</div>' + abas +
@@ -365,6 +369,7 @@
                 const p = e.dataset.seg.split(':'), v = e.dataset.v;
                 if (p[0] === 'papel') D.papel = v;
                 else if (p[0] === 'sep') LAY.sep = v;
+                else if (p[0] === 'modelo') LAY.a4.modelo = v;
                 else if (p[0] === 'margem') LAY.margem = v;
                 else if (p[0] === 'al') D.blocos[+p[1]].al = v;
                 else if (p[0] === 'neg') { if (v === '') delete D.blocos[+p[1]].neg; else D.blocos[+p[1]].neg = +v; }
@@ -372,6 +377,7 @@
                 re();
             };
         });
+        $$('[data-emp-link]', function (e) { e.onclick = function () { ov.remove(); if (window.navigateTo) window.navigateTo('empresa'); }; });
         $$('[data-a4]', function (e) { e.onchange = function () { LAY.a4[e.dataset.a4] = e.checked; re(); }; });
         $$('[data-prevab]', function (e) { e.onchange = function () { PREV_ABERTO = e.checked; desenhar(ov); }; });
         $$('[data-emp]', function (e) { e.oninput = function () { salvarEmpresa(e.dataset.emp, e.value); atualizaPrev(ov); }; });
@@ -392,7 +398,7 @@
     }
     async function atualizaPrev(ov) {   // digitação: atualiza só o cupom, sem recriar os campos
         const a4m = ov.querySelector('.imp-a4');
-        if (a4m) { const cA = Object.assign({}, CFG, { imprimirLogo: CFG.imprimirLogo !== false, layoutImp: LAY }); a4m.parentNode.parentNode.innerHTML = folhaA4(window.impReciboA4Html(amostraA4(DOC), cA, { aberto: DOC === 'recibo' && PREV_ABERTO, pixAmostra: true, logoAmostra: LOGO_AMOSTRA, data: '11/11/2026 13:20' }), ov); return; }
+        if (a4m) { const cA = Object.assign({}, CFG, { imprimirLogo: CFG.imprimirLogo !== false, layoutImp: LAY }); a4m.parentNode.parentNode.innerHTML = folhaA4(window.impReciboA4Auto(amostraA4(DOC), cA, { modelo: LAY.a4.modelo, pagador: { nome: 'Maria da Silva', doc: '123.456.789-00' }, aberto: DOC === 'recibo' && PREV_ABERTO, pixAmostra: true, logoAmostra: LOGO_AMOSTRA, data: '11/11/2026 13:20' }), ov); return; }
         const caixa = ov.querySelector('.imp-cupom'); if (!caixa) return;
         const cfgP = Object.assign({}, CFG, { imprimirLogo: CFG.imprimirLogo !== false, layoutImp: LAY });
         const doc = await window.impDocumento(DOC, amostraDe(DOC), cfgP, { amostra: true });

@@ -18,7 +18,7 @@ const MENU_SECOES = [
             ['fornecedores', 'fa-truck', 'Fornecedores'], ['movimentacao-estoque', 'fa-arrow-up', 'Movimentação de Estoque'] ] },
         { id: 'grp-equipe', icone: 'fa-concierge-bell', titulo: 'Salão e equipe', itens: [
             ['clientes', 'fa-users', 'Clientes'], ['colaboradores', 'fa-id-badge', 'Colaboradores'], ['funcoes', 'fa-briefcase', 'Funções'],
-            ['mesas', 'fa-chair', 'Mesas'], ['niveis-acesso', 'fa-shield-alt', 'Níveis de Acesso'], ['usuarios', 'fa-user-cog', 'Usuários'] ] }
+            ['mesas', 'fa-chair', 'Mesas'], ['empresa', 'fa-building', 'Empresa'], ['niveis-acesso', 'fa-shield-alt', 'Níveis de Acesso'], ['usuarios', 'fa-user-cog', 'Usuários'] ] }
     ] },
     { id: 'sec-relatorios', titulo: 'Relatórios', itens: [
         ['comandas-arquivadas', 'fa-calendar', 'Comandas Arquivadas'], ['relatorio-estoque', 'fa-clipboard-check', 'Estoque'],

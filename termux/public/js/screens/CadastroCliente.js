@@ -38,6 +38,12 @@ window.renderCadastroCliente = function() {
     html += '            <input type="tel" id="c-telefone" maxlength="20" placeholder="(00) 00000-0000" value="' + (c.telefone || '') + '">';
     html += '        </div>';
 
+    // CPF/CNPJ (opcional — só sai no Recibo simples como "inscrito no CPF/CNPJ")
+    html += '        <div class="field">';
+    html += '            <label for="c-documento">CPF ou CNPJ <small style="color:#6b6b6b;">(opcional — usado no recibo simples)</small></label>';
+    html += '            <input type="text" id="c-documento" maxlength="18" inputmode="numeric" placeholder="000.000.000-00" oninput="empMascara(this)" value="' + String(c.documento || '').replace(/"/g, '&quot;') + '">';
+    html += '        </div>';
+
     // Info
     html += '        <div class="field">';
     html += '            <label>Informações complementares</label>';
@@ -412,6 +418,7 @@ window.salvarCliente = async function() {
         id: c.id || Date.now(),
         nome: nome,
         telefone: telefone,
+        documento: ((document.getElementById('c-documento') || {}).value || '').trim(),
         info: info,
         enderecos: Array.isArray(c.enderecos) ? c.enderecos : []
     };

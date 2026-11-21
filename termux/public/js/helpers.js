@@ -649,7 +649,8 @@ window.lerQrDeImagem = async function (dataUrl) {
 // IMAGEM de um elemento (print do recibo/comanda) e compartilhamento
 // ============================================================
 window.elementoParaPng = async function (el) {
-    const w = Math.ceil(el.scrollWidth || el.offsetWidth), h = Math.ceil(el.scrollHeight || el.offsetHeight);
+    const w = Math.ceil(el.scrollWidth || el.offsetWidth), h0 = Math.ceil(el.scrollHeight || el.offsetHeight);
+    const PAD = 160, h = h0 + PAD;   // folga: o desenho no SVG pode sair mais alto que a medida na tela (ex.: A4 cortava as assinaturas); o excesso em branco é aparado no fim
     const clone = el.cloneNode(true);
     // imagens (QR, logo) viram data URL para entrarem no desenho
     const origs = el.querySelectorAll('img'), clones = clone.querySelectorAll('img');
@@ -674,6 +675,13 @@ window.elementoParaPng = async function (el) {
     const g = cv.getContext('2d');
     g.fillStyle = '#fff'; g.fillRect(0, 0, cv.width, cv.height);
     g.scale(esc, esc); g.drawImage(img, 0, 0);
+    // apara o branco do fim (mantém 14px de margem)
+    try {
+        const data = g.getImageData(0, 0, cv.width, cv.height).data, linha = cv.width * 4; let ult = cv.height - 1;
+        for (; ult > 0; ult--) { let tem = false; for (let x = 0; x < linha; x += 4) { if (data[ult * linha + x] < 250 || data[ult * linha + x + 1] < 250 || data[ult * linha + x + 2] < 250) { tem = true; break; } } if (tem) break; }
+        const hf = Math.min(cv.height, ult + 1 + 14 * esc);
+        if (hf < cv.height) { const c2 = document.createElement('canvas'); c2.width = cv.width; c2.height = hf; c2.getContext('2d').drawImage(cv, 0, 0); return c2.toDataURL('image/png'); }
+    } catch (e) {}
     return cv.toDataURL('image/png');
 };
 

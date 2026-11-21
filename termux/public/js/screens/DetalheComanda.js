@@ -1998,6 +1998,10 @@ if (!window.renderDetalheComanda) {
             '<label style="' + rd + '"><input type="radio" name="imp-tipo" value="cupom" checked onchange="mudarDestinoImpressao(\'' + tipo + '\', ' + (aberto ? 'true' : 'false') + ')"> Térmica (cupom)</label>' +
             '<label style="' + rd + '"><input type="radio" name="imp-tipo" value="a4" onchange="mudarDestinoImpressao(\'' + tipo + '\', ' + (aberto ? 'true' : 'false') + ')"> A4</label></div>' +
             '<div id="imp-a4-box" style="display:none;margin-top:8px;">' +
+            ((tipo === 'recibo' && !aberto && !(window.comandaAtual && window.comandaAtual.pagamentoPendente === true && Number(window.comandaAtual.valorPendente || 0) > 0.009)) ?
+                '<div style="margin-bottom:8px;font-size:.85rem;"><div style="margin-bottom:4px;"><i class="fas fa-file-invoice"></i> Modelo do A4:</div><div style="display:flex;gap:8px;">' +
+                '<label style="' + rd + '"><input type="radio" name="imp-modelo" value="nota" checked onchange="mudarDestinoImpressao(\'' + tipo + '\', false)"> Nota (NF)</label>' +
+                '<label style="' + rd + '"><input type="radio" name="imp-modelo" value="simples" onchange="mudarDestinoImpressao(\'' + tipo + '\', false)"> Recibo simples</label></div></div>' : '') +
             (a4Lista.length ? '<select id="sel-imp-a4" aria-label="Impressora A4" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:8px;font-size:.9rem;" onchange="mudarDestinoImpressao(\'' + tipo + '\', ' + (aberto ? 'true' : 'false') + ')">' + optA4 + '</select>'
                 : '<div style="font-size:.78rem;color:#777;">Nenhuma impressora A4 cadastrada (Impressoras &gt; Impressoras A4). A janela de impressão deixa você escolher.</div>') +
             '</div></div>';
@@ -2060,6 +2064,9 @@ if (!window.renderDetalheComanda) {
         const ehA4 = r.value === 'a4';
         const box = document.getElementById('imp-a4-box'); if (box) box.style.display = ehA4 ? 'block' : 'none';
         const selA4 = document.getElementById('sel-imp-a4');
+        const rm = document.querySelector('input[name="imp-modelo"]:checked');
+        if (rm) window.__impModeloA4 = rm.value; else if (ehA4 === false) window.__impModeloA4 = null;
+        document.querySelectorAll('input[name="imp-modelo"]').forEach(function (x) { x.parentNode.style.borderColor = x.checked ? '#1976d2' : '#ccc'; x.parentNode.style.background = x.checked ? '#e3f2fd' : '#fff'; });
         window.__impDestino = ehA4 ? (selA4 && selA4.value ? selA4.value : 'a4:') : 'cupom';
         document.querySelectorAll('input[name="imp-tipo"]').forEach(function (x) { x.parentNode.style.borderColor = x.checked ? '#1976d2' : '#ccc'; x.parentNode.style.background = x.checked ? '#e3f2fd' : '#fff'; });
         const mc = document.querySelector('#modal-preview-impressao .modal-content'); if (mc) mc.style.maxWidth = ehA4 ? '860px' : '400px';
@@ -2073,13 +2080,13 @@ if (!window.renderDetalheComanda) {
             if (ehA4 && tipo === 'recibo' && window.impReciboA4Html) {
                 // folha A4 com largura fixa, reduzida para caber na tela (como sairá na impressão)
                 const z = Math.max(0.3, Math.min(1, ((alvo.clientWidth || window.innerWidth - 40) - 4) / 720));
-                alvo.innerHTML = '<div data-a4-zoom style="width:720px;zoom:' + z.toFixed(3) + ';">' + window.impReciboA4Html(c, config, { aberto: aberto }) + '</div>';
+                alvo.innerHTML = '<div data-a4-zoom style="width:720px;zoom:' + z.toFixed(3) + ';">' + window.impReciboA4Auto(c, config, { aberto: aberto, pagador: await window.impPagadorDe(c) }) + '</div>';
             } else alvo.innerHTML = window.impHtml(doc, config);
         } catch (e) { console.warn(e); }
     };
 
     window.fecharPreviewImpressao = function () {
-        window.__impDestino = 'cupom';
+        window.__impDestino = 'cupom'; window.__impModeloA4 = null;
         const m = document.getElementById('modal-preview-impressao');
         if (m) m.remove();
         if (window.__irAposRecibo) { window.__irAposRecibo = false; window.navigateTo(window.rotaOrigem || 'pdv'); }
@@ -2195,7 +2202,7 @@ if (!window.renderDetalheComanda) {
         const doc = await window.impDocumento(tipo, c, config, Object.assign({ modoPix: extra.aberto ? 'forcar' : 'impressao' }, optsDoc));
         if (a4) doc.papel = 'a4';
         const reciboA4 = a4 && (doc.tipo === 'recibo' || doc.tipo === 'pendencia') && window.impReciboA4Html;
-        const html = window.impPagina(reciboA4 ? window.impReciboA4Html(c, config, { aberto: !!extra.aberto }) : window.impHtml(doc, config), titulo + ' ' + c.numero, { a4: a4, nome: a4 ? window.impDestinoNome(config, destino) : '' });
+        const html = window.impPagina(reciboA4 ? window.impReciboA4Auto(c, config, { aberto: !!extra.aberto, pagador: await window.impPagadorDe(c) }) : window.impHtml(doc, config), titulo + ' ' + c.numero, { a4: a4, nome: a4 ? window.impDestinoNome(config, destino) : '' });
         const janela = window.open('', '', 'width=420,height=700');
         janela.document.write(html);
         janela.document.close();
