@@ -1961,6 +1961,11 @@ if (!window.renderDetalheComanda) {
             '</div>';
     };
 
+    // pendência/fiado? Então o recibo A4 só sai como Nota.
+    window.impPendenteAgora = function (aberto) {
+        const c = window.comandaAtual || {}, r = window.recebimentoAtual || {};
+        return (c.pagamentoPendente === true && Number(c.valorPendente || 0) > 0.009) || (!!aberto && r.fiado === true);   // só pendência/fiado impede o recibo simples; "aguardando pagamento" pode usar os dois modelos
+    };
     window.abrirPreviewImpressao = async function (tipo, opts) {
         if (!window.comandaAtual) return;
         opts = opts || {};
@@ -1998,12 +2003,12 @@ if (!window.renderDetalheComanda) {
             '<label style="' + rd + '"><input type="radio" name="imp-tipo" value="cupom" checked onchange="mudarDestinoImpressao(\'' + tipo + '\', ' + (aberto ? 'true' : 'false') + ')"> Térmica (cupom)</label>' +
             '<label style="' + rd + '"><input type="radio" name="imp-tipo" value="a4" onchange="mudarDestinoImpressao(\'' + tipo + '\', ' + (aberto ? 'true' : 'false') + ')"> A4</label></div>' +
             '<div id="imp-a4-box" style="display:none;margin-top:8px;">' +
-            ((tipo === 'recibo' && !aberto && !(window.comandaAtual && window.comandaAtual.pagamentoPendente === true && Number(window.comandaAtual.valorPendente || 0) > 0.009)) ?
+            ((tipo === 'recibo' && !window.impPendenteAgora(aberto)) ?
                 '<div style="margin-bottom:8px;font-size:.85rem;"><div style="margin-bottom:4px;"><i class="fas fa-file-invoice"></i> Modelo do A4:</div><div style="display:flex;gap:8px;">' +
-                '<label style="' + rd + '"><input type="radio" name="imp-modelo" value="nota" checked onchange="mudarDestinoImpressao(\'' + tipo + '\', false)"> Nota (NF)</label>' +
-                '<label style="' + rd + '"><input type="radio" name="imp-modelo" value="simples" onchange="mudarDestinoImpressao(\'' + tipo + '\', false)"> Recibo simples</label></div></div>' : '') +
+                '<label style="' + rd + '"><input type="radio" name="imp-modelo" value="nota" checked onchange="mudarDestinoImpressao(\'' + tipo + '\', ' + (aberto ? 'true' : 'false') + ')"> Nota (NF)</label>' +
+                '<label style="' + rd + '"><input type="radio" name="imp-modelo" value="simples" onchange="mudarDestinoImpressao(\'' + tipo + '\', ' + (aberto ? 'true' : 'false') + ')"> Recibo simples</label></div></div>' : '') +
             (a4Lista.length ? '<select id="sel-imp-a4" aria-label="Impressora A4" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:8px;font-size:.9rem;" onchange="mudarDestinoImpressao(\'' + tipo + '\', ' + (aberto ? 'true' : 'false') + ')">' + optA4 + '</select>'
-                : '<div style="font-size:.78rem;color:#777;">Nenhuma impressora A4 cadastrada (Impressoras &gt; Impressoras A4). A janela de impressão deixa você escolher.</div>') +
+                : '<div style="font-size:.78rem;color:#777;"><i class="fas fa-circle-info"></i> Sem impressora A4 cadastrada: a visualização, o WhatsApp e o Compartilhar funcionam normalmente. Ao imprimir, o sistema deixa você escolher a impressora (cadastre em Impressoras &gt; Impressoras A4 se quiser fixar uma).</div>') +
             '</div></div>';
 
         const anterior = document.getElementById('modal-preview-impressao');
@@ -2080,7 +2085,7 @@ if (!window.renderDetalheComanda) {
             if (ehA4 && tipo === 'recibo' && window.impReciboA4Html) {
                 // folha A4 com largura fixa, reduzida para caber na tela (como sairá na impressão)
                 const z = Math.max(0.3, Math.min(1, ((alvo.clientWidth || window.innerWidth - 40) - 4) / 720));
-                alvo.innerHTML = '<div data-a4-zoom style="width:720px;zoom:' + z.toFixed(3) + ';">' + window.impReciboA4Auto(c, config, { aberto: aberto, pagador: await window.impPagadorDe(c) }) + '</div>';
+                alvo.innerHTML = '<div data-a4-zoom style="width:720px;zoom:' + z.toFixed(3) + ';">' + window.impReciboA4Auto(c, config, { aberto: aberto, pendente: window.impPendenteAgora(aberto), pagador: await window.impPagadorDe(c) }) + '</div>';
             } else alvo.innerHTML = window.impHtml(doc, config);
         } catch (e) { console.warn(e); }
     };
@@ -2202,7 +2207,7 @@ if (!window.renderDetalheComanda) {
         const doc = await window.impDocumento(tipo, c, config, Object.assign({ modoPix: extra.aberto ? 'forcar' : 'impressao' }, optsDoc));
         if (a4) doc.papel = 'a4';
         const reciboA4 = a4 && (doc.tipo === 'recibo' || doc.tipo === 'pendencia') && window.impReciboA4Html;
-        const html = window.impPagina(reciboA4 ? window.impReciboA4Auto(c, config, { aberto: !!extra.aberto, pagador: await window.impPagadorDe(c) }) : window.impHtml(doc, config), titulo + ' ' + c.numero, { a4: a4, nome: a4 ? window.impDestinoNome(config, destino) : '' });
+        const html = window.impPagina(reciboA4 ? window.impReciboA4Auto(c, config, { aberto: !!extra.aberto, pendente: window.impPendenteAgora(!!extra.aberto), pagador: await window.impPagadorDe(c) }) : window.impHtml(doc, config), titulo + ' ' + c.numero, { a4: a4, nome: a4 ? window.impDestinoNome(config, destino) : '' });
         const janela = window.open('', '', 'width=420,height=700');
         janela.document.write(html);
         janela.document.close();

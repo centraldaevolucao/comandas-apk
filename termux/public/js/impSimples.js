@@ -89,7 +89,7 @@
     window.impModeloA4 = function (c, config, opts) {
         opts = opts || {};
         const pend = c && c.pagamentoPendente === true && Number(c.valorPendente || 0) > 0.009;
-        if (opts.aberto || pend) return 'nota';
+        if (opts.pendente || pend) return 'nota';   // simples só com tudo pago (em aberto SEM saldo pendente também vale)
         const m = opts.modelo || window.__impModeloA4 || ((window.impLayoutDe ? window.impLayoutDe(config || {}).a4.modelo : '') || 'nota');
         return m === 'simples' ? 'simples' : 'nota';
     };
