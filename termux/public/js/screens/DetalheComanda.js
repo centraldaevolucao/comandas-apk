@@ -1996,14 +1996,15 @@ if (!window.renderDetalheComanda) {
         window.__impDestino = 'cupom';   // padrão: cupom
         const a4Lista = (config.impressorasA4 || []).filter(function (x) { return x && x.id; });
         const optA4 = a4Lista.map(function (x) { return '<option value="a4:' + x.id + '">' + String(x.nome || 'Impressora A4').replace(/[&<>"]/g, '') + '</option>'; }).join('');
+        const oA4 = window.impA4Opcoes(config, window.impPendenteAgora(aberto));
         const rd = 'display:flex;align-items:center;gap:6px;padding:9px 12px;border:2px solid #ccc;border-radius:10px;cursor:pointer;font-size:.9rem;font-weight:600;flex:1;justify-content:center;';
         const seletorImp = '<div role="radiogroup" aria-label="Tipo de impressão" style="margin-top:10px;font-size:.85rem;">' +
             '<div style="margin-bottom:6px;"><i class="fas fa-print"></i> Imprimir em:</div>' +
             '<div style="display:flex;gap:8px;">' +
             '<label style="' + rd + '"><input type="radio" name="imp-tipo" value="cupom" checked onchange="mudarDestinoImpressao(\'' + tipo + '\', ' + (aberto ? 'true' : 'false') + ')"> Térmica (cupom)</label>' +
-            '<label style="' + rd + '"><input type="radio" name="imp-tipo" value="a4" onchange="mudarDestinoImpressao(\'' + tipo + '\', ' + (aberto ? 'true' : 'false') + ')"> A4</label></div>' +
+            (oA4.ativo ? '<label style="' + rd + '"><input type="radio" name="imp-tipo" value="a4" onchange="mudarDestinoImpressao(\'' + tipo + '\', ' + (aberto ? 'true' : 'false') + ')"> A4</label>'  : '') + '</div>' +
             '<div id="imp-a4-box" style="display:none;margin-top:8px;">' +
-            ((tipo === 'recibo' && !window.impPendenteAgora(aberto)) ?
+            ((tipo === 'recibo' && !window.impPendenteAgora(aberto) && oA4.nota && oA4.simples) ?
                 '<div style="margin-bottom:8px;font-size:.85rem;"><div style="margin-bottom:4px;"><i class="fas fa-file-invoice"></i> Modelo do A4:</div><div style="display:flex;gap:8px;">' +
                 '<label style="' + rd + '"><input type="radio" name="imp-modelo" value="nota" checked onchange="mudarDestinoImpressao(\'' + tipo + '\', ' + (aberto ? 'true' : 'false') + ')"> Nota (NF)</label>' +
                 '<label style="' + rd + '"><input type="radio" name="imp-modelo" value="simples" onchange="mudarDestinoImpressao(\'' + tipo + '\', ' + (aberto ? 'true' : 'false') + ')"> Recibo simples</label></div>' +

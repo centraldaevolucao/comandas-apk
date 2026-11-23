@@ -1,4 +1,4 @@
-> **Versão atual do sistema: 2.32.9** — este arquivo é renomeado e atualizado a cada versão (seções numeradas abaixo, da mais antiga à mais nova).
+> **Versão atual do sistema: 2.32.10** — este arquivo é renomeado e atualizado a cada versão (seções numeradas abaixo, da mais antiga à mais nova).
 
 # Comandas 2.3.0 — guia, relatório de correções, testes e pendências
 
@@ -447,19 +447,19 @@ Um app só, três edições com a mesma base de dados. Quem libera cada edição
 - Se estiver sem internet, o card mostra o motivo.
 - No Android nada muda (continua o túnel do app).
 
-## 64. Impressora na comanda e no recibo: Cupom ou A4 (v2.32.9)
+## 64. Impressora na comanda e no recibo: Cupom ou A4 (v2.32.10)
 - Na pré-visualização da **comanda** e do **recibo** há o campo **"Imprimir em"**: **Cupom (térmica)** — padrão em toda impressão — ou **A4 — <nome da impressora>**.
 - Em **Impressoras > Impressoras A4 (folha)** você cadastra (e remove) as impressoras A4. A impressora física é escolhida na janela de impressão do aparelho; o nome cadastrado aparece como lembrete.
 - Escolhendo A4, a térmica não é acionada e a página sai em A4. A via da cozinha continua sempre no cupom.
 
-## 65. Recibo A4 em formato de nota (v2.32.9)
+## 65. Recibo A4 em formato de nota (v2.32.10)
 - Novo modelo (`js/impA4.js`): cabeçalho com logo e dados da empresa, quadros de cliente e atendimento, tabela de itens, forma de pagamento, totais, observações e assinaturas.
 - **Sempre traz o aviso "DOCUMENTO SEM VALOR FISCAL — NÃO SUBSTITUI NOTA FISCAL"** (não é NF-e/NFC-e).
 - **QR Code Pix** no quadro de pagamento enquanto o recibo estiver **aguardando pagamento** ou **pendente** (valor = Pix escolhido ou o que falta pagar).
 - **Várias páginas** automaticamente quando os itens não cabem em uma (cabeçalho de continuação, "Página x de y", fechamento só na última).
 - Novos campos em **Configurações**: razão social, CNPJ/CPF, endereço, telefone e observação padrão do recibo A4 (linhas vazias não aparecem).
 
-## 66. Revisão jurídica LGPD / CDC (v2.32.9) — não substitui um advogado
+## 66. Revisão jurídica LGPD / CDC (v2.32.10) — não substitui um advogado
 Veja **CONFORMIDADE-LGPD-CDC.md** (item a item, o que mudou, fornecedores, roteiro de vazamento, prazos de retenção e o que depende de você). Resumo do que mudou no app:
 - **Termos de Uso, Política de Privacidade, Política de Reembolso e Créditos/licenças** em português, com links no rodapé do menu, login, Suporte e cardápio QR (abrem sem login em `/#privacidade` etc.).
 - **Aceite obrigatório** antes do uso (Termos + Política, declaração de 18+), com **data, hora e versão** gravadas pelo servidor; **marketing** em caixa separada e **desmarcada**.
@@ -471,28 +471,28 @@ Veja **CONFORMIDADE-LGPD-CDC.md** (item a item, o que mudou, fornecedores, rotei
 - Avaliação: autorização de contato vem **desmarcada**. Zoom da tela liberado, contraste de textos secundários, `alt` em imagens, foco visível e teclado em itens clicáveis.
 - Assinatura do APK: o `build.gradle` agora lê a chave de **GitHub Secrets** (ver CONFORMIDADE, item 11).
 
-## 67. Comandas só são unidas pelo botão "Unir comandas" (v2.32.9)
+## 67. Comandas só são unidas pelo botão "Unir comandas" (v2.32.10)
 - **Pendências:** cada comanda do cliente tem uma **caixa de seleção**. Nada é unido sozinho: o recebimento é **sempre de uma comanda** (o antigo "Receber/finalizar tudo", que juntava tudo num recibo só, foi removido).
 - Com **uma comanda marcada**, "Ver itens / comanda / recibo" e "Receber" geram o documento **só dela**. Com várias marcadas, o app orienta a usar **Unir comandas** (que une só as marcadas; sem marcar, une todas do cliente).
 - **Fechamento da comanda:** o aviso de pendências anteriores não soma mais ao total; o recibo sai só da comanda atual.
 - **WhatsApp do fornecedor (Compras):** abre direto a conversa usando o telefone atual do cadastro do fornecedor. Comanda/recibo e Pendências já abriam direto o contato do cliente cadastrado (se não há telefone, o app pergunta o número).
 
-## 68. "Fiado" virou "Pendência" e WhatsApp direto com a imagem (v2.32.9)
+## 68. "Fiado" virou "Pendência" e WhatsApp direto com a imagem (v2.32.10)
 - A palavra **fiado** saiu das telas, botões, avisos e perguntas frequentes: agora é só **Pendência / Pendente** ("Deixar Pendente", "Receber pendência", "Com pendência"…).
 - **Card da comanda (Caixa/PDV):** mostra **"Pend: R$ x"**; o selo que ficava sobre a data e o menu foi removido (o card amarelo já indica a pendência).
 - **WhatsApp com a prévia:** Comanda, Recibo e **Pendências** (por comanda e por cliente) enviam a **imagem do card** direto para o contato do cadastro (se o cliente tem telefone). No celular abre a conversa do número; no computador/navegador abre a conversa e deixa a imagem copiada (**Ctrl+V** para colar). Sem telefone no cadastro, o app pergunta o número. Se a imagem falhar, envia texto.
 
-## 69. Modelo A4 nas Configurações e no Layout de impressão (v2.32.9)
+## 69. Modelo A4 nas Configurações e no Layout de impressão (v2.32.10)
 - **Configurações › Modelo A4 (formato de nota)** abre direto o Layout de impressão no recibo A4.
 - **Layout de impressão › Recibo/Pendência › A4:** escolha o que aparece (Logo, Dados da empresa, QR Code Pix, Observações, Assinaturas) e edite razão social, CNPJ/CPF, endereço, telefone e texto das observações. A pré-visualização mostra a folha A4 inteira, com opção de simular "aguardando pagamento" (QR Pix). O aviso "DOCUMENTO SEM VALOR FISCAL" sempre é impresso.
 - As escolhas valem na tela do recibo (Térmica/A4), na impressão e no envio por WhatsApp.
 - Na visualização do recibo, a folha A4 agora é reduzida para caber no celular (e vai ao WhatsApp em tamanho real).
 
-## 70. "Deixar Pendente" respeita o cliente da comanda (v2.32.9)
+## 70. "Deixar Pendente" respeita o cliente da comanda (v2.32.10)
 - Se a comanda **já tem cliente cadastrado**, ao marcar **Deixar Pendente** o app pergunta: *"Esta comanda já está com o cliente X. Deseja alterar o cliente?"* — **Não, manter** segue com ele; **Sim, alterar** abre a seleção.
 - Se a comanda **não tem cliente**, abre direto a tela normal de seleção/cadastro de cliente.
 
-## 71. Recibo simples, cadastro da Empresa e correção do compartilhamento A4 (v2.32.9)
+## 71. Recibo simples, cadastro da Empresa e correção do compartilhamento A4 (v2.32.10)
 - **Layout de impressão** (tudo fica aqui): ao escolher **Recibo › A4**, o painel traz o **Modelo A4 do recibo**: **Nota (NF)** ou **Recibo simples**, com pré-visualização. A linha "Modelo A4" que estava em Configurações foi removida; o item Layout de impressão agora cita o modelo A4 e o recibo simples.
 - **Recibo simples (A4):** Logo, "RECIBO DE PAGAMENTO", valor com **extenso**, "Recebi de [nome], inscrito(a) no CPF/CNPJ nº [..], a importância de R$ [..] ([extenso]), referente a [itens]…", cláusula de quitação (plena, geral e irrevogável), "[Cidade/UF], dia de mês de ano", nome e CPF/CNPJ de quem recebeu. Na tela do recibo, escolha **A4 › Recibo simples**. Só para comanda **paga**; pendente/aguardando sai como Nota.
 - **Cadastros › Empresa (novo):** razão social, nome fantasia, CNPJ/CPF, inscrições estadual/municipal, enquadramento, endereço completo (CEP preenche sozinho), telefone, e-mail, site e **responsável que assina** (nome e CPF/CNPJ). Alimenta o cabeçalho da Nota A4 e o Recibo simples.
@@ -500,19 +500,24 @@ Veja **CONFORMIDADE-LGPD-CDC.md** (item a item, o que mudou, fornecedores, rotei
 - **Nota A4:** área de **assinaturas** ampliada (assinatura do cliente com nome/CPF/data; assinatura do responsável com nome/CPF/data).
 - **Correção:** ao **compartilhar/enviar por WhatsApp**, o A4 saía cortado embaixo (assinaturas e rodapé). A imagem agora ganha folga e o branco do fim é aparado; vale também para as imagens do cupom e das Pendências.
 
-## 72. Recibo simples ao finalizar a venda e A4 sem impressora cadastrada (v2.32.9)
+## 72. Recibo simples ao finalizar a venda e A4 sem impressora cadastrada (v2.32.10)
 - **Finalizar venda › A4:** o seletor **Nota (NF) / Recibo simples** agora aparece também com o recebimento "aguardando pagamento" (ex.: Pix ainda não confirmado). Só **pendência/fiado** força a Nota (o recibo simples exige valor pago).
 - **Sem impressora A4 cadastrada não impede nada:** a visualização, o **WhatsApp** e o **Compartilhar** funcionam normalmente; ao imprimir, o sistema deixa escolher a impressora. O aviso agora diz isso (antes parecia um bloqueio).
 
-## 73. Recibo simples: CPF/CNPJ preenchidos e cidade/UF pelo GPS (v2.32.9)
+## 73. Recibo simples: CPF/CNPJ preenchidos e cidade/UF pelo GPS (v2.32.10)
 - **CPF/CNPJ do cliente:** vem **sempre do cadastro do cliente** (Clientes › campo CPF/CNPJ); a tela do recibo não tem campo de preenchimento. Se o cliente não tiver CPF/CNPJ cadastrado, a linha sai em branco para preencher à mão.
 - **CPF/CNPJ de quem recebeu:** do responsável (Cadastros › Empresa) ou, se vazio, o CNPJ/CPF da empresa. Cadastre em Cadastros › Empresa.
 - **Cidade/UF pelo GPS:** o recibo simples usa a localização do aparelho (ex.: "Belém/PA"); se o GPS/internet não responder, usa a cidade/UF da empresa. Em **Cadastros › Empresa** há o botão "Preencher cidade e UF pelo GPS".
 - Android: o app agora pede a permissão de **localização** na primeira vez que o GPS é usado (Manifest + MainActivity.java alterados — **precisa recompilar o APK**; não compilei aqui). A busca do nome da cidade usa a internet (serviço gratuito de geocodificação reversa). No PC acessado por outro aparelho via `http://IP`, o navegador pode bloquear o GPS; aí vale a cidade da empresa.
 
-## 74. v2.32.9
+## 74. v2.32.10
 - Removido o campo/aviso de CPF/CNPJ da tela do recibo simples: os dados saem do **cadastro do cliente** e do **cadastro da empresa**.
 
-## 75. Versão 2.32.9 — Chat do suporte ampliado
+## 75. Versão 2.32.10 — Chat do suporte ampliado
 - Novo `js/faq4.js` com 6 seções: Layout de impressão (usar, ativar/desativar blocos, editar, excluir linha, restaurar), Recibo A4 (Nota) e Recibo simples, Cadastros › Empresa / CPF-CNPJ do cliente / GPS, Pendências (deixar pendente, selecionar, unir, receber, WhatsApp), Privacidade/termos/cancelamento e Problemas comuns.
 - Palavras-chave ricas para a busca do Suporte encontrar cada item.
+
+## 76. Versão 2.32.10 — Interruptores da impressão A4
+- Configurações › Layout de impressão: novo cartão **Impressão A4** com interruptor geral e um interruptor para **Nota (NF)** e outro para **Recibo simples** (pelo menos um fica ligado).
+- A4 desligado: a tela do recibo mostra só Térmica e o papel A4 some do Layout. Só um modelo ligado: a escolha do modelo some e vale o ligado. Pendência/aguardando pagamento só sai como Nota (sem Nota ligada, não oferece A4).
+- Item novo no chat do suporte.

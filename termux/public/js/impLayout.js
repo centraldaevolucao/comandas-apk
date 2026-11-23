@@ -39,12 +39,19 @@
         });
         return L;
     }
+    // Quais opções de A4 estão habilitadas em Configurações › Layout de impressão (pendente: só a Nota pode sair)
+    window.impA4Opcoes = function (config, pendente) {
+        const a = (window.impLayoutDe ? window.impLayoutDe(config || {}).a4 : {}) || {};
+        const nf = a.nf !== false, sp = a.simples !== false;
+        const ativo = a.ativo !== false && (pendente ? nf : (nf || sp));
+        return { ativo: ativo, nota: nf, simples: sp && !pendente, unico: (nf && sp && !pendente) ? '' : (nf ? 'nota' : (sp && !pendente ? 'simples' : '')) };
+    };
     // junta o salvo com o padrão (blocos novos entram no fim)
     window.impLayoutDe = function (config) {
         const base = padrao(), s = (config && config.layoutImp) || {};
         if (s.sep) base.sep = s.sep;
         if (s.margem) base.margem = s.margem;
-        base.a4 = Object.assign({ modelo: 'nota', logo: true, empresa: true, qr: true, obs: true, ass: true }, s.a4 || {});   // modelo A4 (nota): o que aparece
+        base.a4 = Object.assign({ ativo: true, nf: true, simples: true, modelo: 'nota', logo: true, empresa: true, qr: true, obs: true, ass: true }, s.a4 || {});   // modelo A4 (nota): o que aparece
         Object.keys(BLOCOS).forEach(function (d) {
             const sd = s[d]; if (!sd) return;
             if (sd.papel) base[d].papel = sd.papel;
@@ -329,19 +336,23 @@
         const OA = LAY.a4;
         const tg = function (k, t, sub) { return '<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #e0c8e8;"><div style="flex:1;"><div style="font-weight:600;font-size:.9rem;">' + t + '</div>' + (sub ? '<div style="font-size:.72rem;color:#777;">' + sub + '</div>' : '') + '</div><label class="toggle"><input type="checkbox" data-a4="' + k + '"' + (OA[k] !== false ? ' checked' : '') + '><span class="slider"></span></label></div>'; };
         const inp = function (k, t, ph) { return '<label style="display:block;font-size:.78rem;color:#555;margin-top:8px;">' + t + '<input data-emp="' + k + '" value="' + esc(CFG[k] || '') + '" placeholder="' + ph + '" style="width:100%;box-sizing:border-box;padding:8px;border:2px solid #ddd;border-radius:8px;font-size:.85rem;margin-top:2px;"></label>'; };
+        const cartaoA4 = '<div style="background:#E3F2FD;border-radius:12px;padding:12px;margin-bottom:10px;"><b style="font-size:.85rem;"><i class="fas fa-file-lines"></i> Impressão A4</b>' +
+            tg('ativo', 'Habilitar impressão A4', 'Desligado: o app só oferece a impressão térmica (cupom)') +
+            (OA.ativo !== false ? tg('nf', 'Nota (NF)', 'Folha A4 em formato de nota. Pendências sempre saem como Nota') + tg('simples', 'Recibo simples', 'Recibo de pagamento curto, só para comanda paga') +
+            '<div style="font-size:.72rem;color:#777;margin-top:6px;">Pelo menos um modelo fica ligado.</div>' : '') + '</div>';
         const simples = OA.modelo === 'simples';
         const blocosA4 = '<div style="background:#FCE4EC;border-radius:12px;padding:12px;margin-bottom:10px;"><b style="font-size:.85rem;">Modelo A4 do recibo</b>' +
-            '<div style="margin:8px 0;">' + seg([['nota', 'Nota (NF)'], ['simples', 'Recibo simples']], OA.modelo || 'nota', 'modelo') + '</div>' +
+            '<div style="margin:8px 0;">' + seg([['nota', 'Nota (NF)'], ['simples', 'Recibo simples']].filter(function (m) { return OA[m[0] === 'nota' ? 'nf' : 'simples'] !== false; }), OA.modelo || 'nota', 'modelo') + '</div>' +
             '<div style="font-size:.72rem;color:#777;margin:0 0 8px;">É o modelo padrão do A4; na tela do recibo dá para trocar na hora. O recibo simples só vale para comanda <b>paga</b> (pendente/aguardando sai como nota).</div>' +
             '<div style="font-size:.72rem;color:#777;margin:4px 0 6px;">Cabeçalho e rodapé saem em todas as páginas; se os itens não couberem, as páginas seguintes são geradas. O aviso <b>DOCUMENTO SEM VALOR FISCAL</b> sempre é impresso.</div>' +
             tg('logo', 'Logo', 'Usa a logo das configurações') + tg('empresa', 'Dados da empresa', 'Razão social, CNPJ/CPF e endereço no topo') + (simples ? '' : tg('qr', 'QR Code Pix', 'Só aparece se o recibo estiver aguardando pagamento ou pendente') + tg('obs', 'Observações') + tg('ass', 'Assinaturas')) +
             '<button data-emp-link class="btn-outline" style="width:100%;margin-top:10px;background:#fff;"><i class="fas fa-building"></i> Editar dados da empresa (Cadastros › Empresa)</button>' +
             (simples ? '' : inp('recibosObservacao', 'Texto das observações', 'Obrigado pela preferência!')) +
             '<div style="font-size:.72rem;color:#777;margin-top:6px;">A impressora A4 é cadastrada em Configurações › Impressoras.</div></div>';
-        const painel = '<div style="padding:12px;overflow-y:auto;' + (larg ? 'width:420px;flex:0 0 420px;' : '') + '">' +
+        const painel = '<div style="padding:12px;overflow-y:auto;' + (larg ? 'width:420px;flex:0 0 420px;' : '') + '">' + cartaoA4 +
             '<div style="background:#FCE4EC;border-radius:12px;padding:12px;margin-bottom:10px;"><b style="font-size:.85rem;">Documento</b><div style="display:flex;flex-wrap:wrap;gap:6px;margin:8px 0;">' +
             Object.keys(DOCS).map(function (d) { return '<span data-doc="' + d + '" style="padding:6px 12px;border-radius:16px;font-size:.8rem;font-weight:600;cursor:pointer;' + (d === DOC ? 'background:' + COR + ';color:#fff;' : 'background:#fff;') + '">' + DOCS[d] + '</span>'; }).join('') + '</div>' +
-            seg([['58', 'Térmica 58mm'], ['80', 'Térmica 80mm'], ['a4', 'A4']], D.papel, 'papel') + '</div>' +
+            seg([['58', 'Térmica 58mm'], ['80', 'Térmica 80mm']].concat((LAY.a4.ativo !== false || D.papel === 'a4') ? [['a4', 'A4']] : []), D.papel, 'papel') + '</div>' +
             '' + (a4 ? blocosA4 : '<div style="background:#FCE4EC;border-radius:12px;padding:12px;margin-bottom:10px;"><b style="font-size:.85rem;">Blocos (use ▲ ▼ para reordenar)</b>' + lista +
             '<button data-add class="btn-outline" style="width:100%;margin-top:10px;background:#fff;">+ Adicionar linha de texto</button></div>') +
             '<div style="background:#FCE4EC;border-radius:12px;padding:12px;margin-bottom:10px;">' +
@@ -378,7 +389,13 @@
             };
         });
         $$('[data-emp-link]', function (e) { e.onclick = function () { ov.remove(); if (window.navigateTo) window.navigateTo('empresa'); }; });
-        $$('[data-a4]', function (e) { e.onchange = function () { LAY.a4[e.dataset.a4] = e.checked; re(); }; });
+        $$('[data-a4]', function (e) { e.onchange = function () {
+            const k = e.dataset.a4, A = LAY.a4;
+            if ((k === 'nf' || k === 'simples') && !e.checked && A[k === 'nf' ? 'simples' : 'nf'] === false) { e.checked = true; if (window.mostrarToast) window.mostrarToast('Mantenha pelo menos um modelo A4 ligado.'); return; }
+            A[k] = e.checked;
+            if (A.nf === false && A.modelo === 'nota') A.modelo = 'simples';
+            if (A.simples === false && A.modelo === 'simples') A.modelo = 'nota';
+            re(); }; });
         $$('[data-prevab]', function (e) { e.onchange = function () { PREV_ABERTO = e.checked; desenhar(ov); }; });
         $$('[data-emp]', function (e) { e.oninput = function () { salvarEmpresa(e.dataset.emp, e.value); atualizaPrev(ov); }; });
         $$('[data-est]', function (e) { e.onclick = function () { const k = DOC + e.dataset.est; EST[k] = !EST[k]; desenhar(ov); }; });

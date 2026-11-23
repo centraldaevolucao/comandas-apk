@@ -121,7 +121,10 @@
         opts = opts || {};
         const pend = c && c.pagamentoPendente === true && Number(c.valorPendente || 0) > 0.009;
         if (opts.pendente || pend) return 'nota';   // simples só com tudo pago (em aberto SEM saldo pendente também vale)
-        const m = opts.modelo || window.__impModeloA4 || ((window.impLayoutDe ? window.impLayoutDe(config || {}).a4.modelo : '') || 'nota');
+        let m = opts.modelo || window.__impModeloA4 || ((window.impLayoutDe ? window.impLayoutDe(config || {}).a4.modelo : '') || 'nota');
+        const o = window.impA4Opcoes ? window.impA4Opcoes(config, false) : { nota: true, simples: true };
+        if (m === 'simples' && !o.simples) m = 'nota';
+        if (m !== 'simples' && !o.nota && o.simples) m = 'simples';
         return m === 'simples' ? 'simples' : 'nota';
     };
     window.impReciboA4Auto = function (c, config, opts) {
