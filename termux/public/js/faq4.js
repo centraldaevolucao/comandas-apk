@@ -1,0 +1,88 @@
+// Perguntas frequentes — parte 4 (novidades: layouts de impressão, recibo A4/simples, Empresa, Pendências, WhatsApp, privacidade)
+(function () {
+var O = window.FAQ_O, U = window.FAQ_U, DICA = window.FAQ_DICA;
+window.FAQ_DADOS.push(
+{ id: 'layout', icone: 'fa-print', titulo: 'Layout de impressão (como usar e configurar)', itens: [
+ { p: 'O que é o Layout de impressão e onde fica?', k: 'layout impressao onde fica configurar personalizar cupom recibo comanda cozinha pendencia modelo',
+   r: 'É a tela onde você desenha como saem seus papéis. Caminho: <b>Configurações › Layout de impressão</b>.' + U('Documentos: <b>Comanda</b>, <b>Recibo</b>, <b>Cozinha</b> e <b>Pendência</b> — cada um tem o seu layout.', 'Papel: <b>Térmica 58 mm</b>, <b>Térmica 80 mm</b> ou <b>A4</b>.', 'Tudo de impressão fica aqui, inclusive o <b>Modelo A4</b> (formato nota) e o <b>Recibo simples</b>.') + DICA('No celular a tela tem duas abas: <b>Editar</b> e <b>Pré-visualizar</b>. Edite e confira o resultado antes de imprimir.') },
+ { p: 'Como edito o layout de um documento (recibo, comanda, cozinha, pendência)?', k: 'editar layout documento recibo comanda cozinha pendencia papel 58 80 a4 blocos',
+   r: O('Abra <b>Configurações › Layout de impressão</b>.', 'Escolha o <b>documento</b> (Comanda, Recibo, Cozinha ou Pendência).', 'Escolha o <b>papel</b>: Térmica 58 mm, 80 mm ou A4.', 'Ajuste os blocos (veja a pergunta sobre blocos) e confira na aba <b>Pré-visualizar</b>.', 'As alterações são salvas e valem para as próximas impressões, compartilhamentos e WhatsApp.') },
+ { p: 'Quais blocos posso ligar, desligar e reordenar?', k: 'blocos ativar desativar ocultar mostrar reordenar subir descer ordem logo nome titulo faixa itens totais qr assinatura mensagem',
+   r: 'Cada bloco tem um interruptor (<b>ativar/desativar</b>) e setas <b>▲ ▼</b> para mudar a ordem:' + U('Logo', 'Nome do estabelecimento', 'Título e situação', 'Faixa de cor do caixa', 'Comanda / Mesa / Data', 'Cliente e garçom', 'Itens', 'Totais, pagamentos e pendente', 'Pendências anteriores e total geral', 'QR Code PIX', 'Linha de assinatura', 'Mensagem final') + DICA('Desligar um bloco só esconde no papel; nada é apagado e você pode ligar de novo quando quiser.') },
+ { p: 'Como mudo tamanho da letra, alinhamento e negrito de um bloco?', k: 'fonte tamanho letra alinhamento esquerda centro direita negrito peso normal padrao percentual',
+   r: O('Toque no bloco que quer ajustar.', '<b>Fonte (%)</b>: aumente ou diminua só aquele bloco.', '<b>Alinhamento</b>: E (esquerda), C (centro) ou D (direita).', '<b>Peso</b>: Padrão, Normal ou Negrito.', 'Veja o efeito na <b>Pré-visualização</b>.') },
+ { p: 'Como adiciono uma linha de texto livre (ex.: Wi-Fi, aviso, agradecimento)?', k: 'texto livre linha adicionar mensagem personalizada wifi aviso agradecimento excluir remover editar',
+   r: O('Em <b>Layout de impressão</b>, toque em <b>Adicionar linha de texto</b>.', 'Digite o texto (ex.: <i>Senha do Wi-Fi: 1234</i>).', 'Use ▲ ▼ para posicionar; ajuste fonte e alinhamento como nos outros blocos.', 'Para <b>editar</b>, mude o texto; para <b>excluir</b>, use o botão de remover da linha.') },
+ { p: 'Como mudo o tamanho do logo e coloco a linha separadora?', k: 'logo tamanho 25 40 60 100 linha separadora tracejada solida pontos margem lateral menor maior',
+   r: U('<b>Logo</b>: escolha 25%, 40%, 60% ou 100% da largura. A imagem do logo é enviada em <b>Configurações › Logo</b>.', '<b>Linha separadora</b>: tracejada, sólida ou pontos.', '<b>Margem lateral</b>: Menor, Normal ou Maior (útil se o papel corta as bordas).') },
+ { p: 'Como volto o layout ao padrão?', k: 'restaurar padrao layout resetar desfazer voltar original',
+   r: O('Em <b>Layout de impressão</b>, escolha o documento.', 'Toque em <b>Restaurar layout padrão</b>.', 'Confirme. Só aquele documento volta ao original; seus cadastros não mudam.') },
+ { p: 'O layout vale também para WhatsApp e Compartilhar?', k: 'layout whatsapp compartilhar imagem png recibo previa',
+   r: 'Sim. A imagem enviada pelo <b>WhatsApp</b> ou <b>Compartilhar</b> usa o mesmo layout configurado. Se o cliente tem telefone no cadastro, o app abre direto a conversa dele com a imagem.' }
+]},
+{ id: 'a4', icone: 'fa-file-lines', titulo: 'Recibo A4 (Nota) e Recibo simples', itens: [
+ { p: 'Qual a diferença entre Térmica, A4 Nota (NF) e Recibo simples?', k: 'diferenca termica cupom a4 nota nf recibo simples modelo qual usar',
+   r: U('<b>Térmica (cupom)</b>: papel estreito de impressora de balcão (58/80 mm).', '<b>A4 · Nota (NF)</b>: folha A4 em formato de nota, com dados da empresa, itens, totais, assinaturas e rodapé com "Página x/y".', '<b>A4 · Recibo simples</b>: uma folha curta, "RECIBO DE PAGAMENTO", com valor por extenso e quitação.') + DICA('O A4 sempre traz o aviso <b>DOCUMENTO SEM VALOR FISCAL</b>: é um comprovante, não uma nota fiscal oficial.') },
+ { p: 'Como configuro o Modelo A4?', k: 'modelo a4 configurar nota recibo simples logo dados empresa qr pix observacoes assinaturas ativar desativar',
+   r: O('Abra <b>Configurações › Layout de impressão</b> e escolha o papel <b>A4</b>.', 'No painel <b>Modelo A4 do recibo</b> escolha <b>Nota (NF)</b> ou <b>Recibo simples</b>.', 'Ligue ou desligue: <b>Logo</b>, <b>Dados da empresa</b>, <b>QR Code Pix</b>, <b>Observações</b> e <b>Assinaturas</b>.', 'Escreva o texto de <b>Observações</b> (aparece no rodapé do recibo).', 'Marque <b>Simular recibo aguardando pagamento</b> só para ver como fica o QR Pix na pré-visualização.') },
+ { p: 'Como funciona o Recibo simples?', k: 'recibo simples recebi de importancia quitacao valor extenso cpf cnpj pagador cidade uf data',
+   r: 'Modelo curto: <b>Logo</b>, <b>RECIBO DE PAGAMENTO</b>, <b>Valor R$ (por extenso)</b>, "Recebi de <i>pagador</i>, inscrito(a) no CPF/CNPJ nº …, a importância de …, referente a …", cláusula de quitação, <b>Cidade/UF, dia de mês de ano</b> e dados de quem recebeu.' + U('<b>Pagador</b> e <b>CPF/CNPJ</b>: vêm do <b>cadastro do cliente</b> (campo "CPF ou CNPJ"). Não há campo para digitar na hora.', '<b>Quem recebeu</b> e documento: vêm de <b>Cadastros › Empresa</b>.', '<b>Cidade/UF</b>: pelo GPS do aparelho; se não houver, usa a cidade da Empresa.') + DICA('Se o CPF/CNPJ do cliente aparece em branco, abra o cliente em Cadastros › Clientes e preencha o campo.') },
+ { p: 'Quando o Recibo simples não aparece?', k: 'recibo simples nao aparece bloqueado pendencia pendente fiado nota forcada',
+   r: 'Comanda <b>pendente</b> (pendência) sempre usa o modelo <b>Nota (NF)</b>, porque precisa mostrar o valor em aberto e o QR Pix. Para comandas pagas, o <b>Recibo simples</b> fica disponível ao escolher <b>A4</b> na tela do recibo.' },
+ { p: 'Como escolho Térmica ou A4 na hora de finalizar/ver o recibo?', k: 'escolher termica a4 finalizar venda recibo previa imp tipo modelo selecionar impressora',
+   r: O('Ao finalizar a venda (ou abrir a comanda e tocar em <b>Recibo</b>) aparece a pré-visualização.', 'Escolha <b>Térmica (cupom)</b> ou <b>A4</b>.', 'Em A4, escolha o modelo: <b>Nota (NF)</b> ou <b>Recibo simples</b>.', 'Se houver mais de uma impressora A4, selecione a desejada.', 'Toque em <b>Imprimir</b>, <b>WhatsApp</b> ou <b>Compartilhar</b>.') },
+ { p: 'Apareceu "impressora A4 não cadastrada". Posso enviar mesmo assim?', k: 'impressora a4 nao cadastrada sem impressora whatsapp compartilhar visualizar mensagem',
+   r: 'Pode. A falta de impressora A4 <b>não impede</b> ver a pré-visualização, enviar por <b>WhatsApp</b> nem <b>Compartilhar</b>. Só a impressão direta precisa de uma impressora cadastrada (veja "Como cadastro uma impressora A4").' },
+ { p: 'Como cadastro, edito ou excluo uma impressora A4?', k: 'cadastrar impressora a4 folha excluir remover editar renomear lista nome',
+   r: O('Abra <b>Configurações › Impressoras</b>.', 'No cartão <b>Impressoras A4 (folha)</b>, digite um <b>nome</b> (ex.: Escritório) e toque em <b>Cadastrar</b>.', 'Ela aparece na lista e no seletor da tela do recibo.', 'Para <b>excluir</b>, use o botão de lixeira ao lado do nome. Para <b>editar</b>, exclua e cadastre novamente com o novo nome.') + DICA('A impressão em A4 abre a janela de impressão do aparelho/computador; a escolha final da impressora é feita nela.') },
+ { p: 'O recibo A4 saiu cortado na parte de baixo ao compartilhar', k: 'cortado assinatura rodape compartilhar a4 imagem corta area assinatura',
+   r: 'Foi corrigido na versão 2.32.8: a imagem ganha margem e o excesso em branco é aparado. Se ainda ocorrer, atualize o app para a versão mais recente (<b>Menu › Suporte</b> mostra a versão) e gere o recibo de novo.' }
+]},
+{ id: 'empresa', icone: 'fa-building', titulo: 'Cadastros › Empresa, CPF/CNPJ e GPS', itens: [
+ { p: 'Onde cadastro os dados da minha empresa?', k: 'empresa cadastro dados razao social fantasia cnpj ie im regime endereco telefone email site responsavel onde',
+   r: O('Abra <b>Cadastros › Empresa</b> (precisa da permissão de editar configurações).', 'Preencha: <b>Razão social</b>, <b>Nome fantasia</b>, <b>CNPJ/CPF</b>, <b>IE</b>, <b>IM</b> e <b>Regime</b> (MEI, Simples Nacional, Lucro Presumido, Lucro Real ou Pessoa física).', 'Informe o <b>CEP</b>: o endereço é preenchido sozinho (ViaCEP). Complete número e complemento.', 'Preencha telefone, e-mail, site e <b>Responsável</b> (nome e documento).', 'Toque em <b>Salvar</b>.') },
+ { p: 'Para que servem os dados da Empresa?', k: 'empresa dados servem recibo a4 nota cabecalho quem recebeu cpf cnpj endereco',
+   r: 'Aparecem no cabeçalho do <b>Recibo A4 (Nota)</b> e em "quem recebeu" no <b>Recibo simples</b>. Quanto mais completos, melhor o comprovante. O <b>logo</b> vem de Configurações › Logo.' },
+ { p: 'Como edito ou apago dados da empresa?', k: 'editar apagar limpar empresa dados alterar excluir',
+   r: 'Abra <b>Cadastros › Empresa</b>, altere ou apague o texto do campo e toque em <b>Salvar</b>. Campos vazios simplesmente não aparecem no recibo. Para desligar a exibição no A4, desative <b>Dados da empresa</b> em Layout de impressão.' },
+ { p: 'Como o CPF/CNPJ do cliente chega no recibo?', k: 'cpf cnpj cliente documento cadastro cliente recibo pagador preencher',
+   r: O('Abra <b>Cadastros › Clientes</b> e o cliente.', 'Preencha o campo <b>CPF ou CNPJ</b> (opcional).', 'Salve. O recibo usa esse dado automaticamente quando a comanda está ligada ao cliente.') + DICA('O cliente é encontrado pelo vínculo da comanda ou, na falta dele, pelo nome.') },
+ { p: 'Para que o app pede localização (GPS)?', k: 'gps localizacao permissao cidade uf recibo simples local permitir negar',
+   r: 'Só para preencher <b>Cidade/UF</b> no Recibo simples. O app consulta a cidade a partir das coordenadas e não guarda seu trajeto. Se você <b>negar</b> a permissão, o recibo usa a cidade cadastrada em <b>Empresa</b>. Para permitir de novo, ative a localização do app nas configurações do aparelho/navegador.' }
+]},
+{ id: 'pendencias2', icone: 'fa-hourglass-half', titulo: 'Pendências: selecionar, unir e receber', itens: [
+ { p: 'Como deixo uma comanda pendente?', k: 'deixar pendente comanda pendencia cliente alterar fiado marcar',
+   r: O('Na comanda, toque em <b>Deixar Pendente</b>.', 'Se a comanda <b>já tem cliente</b>, o app pergunta: "Esta comanda já está com o cliente X. Deseja alterar o cliente?" — escolha <b>Sim, alterar</b> ou <b>Não, manter</b>.', 'Se <b>não tem cliente</b>, abre a seleção normal de clientes.', 'Confirme. A comanda vai para <b>Pendências</b>.') },
+ { p: 'Como seleciono comandas em Pendências e vejo os itens?', k: 'selecionar marcar comanda pendencias ver itens checkbox',
+   r: O('Abra <b>Pendências</b> e localize o cliente.', 'Marque a caixinha das comandas que quer usar.', 'Toque em <b>Ver itens</b> para conferir o que foi consumido.') },
+ { p: 'Como junto (unir) várias comandas de um cliente?', k: 'unir comandas juntar pendencias varias selecionadas todas',
+   r: O('Marque as comandas desejadas (ou nenhuma, para todas).', 'Toque em <b>Unir comandas (N selecionadas | todas)</b>.', 'Confirme. Elas viram uma só.') + DICA('Nada é unido sozinho: só pelo botão <b>Unir comandas</b>.') },
+ { p: 'Como recebo o pagamento de uma pendência?', k: 'receber pendencia pagamento comanda selecionada uma por vez quitar',
+   r: O('Marque <b>uma</b> comanda.', 'Toque em <b>Receber a comanda selecionada</b> e escolha a forma de pagamento.', 'Para receber várias de uma vez, <b>una</b> antes e receba a comanda resultante.') + 'Se marcar mais de uma, o app avisa que o recebimento é de uma por vez.' },
+ { p: 'O que significa "Pend:" no card do caixa?', k: 'pend p caixa card abreviar pendencia valor',
+   r: '<b>Pend:</b> é o valor da comanda que ficou como pendência. A palavra "fiado" não é mais usada no app: tudo é <b>pendência / pendente</b>.' },
+ { p: 'Como mando a cobrança da pendência pelo WhatsApp?', k: 'whatsapp pendencia cobranca cobrar card imagem telefone cliente contato direto',
+   r: O('Em <b>Pendências</b> (ou no <b>Caixa</b>), toque em <b>WhatsApp</b> no cliente.', 'Se o cadastro tem <b>telefone</b>, o app abre direto a conversa dele com a imagem do card/comanda.', 'Sem telefone cadastrado, o app pergunta o número.', 'No computador, a imagem é copiada: cole com <b>Ctrl+V</b> na conversa que abrir.') + DICA('Cadastre o telefone do cliente para o envio ser direto.') }
+]},
+{ id: 'privacidade', icone: 'fa-user-shield', titulo: 'Privacidade, termos e cancelamento', itens: [
+ { p: 'Onde vejo, baixo ou apago meus dados pessoais?', k: 'privacidade meus dados lgpd baixar json apagar revogar marketing exportar',
+   r: O('Abra <b>Menu › Privacidade e meus dados</b>.', '<b>Baixar meus dados</b>: gera um arquivo JSON.', '<b>Revogar marketing</b>: para de receber comunicações promocionais.', '<b>Apagar dados pessoais</b>: digite <b>APAGAR</b> para confirmar. Não dá para desfazer.') },
+ { p: 'O que acontece quando excluo um cliente?', k: 'excluir cliente anonimizar lgpd dados pessoais historico comandas',
+   r: 'O cadastro é <b>anonimizado</b>: nome, telefone e documento deixam de aparecer, mas os valores das comandas e do caixa são mantidos para a contabilidade.' },
+ { p: 'Onde leio os Termos, a Política de Privacidade e o Reembolso?', k: 'termos privacidade reembolso creditos politica paginas publicas ler',
+   r: 'Nas páginas públicas do app: <b>/#termos</b>, <b>/#privacidade</b>, <b>/#reembolso</b> e <b>/#creditos</b>, e no aceite exibido ao entrar.' },
+ { p: 'Posso cancelar a assinatura e pedir reembolso?', k: 'cancelar assinatura reembolso arrependimento 7 dias garantia 35 renovacao automatica',
+   r: U('Não há renovação automática.', '<b>7 dias de arrependimento</b> (CDC) nas compras feitas pela internet.', '<b>35 dias de garantia</b> de satisfação.', 'Para pedir, use <b>Menu › Suporte</b> ou os contatos de <b>Minha Assinatura</b>.') }
+]},
+{ id: 'problemas2', icone: 'fa-wrench', titulo: 'Problemas comuns (novidades)', itens: [
+ { p: 'Mudei o layout mas o papel saiu igual', k: 'layout nao muda papel igual impressao antiga atualizar documento errado',
+   r: U('Confira se editou o <b>documento certo</b> (Recibo ≠ Comanda ≠ Cozinha).', 'Confira se o <b>papel</b> escolhido (58/80/A4) é o da impressora que você usa.', 'Veja a aba <b>Pré-visualizar</b>: se lá está certo, imprima de novo.', 'Se ficou estranho, use <b>Restaurar layout padrão</b>.') },
+ { p: 'O CPF/CNPJ ou a cidade não saem no recibo simples', k: 'cpf cnpj branco cidade uf vazio recibo simples nao aparece dados',
+   r: U('<b>CPF/CNPJ do pagador</b>: preencha em Cadastros › Clientes.', '<b>Dados de quem recebeu</b>: preencha em Cadastros › Empresa.', '<b>Cidade/UF</b>: permita a localização ou preencha a cidade em Empresa.') },
+ { p: 'O WhatsApp abre sem o contato do cliente', k: 'whatsapp sem contato telefone nao abre direto numero cadastro',
+   r: 'O cliente está sem telefone no cadastro (ou com número incompleto). Cadastre com DDD; o app acrescenta o 55 do Brasil sozinho.' },
+ { p: 'Não consigo abrir Cadastros › Empresa', k: 'empresa nao abre permissao acesso menu configuracoes editar',
+   r: 'A tela exige a permissão <b>Configurações › editar</b>. Peça ao administrador para liberar em <b>Níveis de Acesso</b>.' }
+]}
+);
+})();
