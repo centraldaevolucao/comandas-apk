@@ -15,7 +15,7 @@ DB_PATH = DATA_DIR / "database.sqlite"
 HOST, PORT = os.getenv("HOST", "0.0.0.0"), int(os.getenv("PORT", "3000"))
 MAX_BODY = 10 * 1024 * 1024
 DB_LOCK = threading.RLock()
-VERSAO_SERVIDOR = "2.33.0"
+VERSAO_SERVIDOR = "2.33.1"
 INICIO = time.time()
 # Tempo real: cada gravação aumenta REV e acorda quem está ouvindo /api/eventos (SSE)
 REV = {"n": 0, "ultimo": ""}
@@ -894,7 +894,7 @@ class Handler(BaseHTTPRequestHandler):
                 if item_id == "cartao-assinar" and self.command == "POST":
                     try: meses = int((body or {}).get("meses"))
                     except Exception: meses = 0
-                    ok, msg, r = cartao.assinar(LIC, DATA_DIR, str((body or {}).get("edicao", "")), meses, str((body or {}).get("email", "")).strip())
+                    ok, msg, r = cartao.assinar(LIC, DATA_DIR, str((body or {}).get("edicao", "")), meses, str((body or {}).get("email", "")).strip(), str((body or {}).get("nome", "")).strip())
                     return self.send_json(200 if ok else 400, dict(r, ok=ok, msg=msg))
                 if item_id == "cartao-cancelar" and self.command == "POST":
                     ok, msg = cartao.cancelar(LIC, DATA_DIR)

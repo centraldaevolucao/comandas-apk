@@ -38,8 +38,8 @@ def _chamar(data_dir, metodo, caminho, corpo=None):
 def _inst(LIC): return LIC.instalacao_id.replace("-", "")
 
 
-def assinar(LIC, data_dir, edicao, meses, email):
-    st, j = _chamar(data_dir, "POST", "/api/assinar", {"instalacao": _inst(LIC), "edicao": edicao, "meses": meses, "email": email})
+def assinar(LIC, data_dir, edicao, meses, email, nome=""):
+    st, j = _chamar(data_dir, "POST", "/api/assinar", {"instalacao": _inst(LIC), "edicao": edicao, "meses": meses, "email": email, "nome": nome})
     if st != 200 or not j.get("url"): return False, j.get("erro") or "Não foi possível iniciar a assinatura.", {}
     with LIC.lock:
         LIC.e["cartao"] = {"token": j.get("token", ""), "edicao": edicao, "meses": meses, "email": email}

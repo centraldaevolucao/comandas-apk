@@ -69,7 +69,8 @@
         if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { await window.avisar('Informe um e-mail válido. O Mercado Pago usa esse e-mail na assinatura.'); return; }
         const ok = await window.confirmar('Você será levado à página do Mercado Pago para cadastrar o cartão.\n\nA cobrança será automática a cada ' + (meses === 1 ? 'mês' : meses + ' meses') + ' até você cancelar em Assinatura › Cancelar.', { ok: 'Continuar', cancelar: 'Voltar' });
         if (!ok) return;
-        const r = await chamar('POST', 'cartao-assinar', { edicao: ctx.aba, meses: meses, email: email });
+        let nome = ''; try { nome = (window.normalizarArray(await window.apiGet('configuracoes'))[0] || {}).nomeImpressao || ''; } catch (e) {}
+        const r = await chamar('POST', 'cartao-assinar', { edicao: ctx.aba, meses: meses, email: email, nome: nome });
         if (!r.ok) { await window.avisar(r.msg || r.error || 'Não foi possível iniciar a assinatura.'); return; }
         window.abrirLinkExterno(r.url);
         await window.avisar('Conclua o cadastro do cartão na página que abriu. Depois volte aqui: a licença é ativada sozinha (toque em "Já concluí, verificar" se demorar).');
