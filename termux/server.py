@@ -6,6 +6,7 @@ from urllib.parse import urlparse, unquote
 import sqlite3, json, os, socket, secrets, base64, mimetypes, time, threading
 import backup_comandas
 import licenca
+import cartao
 
 ROOT = Path(os.getenv("COMANDAS_ROOT") or Path(__file__).resolve().parent)
 PUBLIC_DIR = (ROOT / "public").resolve()
@@ -14,7 +15,7 @@ DB_PATH = DATA_DIR / "database.sqlite"
 HOST, PORT = os.getenv("HOST", "0.0.0.0"), int(os.getenv("PORT", "3000"))
 MAX_BODY = 10 * 1024 * 1024
 DB_LOCK = threading.RLock()
-VERSAO_SERVIDOR = "2.32.11"
+VERSAO_SERVIDOR = "2.33.0"
 INICIO = time.time()
 # Tempo real: cada gravação aumenta REV e acorda quem está ouvindo /api/eventos (SSE)
 REV = {"n": 0, "ultimo": ""}
@@ -884,6 +885,21 @@ class Handler(BaseHTTPRequestHandler):
                 except ValueError: return self.send_json(400, {"error": "JSON inválido"})
                 ok, msg = LIC.ativar(str((body or {}).get("codigo", "")))
                 return self.send_json(200 if ok else 400, {"ok": ok, "msg": msg, "status": LIC.status()})
+            if item_id in ("cartao-status", "cartao-assinar", "cartao-cancelar"):
+                # assinatura recorrente no cartão (Mercado Pago): só neste equipamento (a rede local não pode contratar nem cancelar)
+                if self.externo(): return self.send_json(403, {"error": "Somente na rede local"})
+                if item_id == "cartao-status" and self.command == "GET": return self.send_json(200, cartao.status(LIC, DATA_DIR))
+                try: body = self.read_json()
+                except ValueError: return self.send_json(400, {"error": "JSON inválido"})
+                if item_id == "cartao-assinar" and self.command == "POST":
+                    try: meses = int((body or {}).get("meses"))
+                    except Exception: meses = 0
+                    ok, msg, r = cartao.assinar(LIC, DATA_DIR, str((body or {}).get("edicao", "")), meses, str((body or {}).get("email", "")).strip())
+                    return self.send_json(200 if ok else 400, dict(r, ok=ok, msg=msg))
+                if item_id == "cartao-cancelar" and self.command == "POST":
+                    ok, msg = cartao.cancelar(LIC, DATA_DIR)
+                    return self.send_json(200 if ok else 400, {"ok": ok, "msg": msg, "cartao": cartao.status(LIC, DATA_DIR)})
+                return self.send_json(405, {"error": "Método não permitido"})
             if self.command == "POST" and item_id == "teste":
                 # teste gratuito de 30 dias (Gestão ou Completo), uma vez por equipamento; registra quem pediu e grava na base
                 if self.externo(): return self.send_json(403, {"error": "Somente na rede local"})

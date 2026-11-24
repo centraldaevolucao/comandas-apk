@@ -210,11 +210,13 @@
             const sobe = EDICOES[aba].rank > EDICOES[edAtual].rank;
             h += '<div style="font-size:.78rem;color:#6B5A62;line-height:1.5;margin:-2px 4px 12px;">' + (sobe ? 'Vindo do ' + EDICOES[edAtual].nome + ', você paga só a diferença pelo tempo que falta: informe no pedido que é uma troca de edição.' : 'Voltando para o ' + E.nome + ', a mudança vale na próxima renovação e nada é apagado.') + '</div>';
         }
+        h += '<div id="cartao-box"></div>';
         h += '<div style="background:#fff;border-radius:12px;padding:12px 14px;margin-bottom:12px;font-size:.8rem;color:#444;line-height:1.55;box-shadow:0 2px 8px rgba(0,0,0,.06);">' +
-            '<b>🔁 Sem renovação automática:</b> o valor é pago uma vez, por Pix, e vale pelo período escolhido. Nada é cobrado depois sem você pedir e pagar de novo; ao vencer você volta ao plano gratuito e seus dados continuam salvos. Para cancelar, basta não renovar.' +
+            '<b>🔁 Pix: sem renovação automática.</b> O valor é pago uma vez e vale pelo período escolhido. Nada é cobrado depois sem você pedir e pagar de novo; ao vencer você volta ao plano gratuito e seus dados continuam salvos. Para cancelar, basta não renovar.' +
+            '<br><br><b>💳 Cartão: renovação automática até você cancelar.</b> Quando disponível, a assinatura no cartão se renova sozinha no período escolhido e você cancela a qualquer momento nesta tela; o cartão é cadastrado só no Mercado Pago.' +
             '<br><br><b>↩️ Arrependimento e reembolso:</b> você pode desistir em até <b>7 dias</b> após a compra e receber o valor integral (CDC, art. 49). Além disso, oferecemos uma <b>garantia extra de 35 dias</b> (uma vez por cliente). ' +
             '<a href="#" onclick="navigateTo(\'reembolso\');return false;" style="color:' + COR + ';font-weight:700;">Ver política de reembolso</a></div>' +
-            '<div style="text-align:center;font-size:.74rem;color:#777;margin:-2px 0 12px;">Valor total mostrado, sem taxas adicionais • Pagamento por Pix • Sem cobrança automática</div>';
+            '<div style="text-align:center;font-size:.74rem;color:#777;margin:-2px 0 12px;">Valor total mostrado, sem taxas adicionais • Pagamento por Pix (sem cobrança automática) ou cartão (recorrente, cancele quando quiser)</div>';
 
         h += '<div style="background:#fff;border-radius:12px;padding:14px;margin-bottom:14px;box-shadow:0 2px 8px rgba(0,0,0,.06);">' +
             '<div style="font-size:.78rem;color:#777;">ID DESTE EQUIPAMENTO (informe ao assinar)</div>' +
@@ -234,6 +236,7 @@
             '<button class="btn-outline" style="margin-top:6px;width:100%;" onclick="licencaAtivar()"><i class="fas fa-key"></i> Ativar com o código colado</button></details></div>';
         h += window.rodapeVersaoHtml ? window.rodapeVersaoHtml('padding:6px 0 16px;') : '';
         box.innerHTML = h;
+        if (window.cartaoMontar) window.cartaoMontar(aba, planos, E.nome);
         iniciarContador();
     }
 
