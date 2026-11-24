@@ -1,4 +1,4 @@
-# Conformidade LGPD / CDC — Restaurante-app 2.32.10
+# Conformidade LGPD / CDC — Restaurante-app 2.32.11
 
 > **Isto é um trabalho técnico e não substitui a revisão de um advogado.** Os textos foram escritos a partir do que o app realmente faz. Se o app mudar, mude os textos (`js/legal.js`) e aumente `VERSAO_TERMOS` (em `server.py` e `legal.js`): todos terão de aceitar de novo.
 
@@ -15,7 +15,7 @@ Legenda: **Feito** = aplicado e testado · **N/A** = não se aplica ao app (moti
 | 6 | Parar de coletar dados desnecessários | **Feito** | Formulários conferidos: todos os campos têm uso; CPF é opcional (cardápio QR tem aviso e botão Pular). Nada precisou ser removido. |
 | 7 | Bloquear rastreadores até aceitar + recusar tudo | **N/A** | Não há cookies de rastreio; só os essenciais (sessão 24 h e chave do aparelho do colaborador 30 dias). Um banner seria enganoso. A Política explica; se um dia entrar analytics, pedir consentimento antes. |
 | 8 | Revisar SDKs/analytics/terceiros | **Feito** | Nenhum analytics/anúncio/SDK de rastreio. Ver inventário abaixo. |
-| 9 | Não treinar IA com dados | **Feito** | O app não envia dados a IA. Declarado nos Termos e na Política. |
+| 9 | Não treinar IA com dados | **Feito** | O app não envia dados a IA; os trechos sobre IA foram removidos dos textos legais a pedido do desenvolvedor. |
 | 10 | Baixar dados e pedir exclusão (art. 18) | **Feito** | Menu "Privacidade e meus dados": baixar JSON, apagar dados pessoais; excluir cliente anonimiza as comandas. Pedidos por e-mail/WhatsApp, 15 dias. Fica só o que a lei exige (valores de vendas, 5 anos). |
 | 11 | Senhas com hash; chaves fora do repositório | **Feito + Depende de você** | Senhas/resposta de segurança/senha mestre em PBKDF2-SHA256 com sal; senhas antigas migram no 1º login. Chave privada de licenças nunca vai ao Git (conferido). **Pendente:** a chave de assinatura do APK (`comandas.keystore`, senha `comandas123`) está no repositório por herança. Agora o build lê **GitHub Secrets** (`KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, opcional `KEY_ALIAS`). Passos: (1) `base64 -w0 comandas.keystore` → Secret `KEYSTORE_BASE64`; (2) Secret `KEYSTORE_PASSWORD` = `comandas123`; (3) rode o Actions e confirme o APK; (4) `git rm --cached comandas.keystore` e commit. A chave antiga continua no histórico do Git: se o repositório é/foi público, considere trocá-la (exige que os usuários reinstalem o app). Não fiz isso sozinho para não quebrar atualizações. |
 | 12 | Roteiro de vazamento (ANPD em 3 dias úteis) | **Feito** | Roteiro abaixo; compromisso na Política. **Você** precisa definir quem executa. |
@@ -36,7 +36,7 @@ Legenda: **Feito** = aplicado e testado · **N/A** = não se aplica ao app (moti
 | 27 | Política e Termos em português com link no rodapé | **Feito** | Links no rodapé do menu, Suporte, login e cardápio QR; páginas públicas `/#termos`, `/#privacidade`, `/#reembolso`, `/#creditos`. |
 | 28 | Prazos de retenção | **Feito** | Tabela abaixo; limpeza automática ao abrir e a cada 12 h. |
 | 29 | Padrões enganosos | **Feito** | Não há contagem falsa (o contador mostra a data real do prazo de carência). Preços e botões conferidos; caixas de consentimento desmarcadas. |
-| 30 | Avisar conteúdo gerado por IA | **Feito** | Nenhum conteúdo é gerado por IA em uso. Termos §12 e Créditos informam que o app foi desenvolvido com apoio de IA; o Suporte usa textos pré-escritos. |
+| 30 | Avisar conteúdo gerado por IA | **Removido** | Nenhum conteúdo é gerado por IA em uso; os avisos foram retirados dos Termos, da Política e dos Créditos a pedido do desenvolvedor. |
 | 31 | Direito de uso de imagens, fontes e textos | **Feito + Depende de você** | Ícones: Font Awesome Free (atribuído). Sem fontes externas. Confirme que o **ícone do app (`img/icon-*.png`)** e a logo são seus. |
 | 32 | Acessibilidade básica | **Feito (básico)** | Zoom liberado (antes bloqueado); cinzas de baixo contraste escurecidos; `alt` nas imagens; foco visível; Enter/Espaço em itens clicáveis; nome (`aria-label`) em botões só de ícone. Não é auditoria WCAG completa. |
 | 33 | Link de descadastro em e-mail de marketing | **N/A** | O app não envia e-mail de marketing. A Política já prevê "SAIR" se um dia enviar. |
