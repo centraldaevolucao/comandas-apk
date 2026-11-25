@@ -222,7 +222,7 @@
                 '<div style="font-size:1.6rem;font-weight:800;color:#ffd54f;">' + R(vit) + '<small style="font-size:.75rem;color:#e0c9a6;font-weight:600;"> pagamento único</small></div>' +
                 '<div style="font-size:.78rem;color:#e0c9a6;">equivale a 2 anos de assinatura anual · depois disso, nenhuma mensalidade</div>' +
                 '<div style="font-size:.8rem;font-weight:700;color:#a5d6a7;margin-top:3px;">Economize ' + R(cheio24 - vit) + ' em relação a 24 meses no plano mensal</div>' +
-                '<div style="font-size:.78rem;color:#f1e6d3;margin-top:6px;line-height:1.5;">✔ Edição ' + E.nome + ' sem data de vencimento<br>✔ Sem renovação e sem cobrança automática<br>✔ Atualizações da edição enquanto o app for mantido</div>' +
+                '<div style="font-size:.78rem;color:#f1e6d3;margin-top:6px;line-height:1.5;">✔ Edição ' + E.nome + ' sem data de vencimento<br>✔ Sem renovação e sem cobrança automática</div>' +
                 '<button class="btn-primary" style="margin-top:10px;width:100%;background:#f9a825;color:#3e2723;border:0;" onclick="licencaAssinar(\'' + (aba === 'essencial' ? '' : aba + '-') + 'vitalicio\')">' + (edAtual === aba ? 'Tornar ' : 'Assinar ') + E.nome + ' vitalício</button></div>';
         }
         if (edAtual && edAtual !== aba && !s.teste && !s.vitalicio) {
