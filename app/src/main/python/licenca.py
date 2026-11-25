@@ -16,6 +16,7 @@ LIMITE_COMANDAS_DIA = 30        # plano gratuito / assinatura vencida: comandas 
 LIMITE_COMANDAS_MES = LIMITE_COMANDAS_DIA   # nome antigo (compatibilidade)
 TESTE_CURINGA_MAX_DIAS = 30     # licença de teste sem equipamento fixo ('*'): no máximo 30 dias
 CARENCIA_PADRAO_DIAS = 3        # depois do vencimento, tudo continua funcionando por estes dias
+VITALICIO_FIM = "2099-12-31"      # licença vitalícia (plano 'vitalicio'): sem vencimento; a data é só um limite técnico
 AVISO_DIAS = 7                  # aviso de renovação
 PREFIXO = "CMD1"
 EDICOES = ("essencial", "gestao", "completo")     # edições (todas no mesmo app e na mesma base): a licença assinada libera cada uma
@@ -260,11 +261,13 @@ class Licenca:
         if not mesmo: return False, "Este código é de outra instalação (ID " + str(dados.get("i")) + "). O ID deste aparelho é " + self.instalacao_id + "."
         atual = self._licenca_valida()
         if atual and atual["fim"] > dados["fim"] and not dados.get("r"):
+            if atual.get("p") == "vitalicio": return False, "Esta instalação já tem licença VITALÍCIA, que não vence. Uma licença com prazo não a substitui."
             return False, "Já existe uma licença com validade maior (até " + atual["fim"] + ")."
         with self.lock:
             self.e["codigo"] = "".join(str(codigo).split()); self._gravar()
         if dados.get("r"): return True, "Assinatura cancelada (reembolso). O app voltou ao plano gratuito."
         if dados.get("p") == "teste": return True, "Licença de TESTE ativada: edição " + {"essencial": "Essencial", "gestao": "Gestão", "completo": "Completo"}.get(dados.get("e") or "completo") + " até " + dados["fim"] + "."
+        if dados.get("p") == "vitalicio": return True, "Licença VITALÍCIA ativada: sem data de vencimento."
         return True, "Assinatura ativada até " + dados["fim"] + "."
 
     def status(self):
@@ -280,7 +283,8 @@ class Licenca:
             if d.get("p") == "teste": g = 0; s["teste"] = True          # teste: acesso total e sem carência
             dias = (fim - h).days
             s.update({"cliente": d.get("c", ""), "validade": d["fim"], "diasRestantes": dias, "plano": d.get("p", "mensal"), "carenciaDias": g})
-            if dias >= 0: s.update(estado="ativa", limitado=False, aviso=dias <= AVISO_DIAS)
+            if d.get("p") == "vitalicio": s["vitalicio"] = True
+            if dias >= 0: s.update(estado="ativa", limitado=False, aviso=(dias <= AVISO_DIAS and not s.get("vitalicio")))
             elif -dias <= g: s.update(estado="carencia", limitado=False, aviso=True)
             else: s.update(estado="vencida", limitado=True)
             if d.get("r"): s["cancelada"] = True                       # licença de cancelamento (reembolso)

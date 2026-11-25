@@ -122,8 +122,8 @@
             txt = (s.estado === 'vencida' ? 'Assinatura vencida em ' + dataBR(s.validade) + ' · ' : 'Plano gratuito · ') + s.comandasDia + '/' + s.limiteComandas + ' comandas hoje';
             if (s.comandasDia >= s.limiteComandas) { cor = '#c62828'; bg = '#ffebee'; }
         } else if (s.estado === 'carencia') { txt = 'Assinatura vencida — acesso liberado por mais ' + Math.max(0, (s.carenciaDias || 0) + s.diasRestantes + 1) + ' dia(s). Renove!'; cor = '#c62828'; bg = '#ffebee'; }
-        else if (s.aviso) { txt = (s.teste ? 'Sua licença de teste termina em ' : 'Sua assinatura vence em ') + s.diasRestantes + ' dia(s) (' + dataBR(s.validade) + ')'; }
-        else return '<div onclick="navigateTo(\'assinatura\')" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px;background:#e8f5e9;color:#2e7d32;border-radius:20px;padding:4px 12px;margin-bottom:8px;font-size:.72rem;font-weight:600;"><i class="fas fa-crown"></i> ' + (s.teste ? 'Licença de teste' : 'Edição ' + (EDICOES[s.edicao] || EDICOES.essencial).nome) + ' · ' + s.diasRestantes + ' dia(s)</div>';
+        else if (s.aviso && !s.vitalicio) { txt = (s.teste ? 'Sua licença de teste termina em ' : 'Sua assinatura vence em ') + s.diasRestantes + ' dia(s) (' + dataBR(s.validade) + ')'; }
+        else return '<div onclick="navigateTo(\'assinatura\')" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px;background:#e8f5e9;color:#2e7d32;border-radius:20px;padding:4px 12px;margin-bottom:8px;font-size:.72rem;font-weight:600;"><i class="fas fa-crown"></i> ' + (s.teste ? 'Licença de teste' : 'Edição ' + (EDICOES[s.edicao] || EDICOES.essencial).nome) + (s.vitalicio ? ' · Vitalício ♾️' : ' · ' + s.diasRestantes + ' dia(s)') + '</div>';
         return '<div onclick="navigateTo(\'assinatura\')" style="cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:8px;background:' + bg + ';color:' + cor + ';border-radius:10px;padding:8px 12px;margin-bottom:10px;font-size:.8rem;font-weight:600;"><span><i class="fas fa-crown"></i> ' + txt + '</span><span style="text-decoration:underline;white-space:nowrap;">' + (s.limitado ? 'Assinar' : 'Renovar') + '</span></div>';
     };
 
@@ -141,10 +141,16 @@
             return p;
         });
     }
+    // Vitalício = valor de 2 anos de assinatura anual (pagamento único, sem vencimento)
+    function precoVitalicio(ed) { return (PRECOS[ed] || PRECOS.essencial)[12] * 2; }
+    window.licencaPrecoVitalicio = precoVitalicio;
+    function planoVitalicio(ed) { return { id: ed === 'essencial' ? 'vitalicio' : ed + '-vitalicio', edicao: ed, nome: 'Vitalício', meses: 24, preco: precoVitalicio(ed), vitalicio: true, txt: 'Pagamento único, sem vencimento.' }; }
+    function descPlano(p) { return p.vitalicio ? 'vitalício, sem vencimento' : p.meses + (p.meses === 1 ? ' mês' : ' meses'); }
     window.licencaPlanos = planosCat;
     async function planoPorId(id) {
         const todos = [].concat(planosCat('essencial'), planosCat('gestao'), planosCat('completo'));
-        return todos.find(function (p) { return p.id === id; }) || todos[0];
+        const vit = [planoVitalicio('essencial'), planoVitalicio('gestao'), planoVitalicio('completo')];
+        return todos.concat(vit).find(function (p) { return p.id === id; }) || todos[0];
     }
 
     window.renderAssinatura = function () {
@@ -165,7 +171,7 @@
         const nomeEd = edAtual ? EDICOES[edAtual].nome : '';
         const bonus = edAtual && edAtual !== 'completo' && s.cardapio ? ' + Cardápio QR (bônus)' : '';
         let cartao;
-        if (s.estado === 'ativa') cartao = ['#e8f5e9', '#2e7d32', s.teste ? 'fa-flask' : 'fa-check-circle', s.teste ? 'Licença de TESTE — edição ' + nomeEd : 'Edição ' + nomeEd + ' ativa', 'Válida até <b>' + dataBR(s.validade) + '</b>' + (s.teste ? '' : '<br>Inclui: ' + nomeEd + bonus) + (s.cliente ? '<br>Cliente: ' + esc(s.cliente) : '') + '<div id="lic-contador" data-fim="' + esc(s.validade) + '" style="margin-top:10px;font-size:1.5rem;font-weight:700;font-family:monospace;color:#2e7d32;"></div><div style="font-size:.72rem;color:#777;">tempo restante (dias · hh:mm:ss)</div>'];
+        if (s.estado === 'ativa') cartao = ['#e8f5e9', '#2e7d32', s.teste ? 'fa-flask' : 'fa-check-circle', s.teste ? 'Licença de TESTE — edição ' + nomeEd : 'Edição ' + nomeEd + (s.vitalicio ? ' vitalícia' : ' ativa'), (s.vitalicio ? '<b>Licença vitalícia — sem data de vencimento</b> ♾️' : 'Válida até <b>' + dataBR(s.validade) + '</b>') + (s.teste ? '' : '<br>Inclui: ' + nomeEd + bonus) + (s.cliente ? '<br>Cliente: ' + esc(s.cliente) : '') + (s.vitalicio ? '' : '<div id="lic-contador" data-fim="' + esc(s.validade) + '" style="margin-top:10px;font-size:1.5rem;font-weight:700;font-family:monospace;color:#2e7d32;"></div><div style="font-size:.72rem;color:#777;">tempo restante (dias · hh:mm:ss)</div>')];
         else if (s.estado === 'carencia') cartao = ['#fff3e0', '#e65100', 'fa-triangle-exclamation', 'Assinatura vencida', 'Venceu em <b>' + dataBR(s.validade) + '</b>. Tudo segue liberado por poucos dias — renove para não perder o acesso.<div id="lic-contador" data-fim="' + esc(s.validade) + '" data-carencia="' + (s.carenciaDias || 0) + '" style="margin-top:10px;font-size:1.3rem;font-weight:700;font-family:monospace;color:#e65100;"></div><div style="font-size:.72rem;color:#777;">tempo até o bloqueio</div>'];
         else if (s.estado === 'vencida' && !s.cancelada) cartao = ['#ffebee', '#c62828', 'fa-lock', 'Assinatura vencida', 'Venceu em <b>' + dataBR(s.validade) + '</b>. Você está no plano gratuito.'];
         else if (s.estado === 'testeapp') cartao = ['#e3f2fd', '#1565c0', 'fa-flask', 'Teste gratuito da edição ' + EDICOES[s.edicao].nome, 'Vai até <b>' + dataBR(s.validade) + '</b>. Depois volta ao plano gratuito (ou à sua licença).<div id="lic-contador" data-fim="' + esc(s.validade) + '" style="margin-top:10px;font-size:1.5rem;font-weight:700;font-family:monospace;color:#1565c0;"></div><div style="font-size:.72rem;color:#777;">tempo restante (dias · hh:mm:ss)</div>'];
@@ -194,7 +200,9 @@
 
         const podeTestar = s.podeTestar && aba !== 'essencial' && !(s.teste && !s.testeAppAtivo) && !(edAtual && EDICOES[edAtual].rank >= E.rank);
         if (podeTestar) h += '<div style="background:#e3f2fd;border-radius:12px;padding:12px 14px;margin-bottom:12px;"><div style="font-weight:700;color:#1565c0;">Quer experimentar antes?</div><div style="font-size:.82rem;color:#444;margin:4px 0 8px;">Teste a edição ' + E.nome + ' por 30 dias, sem pagar. Vale uma vez por equipamento; no fim volta ao seu plano.</div><button class="btn-outline" style="width:100%;" onclick="licencaTestar(\'' + aba + '\')"><i class="fas fa-flask"></i> Testar ' + E.nome + ' por 30 dias</button></div>';
-        planos.forEach(function (p) {
+        const jaVit = !!(s.vitalicio && edAtual && EDICOES[edAtual].rank >= E.rank);
+        if (jaVit) h += '<div style="background:linear-gradient(135deg,#2b2118,#4a3520);color:#fff;border-radius:14px;padding:14px;margin-bottom:12px;"><b style="color:#ffd54f;">♾️ Você já tem a edição ' + EDICOES[edAtual].nome + ' vitalícia</b><div style="font-size:.82rem;margin-top:4px;color:#f1e6d3;">Sem data de vencimento e sem mensalidade. Para ter uma edição maior, escolha-a nas abas acima.</div></div>';
+        (jaVit ? [] : planos).forEach(function (p) {
             const dest = p.meses === 3, ouro = p.meses === 12;
             const borda = dest ? COR : ouro ? '#f9a825' : '#e0e0e0';
             h += '<div style="position:relative;border:2px solid ' + borda + ';' + (dest ? 'box-shadow:0 0 0 3px #f8bbd0;' : '') + 'border-radius:14px;padding:12px;margin-bottom:12px;background:#fff;">' +
@@ -206,11 +214,22 @@
                 '<div style="font-size:.78rem;color:#666;margin-top:3px;">' + esc(p.txt) + '</div>' +
                 '<button class="' + (dest || ouro ? 'btn-primary' : 'btn-outline') + '" style="margin-top:8px;width:100%;" onclick="licencaAssinar(\'' + p.id + '\')">' + (edAtual === aba ? 'Renovar ' : 'Assinar ') + E.nome + ' ' + p.nome.toLowerCase() + '</button></div>';
         });
-        if (edAtual && edAtual !== aba && !s.teste) {
+        if (!jaVit) {   // Plano vitalício: pagamento único, valor = 2 anos de assinatura anual
+            const vit = precoVitalicio(aba), cheio24 = PRECOS[aba][1] * 24;
+            h += '<div style="position:relative;border:2px solid #b8860b;border-radius:14px;padding:14px 12px 12px;margin:18px 0 12px;background:linear-gradient(135deg,#2b2118,#4a3520);color:#fff;box-shadow:0 4px 14px rgba(184,134,11,.35);">' +
+                '<span style="position:absolute;top:-10px;right:12px;background:#f9a825;color:#3e2723;font-size:.7rem;font-weight:700;border-radius:10px;padding:3px 10px;">♾️ Pague uma vez, use sempre</span>' +
+                '<div style="display:flex;justify-content:space-between;align-items:center;"><b style="font-size:1.05rem;">Vitalício</b><span style="background:#f9a825;color:#3e2723;font-weight:700;font-size:.72rem;border-radius:8px;padding:2px 7px;">-' + Math.round((cheio24 - vit) / cheio24 * 100) + '%</span></div>' +
+                '<div style="font-size:1.6rem;font-weight:800;color:#ffd54f;">' + R(vit) + '<small style="font-size:.75rem;color:#e0c9a6;font-weight:600;"> pagamento único</small></div>' +
+                '<div style="font-size:.78rem;color:#e0c9a6;">equivale a 2 anos de assinatura anual · depois disso, nenhuma mensalidade</div>' +
+                '<div style="font-size:.8rem;font-weight:700;color:#a5d6a7;margin-top:3px;">Economize ' + R(cheio24 - vit) + ' em relação a 24 meses no plano mensal</div>' +
+                '<div style="font-size:.78rem;color:#f1e6d3;margin-top:6px;line-height:1.5;">✔ Edição ' + E.nome + ' sem data de vencimento<br>✔ Sem renovação e sem cobrança automática<br>✔ Atualizações da edição enquanto o app for mantido</div>' +
+                '<button class="btn-primary" style="margin-top:10px;width:100%;background:#f9a825;color:#3e2723;border:0;" onclick="licencaAssinar(\'' + (aba === 'essencial' ? '' : aba + '-') + 'vitalicio\')">' + (edAtual === aba ? 'Tornar ' : 'Assinar ') + E.nome + ' vitalício</button></div>';
+        }
+        if (edAtual && edAtual !== aba && !s.teste && !s.vitalicio) {
             const sobe = EDICOES[aba].rank > EDICOES[edAtual].rank;
             h += '<div style="font-size:.78rem;color:#6B5A62;line-height:1.5;margin:-2px 4px 12px;">' + (sobe ? 'Vindo do ' + EDICOES[edAtual].nome + ', você paga só a diferença pelo tempo que falta: informe no pedido que é uma troca de edição.' : 'Voltando para o ' + E.nome + ', a mudança vale na próxima renovação e nada é apagado.') + '</div>';
         }
-        h += '<div id="cartao-box"></div>';
+        if (!jaVit) h += '<div id="cartao-box"></div>';
         h += '<div style="background:#fff;border-radius:12px;padding:12px 14px;margin-bottom:12px;font-size:.8rem;color:#444;line-height:1.55;box-shadow:0 2px 8px rgba(0,0,0,.06);">' +
             '<b>🔁 Pix: sem renovação automática.</b> O valor é pago uma vez e vale pelo período escolhido. Nada é cobrado depois sem você pedir e pagar de novo; ao vencer você volta ao plano gratuito e seus dados continuam salvos. Para cancelar, basta não renovar.' +
             '<br><br><b>💳 Cartão: renovação automática até você cancelar.</b> Quando disponível, a assinatura no cartão se renova sozinha no período escolhido e você cancela a qualquer momento nesta tela; o cartão é cadastrado só no Mercado Pago.' +
@@ -327,7 +346,7 @@
         const conteudo = JSON.stringify(Object.assign({}, dados, { codigo: 'CMDP1.' + b64 }), null, 1);
         const nome = 'pedido-' + String(dados.equipamento).replace(/-/g, '') + '.pedido';
         const texto = 'Olá, Central da Evolução! Quero assinar o Comandas.\nEstabelecimento: ' + (dados.estabelecimento || '—') + '\nID do equipamento: ' + dados.equipamento +
-            '\nEdição: ' + EDICOES[plano.edicao].nome + (troca ? ' (troca de edição; atual: ' + EDICOES[troca].nome + ')' : '') + '\nPlano: ' + plano.nome + ' (' + plano.meses + (plano.meses === 1 ? ' mês' : ' meses') + ')\nValor: ' + R(dados.valor) + '\nPedido: CMDP1.' + b64 + '\n(Vou enviar o comprovante do Pix.)';
+            '\nEdição: ' + EDICOES[plano.edicao].nome + (troca ? ' (troca de edição; atual: ' + EDICOES[troca].nome + ')' : '') + '\nPlano: ' + plano.nome + ' (' + descPlano(plano) + ')\nValor: ' + R(dados.valor) + '\nPedido: CMDP1.' + b64 + '\n(Vou enviar o comprovante do Pix.)';
         const C = window.CONTATO || {};
         const old = document.getElementById('modal-licenca-pedido'); if (old) old.remove();
         const m = document.createElement('div');
@@ -336,7 +355,7 @@
         m.innerHTML = '<div style="background:#fff;border-radius:16px;max-width:360px;width:100%;overflow:hidden;">' +
             '<div style="background:' + COR + ';color:#fff;padding:14px;font-weight:700;"><i class="fas fa-paper-plane"></i> ' + EDICOES[plano.edicao].nome + ' ' + plano.nome + ' — ' + R(plano.preco) + '</div>' +
             '<div style="padding:16px;font-size:.88rem;color:#444;line-height:1.5;">Enviaremos o pedido da <b>' + esc(dados.estabelecimento || 'sua loja') + '</b> (equipamento <b>' + esc(dados.equipamento) + '</b>) para a <b>' + esc(C.empresa || '') + '</b>. Mande também o comprovante do Pix.' +
-            '<div style="background:#f6f6f8;border-radius:10px;padding:8px 10px;margin-top:10px;font-size:.8rem;"><b>Total a pagar: ' + R(plano.preco) + '</b> (' + plano.meses + (plano.meses === 1 ? ' mês' : ' meses') + ', pagamento único, sem taxas adicionais).<br>Sem renovação automática. Arrependimento em até 7 dias com reembolso integral; garantia extra de 35 dias.</div>' +
+            '<div style="background:#f6f6f8;border-radius:10px;padding:8px 10px;margin-top:10px;font-size:.8rem;"><b>Total a pagar: ' + R(plano.preco) + '</b> (' + descPlano(plano) + ', pagamento único, sem taxas adicionais).<br>Sem renovação automática. Arrependimento em até 7 dias com reembolso integral; garantia extra de 35 dias.</div>' +
             '<button class="btn-primary" id="lp-p" style="margin-top:12px;width:100%;background:#2e7d32;"><i class="fas fa-qrcode"></i> 1. Pagar com Pix (' + R(plano.preco) + ')</button><div style="margin-top:10px;"><b>2.</b> Depois de pagar, envie o pedido:</div>' +
             '<button class="btn-primary" id="lp-w" style="margin-top:12px;width:100%;background:#1b8f4a;"><i class="fab fa-whatsapp"></i> WhatsApp ' + esc(C.whatsappFmt || '') + '</button>' +
             '<button class="btn-primary" id="lp-e" style="margin-top:8px;width:100%;background:#1976d2;"><i class="fas fa-envelope"></i> E-mail ' + esc(C.email || '') + '</button>' +

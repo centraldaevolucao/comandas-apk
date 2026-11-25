@@ -1,4 +1,4 @@
-# Conformidade LGPD / CDC — Restaurante-app 2.33.1
+# Conformidade LGPD / CDC — Restaurante-app 2.34.0
 
 > **Isto é um trabalho técnico e não substitui a revisão de um advogado.** Os textos foram escritos a partir do que o app realmente faz. Se o app mudar, mude os textos (`js/legal.js`) e aumente `VERSAO_TERMOS` (em `server.py` e `legal.js`): todos terão de aceitar de novo.
 
